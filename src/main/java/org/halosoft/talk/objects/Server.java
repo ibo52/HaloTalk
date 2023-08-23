@@ -21,8 +21,6 @@ public class Server extends CommunicationObject {
     
     private ServerSocket server;
     
-    private Socket[] clients;
-    
     private Thread startThread;
     
     public Server(){
@@ -36,10 +34,9 @@ public class Server extends CommunicationObject {
     
     @Override
     public void initSocket(){
-        clients=new Socket[1];
         
         try {
-            server=new ServerSocket(50001, clients.length, InetAddress.getByName("127.0.0.1") );
+            server=new ServerSocket(50001, 1, InetAddress.getByName("127.0.0.1") );
        
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -77,7 +74,6 @@ public class Server extends CommunicationObject {
 
                         setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
                         setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-
 
                          //start sender/receiver threads
                         getReceiverThread().setDaemon(true);

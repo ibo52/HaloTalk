@@ -39,7 +39,6 @@ public class Client extends CommunicationObject{
             ex.printStackTrace();
             System.exit(ex.hashCode());
         }
-
     }
     
     public Client(){

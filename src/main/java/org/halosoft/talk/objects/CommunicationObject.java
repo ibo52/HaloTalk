@@ -29,12 +29,12 @@ public class CommunicationObject {
     private DataInputStream socketIn;   //incoming messages from remote
     private DataOutputStream socketOut; //outgoing messages to remote
     
-    //private Scanner localIn;            //to read from keyboard
+    private BufferedReader localIn;     //to read from keyboard
  
-    private Thread receiver;
-    private Thread sender;
+    private Thread receiver;            //get messages from remote end
+    private Thread sender;              //send messages to remote end
     
-    BufferedReader localIn;
+    
     
     public CommunicationObject(){
         //initialize remote socket
@@ -44,7 +44,6 @@ public class CommunicationObject {
         initSocket();
         initThreads();
         
-        //localIn=new Scanner(System.in);
         localIn = new BufferedReader(
         new InputStreamReader(System.in));
     }
@@ -55,8 +54,7 @@ public class CommunicationObject {
         
         initSocket();
         initThreads();
-        
-        //localIn=new Scanner(System.in);
+
         localIn = new BufferedReader(
         new InputStreamReader(System.in));
     }
@@ -183,7 +181,7 @@ public class CommunicationObject {
         catch (NullPointerException ex) {
             System.err.println("Socket.close:Socket is already 'NULL'");
         }
-        
+
         Thread.currentThread().interrupt();
     }
 }
