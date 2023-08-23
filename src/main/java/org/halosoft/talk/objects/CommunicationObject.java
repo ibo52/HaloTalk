@@ -5,9 +5,13 @@
 package org.halosoft.talk.objects;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
@@ -25,16 +29,24 @@ public class CommunicationObject {
     private DataInputStream socketIn;   //incoming messages from remote
     private DataOutputStream socketOut; //outgoing messages to remote
     
-    private Scanner localIn;            //to read from keyboard
+    //private Scanner localIn;            //to read from keyboard
  
+    private Thread receiver;
+    private Thread sender;
+    
+    BufferedReader localIn;
+    
     public CommunicationObject(){
         //initialize remote socket
         this.remoteIp="127.0.0.1";
         this.remotePort=50001;
-        
+
         initSocket();
+        initThreads();
         
-        localIn=new Scanner(System.in);
+        //localIn=new Scanner(System.in);
+        localIn = new BufferedReader(
+        new InputStreamReader(System.in));
     }
     public CommunicationObject(String ipAddr, int port){
         //initialize remote socket
@@ -42,11 +54,30 @@ public class CommunicationObject {
         this.remotePort=port;
         
         initSocket();
+        initThreads();
         
-        localIn=new Scanner(System.in);
+        //localIn=new Scanner(System.in);
+        localIn = new BufferedReader(
+        new InputStreamReader(System.in));
     }
     public void initSocket(){
-        System.out.println("CommunicationObject init socket..");
+    }
+    
+    private void initThreads(){
+
+        receiver=new Thread(new Runnable(){
+            @Override
+            public void run(){
+                receiver();
+            }
+        });
+        
+        sender= new Thread( new Runnable(){
+            @Override
+            public void run(){
+                sender();
+            }
+        });
     }
     
     public String getRemoteIp(){
@@ -76,38 +107,83 @@ public class CommunicationObject {
     public void setSocketOutputStream(DataOutputStream out){
         this.socketOut=out;
     }
+    public Thread getSenderThread(){
+        return sender;
+    }
+    public Thread getReceiverThread(){
+        return receiver;
+    }
     //-----------------
     public void receiver(){
         
-        while ( true ){
+        while ( !receiver.isInterrupted() ){
             
             try {
-
-                System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),socketIn.readUTF() );
+                String message=socketIn.readUTF();
+                System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
             
-            } catch (IOException ex) {
+            } catch( EOFException ex ){
+                System.err.println("EOFException:"
+                        + "\tPossiby remote end closed the connection."
+                        + " Stop will be invoked");
+                this.stop();
+                break;
+                
+            }catch (IOException ex) {
                 ex.printStackTrace();
+                
             }
-            
             
         }
     }
     public void sender(){
-        while (true){
+        while ( !sender.isInterrupted() ){
             
             try {
-                String message=localIn.nextLine();
+                
+                while( !localIn.ready() ){//wait for if input buffer is ready
+                    Thread.sleep(200);
+                    
+                    if( client.isClosed() ){
+                        break;
+                    }
+                }
+                String message=localIn.readLine();
                 
                 socketOut.writeUTF(message);
-                System.out.println("<you>:"+message);
+                //System.out.println("<you>:"+message);
             
-            } catch (IOException ex) {
+            } catch (InterruptedException ex) {
+                System.err.println(ex.getMessage()
+                +":\tSender thread");
+                break;
+                
+            }catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
     }
-    
+
     public void start(){
         
+    }
+    public void stop(){
+        
+        this.receiver.interrupt();
+        this.sender.interrupt();
+        
+        try {
+            this.client.close();
+            
+            socketOut.close();
+            
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        catch (NullPointerException ex) {
+            System.err.println("Socket.close:Socket is already 'NULL'");
+        }
+        
+        Thread.currentThread().interrupt();
     }
 }

@@ -29,7 +29,9 @@ public class Client extends CommunicationObject{
             setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
         
         }catch (ConnectException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Client could not connect to Address.\n"
+                    + "Possibly server is down or not accessible due to firewall.\n"
+                    + "Returned error is:"+ex.getMessage());
             System.exit(ex.hashCode());
             
         
@@ -49,42 +51,32 @@ public class Client extends CommunicationObject{
     @Override
     public void start(){
         
-        //open sender/receiver threads
-        Thread receiverThread=new Thread(new Runnable(){
-            @Override
-            public void run(){
-                receiver();
-            }
-        });
+        //start sender/receiver threads
+        this.getReceiverThread().setDaemon(true);
+        this.getSenderThread().setDaemon(true);
         
-        Thread senderThread= new Thread( new Runnable(){
-            @Override
-            public void run(){
-                sender();
-            }
-        });
-        
-        receiverThread.setDaemon(true);
-        senderThread.setDaemon(true);
-        
-        receiverThread.start();
-        senderThread.start();
+        this.getReceiverThread().start();
+        this.getSenderThread().start();
         
         try {
-            senderThread.join();
-            receiverThread.join();
+            this.getSenderThread().join();
+            this.getReceiverThread().join();
             
         }catch (InterruptedException ex) {
             ex.printStackTrace();
         }
     }
     
+    public void stop(){
+        super.stop();
+    }
     public static void main(String[] args) {
         System.out.println("client start");
         
         var cli=new Client();
         
         cli.start();
+        cli.stop();
     }
     
 }

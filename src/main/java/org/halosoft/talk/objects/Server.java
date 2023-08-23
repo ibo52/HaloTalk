@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  *
@@ -21,6 +22,8 @@ public class Server extends CommunicationObject {
     private ServerSocket server;
     
     private Socket[] clients;
+    
+    private Thread startThread;
     
     public Server(){
         
@@ -42,65 +45,106 @@ public class Server extends CommunicationObject {
             ex.printStackTrace();
         }
     }
+    public ServerSocket getServerSocket(){
+        return this.server;
+    }
+    public void setServerSocket(ServerSocket server){
+        this.server=server;
+    }
+    
+    public Thread getStarterThread(){
+        return this.startThread;
+    }
     
     @Override
     public void start(){
-        
-        while(true){
-                
-            try {
-                var client=server.accept();
-                this.setClientSocket(client);
-                
-                setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
-                setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-                
-                System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+        if ( startThread==null || !startThread.isAlive() ) {
             
-                setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
-                setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-            
+            startThread=new Thread(new Runnable(){
+            @Override
+            public void run(){
                 
-                //open sender/receiver threads
-                Thread receiverThread=new Thread(new Runnable(){
-                    @Override
-                    public void run(){
-                        receiver();
+                while( !startThread.isInterrupted() ){
+                    
+                    try {
+                        var client=server.accept();
+                        setClientSocket(client);
+
+                        setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
+                        setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
+
+                        System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+
+                        setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
+                        setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
+
+
+                         //start sender/receiver threads
+                        getReceiverThread().setDaemon(true);
+                        getSenderThread().setDaemon(true);
+
+                        getReceiverThread().start();
+                        getSenderThread().start();
+
+                        try {
+                            getSenderThread().join();
+                            getReceiverThread().join();
+
+                        }
+                        catch (InterruptedException ex) {
+                            System.out.println("interrupted");
+                        }
+
+                    } catch (SocketException ex) {
+                            System.err.println( ex.getMessage()
+                            +":\tPossibly socket is closed. Starter thread will be interrupt");
+
+                            startThread.interrupt();
+                            break;
+
+                    }catch (IOException ex) {
+                            ex.printStackTrace();
                     }
-                });
 
-                Thread senderThread= new Thread( new Runnable(){
-                    @Override
-                    public void run(){
-                        sender();
-                    }
-                });
-
-                receiverThread.setDaemon(true);
-                senderThread.setDaemon(true);
-
-                receiverThread.start();
-                senderThread.start();
-
-                try {
-                    senderThread.join();
-                    receiverThread.join();
-
-                }catch (InterruptedException ex) {
-                    ex.printStackTrace();
                 }
-        } catch (IOException ex) {
-                ex.printStackTrace();
-        }
 
+                }
+                });
+
+                startThread.setDaemon(true);
+
+                startThread.start();
+            
+        } else if ( startThread.isAlive() ) {
+            System.err.println("Server.start :server already started.");
+            return;
         }
         
     }
+    @Override
+    public void stop(){
+        super.stop();
+        
+        try {
+            this.server.close();
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
     public static void main(String[] args) {
-        System.out.println("test server obj");
+        System.out.println("Test server obj");
         
         var s=new Server();
+
         s.start();
+        
+        try {
+            s.getStarterThread().join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
+        
     }
     
 }
