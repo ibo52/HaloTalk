@@ -3,6 +3,7 @@ module org.halosoft.talk {
     requires javafx.fxml;
     requires java.base;
 
+    opens org.halosoft.talk.controllers to javafx.fxml;
     opens org.halosoft.talk to javafx.fxml;
     exports org.halosoft.talk;
 }
