@@ -3,7 +3,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 
-<HBox fx:id="msgBoxLayout" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.MessageBoxPanelController">
+<HBox fx:id="msgBoxLayout" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.MessageBoxPanelController">
    <children>
       <Label fx:id="msgTextArea" prefWidth="200.0" style="-fx-background-color: #77ff77; -fx-border-color: black; -fx-border-width: 2;" wrapText="true" />
    </children>
