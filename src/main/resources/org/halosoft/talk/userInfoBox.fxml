@@ -9,16 +9,25 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserInfoBoxController">
+<BorderPane fx:id="rootPane" onMouseClicked="#rootPaneMouseClicked" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserInfoBoxController">
    <center>
-      <Label fx:id="userID" alignment="TOP_LEFT" text="user name or identifier" wrapText="true" BorderPane.alignment="TOP_LEFT">
+      <VBox BorderPane.alignment="TOP_LEFT">
          <BorderPane.margin>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
          </BorderPane.margin>
-         <font>
-            <Font name="System Bold" size="16.0" />
-         </font>
-      </Label>
+         <children>
+            <Label fx:id="userID" alignment="TOP_LEFT" text="user name or identifier" wrapText="true">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <Label fx:id="customStatusLabel">
+               <VBox.margin>
+                  <Insets bottom="2.0" left="10.0" right="5.0" top="2.0" />
+               </VBox.margin>
+            </Label>
+         </children>
+      </VBox>
    </center>
    <right>
       <VBox alignment="CENTER" BorderPane.alignment="CENTER">
@@ -49,7 +58,7 @@
       </VBox>
    </right>
    <left>
-      <VBox alignment="CENTER" style="-fx-background-color: red; -fx-background-radius: 30% 30%;" BorderPane.alignment="CENTER">
+      <VBox fx:id="userImageBox" alignment="CENTER" style="-fx-background-color: red; -fx-background-radius: 30% 30%;" BorderPane.alignment="CENTER">
          <children>
             <ImageView fx:id="userImage" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" smooth="false">
                <image>
