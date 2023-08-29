@@ -49,32 +49,26 @@ public class Client extends CommunicationObject{
     }
     @Override
     public void start(){
-        
         //start sender/receiver threads
-        this.getReceiverThread().setDaemon(true);
-        this.getSenderThread().setDaemon(true);
+        super.start();
         
-        this.getReceiverThread().start();
-        this.getSenderThread().start();
-        
-        try {
-            this.getSenderThread().join();
-            this.getReceiverThread().join();
-            
-        }catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
+        //overrided for later possible implements
     }
     
     public void stop(){
         super.stop();
+        
+        //overrided for later possible implements
     }
+    
     public static void main(String[] args) {
         System.out.println("client start");
         
         var cli=new Client();
         
         cli.start();
+        cli.join();
+        System.out.println("cli will stop");
         cli.stop();
     }
     

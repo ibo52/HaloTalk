@@ -163,8 +163,13 @@ public class CommunicationObject {
     }
 
     public void start(){
+        this.receiver.setDaemon(true);
+        this.sender.setDaemon(true);
         
+        this.receiver.start();
+        this.sender.start();
     }
+    
     public void stop(){
         
         this.receiver.interrupt();
@@ -183,5 +188,15 @@ public class CommunicationObject {
         }
 
         Thread.currentThread().interrupt();
+    }
+    
+    public void join(){
+        try {
+            //waits for the threads of this class to done or interrupt
+            this.sender.join();
+            this.receiver.join();
+        } catch (InterruptedException ex) {
+            ex.printStackTrace();
+        }
     }
 }

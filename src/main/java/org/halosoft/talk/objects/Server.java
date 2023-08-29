@@ -123,8 +123,18 @@ public class Server extends CommunicationObject {
         
         try {
             this.server.close();
+            this.startThread.interrupt();
 
         } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    public void join(){
+        super.join();
+        
+        try {
+            this.startThread.join();
+        } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
     }
@@ -135,11 +145,10 @@ public class Server extends CommunicationObject {
 
         s.start();
         
-        try {
-            s.getStarterThread().join();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
+        s.join();
+        System.out.println("server will stop");
+        s.stop();
+        System.out.println("done");
         
     }
     
