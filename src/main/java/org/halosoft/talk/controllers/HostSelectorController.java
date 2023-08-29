@@ -12,17 +12,18 @@ import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
-import org.halosoft.talk.objects.Client;
-import org.halosoft.talk.objects.Server;
 
 /**
  * FXML Controller class
@@ -35,6 +36,8 @@ public class HostSelectorController implements Initializable {
     
     @FXML
     private VBox usersBox;
+    @FXML
+    private BorderPane chatPanelLayout;
     /**
      * Initializes the controller class.
      */
@@ -47,6 +50,21 @@ public class HostSelectorController implements Initializable {
         
         // TODO
     }
+    
+    public void bringChatScreen(UserInfoBoxController userInfoBox_ctrlr){
+        try {
+            
+            Parent chatPanel=App.loadFXML("chatPanel");
+            ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
+            
+            ctrlr.setContents(userInfoBox_ctrlr.getUserID(), userInfoBox_ctrlr.getImage());
+            
+            chatPanelLayout.setCenter(chatPanel);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+    
     public void LANBrowser(){
         
         Thread browserThread=new Thread( new Runnable(){
@@ -135,13 +153,10 @@ public class HostSelectorController implements Initializable {
             @Override
             public void run() {
 
-                FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("userInfoBox.fxml"));
-
                 try {
-                    Parent Box= fxmlLoader.load();
+                    Parent Box= App.loadFXML("userInfoBox");
 
-                    UserInfoBoxController ctrlr=fxmlLoader.getController();
-                    Box.setUserData(ctrlr);
+                    UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
 
                     if ( !userInfo.equals(new String("NO_RESPONSE" ))) { 
 

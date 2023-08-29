@@ -19,6 +19,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -52,7 +53,7 @@ public class ChatPanelController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
 
-        
+        /*
         addMessage("deneme kontrol sereseracvasdmaskf"
                 + "2. satır"
                 + "ve 3. astır"
@@ -64,7 +65,13 @@ public class ChatPanelController implements Initializable {
         addMessage("esrar-eltaraf-elkalemmityye",Pos.TOP_RIGHT);
         
         addMessage("tamamt",Pos.TOP_LEFT);
+        */
 
+    }
+    
+    public void setContents(String userName, Image image){
+        this.userNameLabel.setText(userName);
+        this.userImageView.setImage(image);
     }
     
     public void addMessage(String message, Pos pos){
