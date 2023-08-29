@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -17,6 +19,8 @@ import javafx.scene.Parent;
 
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
+import org.halosoft.talk.objects.BroadcastClient;
+import org.halosoft.talk.objects.Broadcaster;
 import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.Server;
 
@@ -27,7 +31,7 @@ import org.halosoft.talk.objects.Server;
  */
 public class HostSelectorController implements Initializable {
 
-    private Server server;
+    private Broadcaster statEmitter;
     
     @FXML
     private VBox usersBox;
@@ -36,70 +40,125 @@ public class HostSelectorController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        //server=new Server();
-        System.out.println("server start");
+        statEmitter=new Broadcaster();
+        statEmitter.start();
+        
         LANBrowser();
         
         // TODO
     }
-    public void appendLANUser(Parent p){
-        this.usersBox.getChildren().add(p);
-    }
     public void LANBrowser(){
         
-        Thread t=new Thread( new Runnable(){
+        Thread browserThread=new Thread( new Runnable(){
            @Override
            public void run(){
                
                while( !Thread.currentThread().isInterrupted() ){
-                    for (int i = 100; i < 255; i++) {
+                   
+                    for (int i = 1; i < 254; i++) {
+                        
                          String host="192.168.1."+i;
+                        
                          try {
-                             if ( InetAddress.getByName(host).isReachable(166) ) {
+                             //check if there is proper network device with this ip address
+                             if ( InetAddress.getByName(host).isReachable(50) ) {
                                  
-                                 System.out.println(host+"("
-                                         +InetAddress.getByName(host).getCanonicalHostName()
-                                 +") is up");
+                                 //check if host has this application
+                                 BroadcastClient requester =new BroadcastClient(host);
                                  
-                                
-                                 Platform.runLater(new Runnable(){
-                                    @Override
-                                    public void run() {
+                                 requester.start();
+                                 
+                                 
+                                 Iterator iter=usersBox.getChildren().iterator();
+                                 boolean appendFlag=true;
+                                 
+                                 while( iter.hasNext() ){
+                                     
+                                     Parent v=(Parent)iter.next();
+                                     
+                                     UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
 
-                                        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("userInfoBox.fxml"));
-                                        try {
-                                            Parent Box= fxmlLoader.load();
-                                            UserInfoBoxController ctrlr=fxmlLoader.getController();
-
-                                            ctrlr.setUserName(host);
-
-                                            appendLANUser(Box);
-                                        } catch (IOException ex) {
-                                            ex.printStackTrace();
-                                        }
-                                    }
-                                });
-  
-                                 
-                                 
+                                     if (host.equals(ctrlr.getID()) ) {
+                                         appendFlag=false;
+                                         updateUser(new String(requester.getBuffer(), 0, requester.getBufferLength()), v);
+                                         break;
+                                     }
+                                 }
+                                 if (appendFlag) {
+                                    appendUser(new String(requester.getBuffer(), 0, requester.getBufferLength() ), host);
+                                 }
                              }
                          } catch (UnknownHostException ex) {
-                             ex.printStackTrace();
+                             System.out.println(ex.getMessage());
                          } catch (IOException ex) {
-                             ex.printStackTrace();
+                             System.out.println(ex.getMessage());
                          }
                     }
                     
                    try {
                        Thread.sleep(3000);
                    } catch (InterruptedException ex) {
+                       statEmitter.stop();
+                       System.out.println("statEmitter stopped beacuse of interrupt");
                        ex.printStackTrace();
                    }
                 }
            }
         });
         
-        t.setDaemon(true);
-        t.start();
+        browserThread.setDaemon(true);
+        browserThread.start();
+    }
+    
+    public void updateUser(String userInfo, Parent Box){
+        
+        Platform.runLater(new Runnable(){
+            @Override
+            public void run() {
+
+                UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
+                if ( !userInfo.equals(new String("NO_RESPONSE" ))) {
+
+                    String[] parse=userInfo.split(";");
+
+                    ctrlr.setUserName(parse[0]);
+                    ctrlr.setStatus(Integer.parseInt(parse[1]));
+                    ctrlr.setCustomStatus(parse[2]);
+                }
+            }
+        });
+        
+    }
+    public void appendUser(String userInfo, String ipAddress){
+        
+        Platform.runLater(new Runnable(){
+            @Override
+            public void run() {
+
+                FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("userInfoBox.fxml"));
+
+                try {
+                    Parent Box= fxmlLoader.load();
+
+                    UserInfoBoxController ctrlr=fxmlLoader.getController();
+                    Box.setUserData(ctrlr);
+
+                    if ( !userInfo.equals(new String("NO_RESPONSE" ))) { 
+
+                        String[] parse=userInfo.split(";");
+
+                        ctrlr.setUserName(parse[0]);
+                        ctrlr.setStatus(Integer.parseInt(parse[1]));
+                        ctrlr.setCustomStatus(parse[2]);
+                        
+                        ctrlr.setID(ipAddress);
+                        usersBox.getChildren().add(Box);
+                    }
+                } catch (IOException ex) {
+                    System.out.println(ex.getMessage());
+                }
+            }
+        });
+        
     }
 }
