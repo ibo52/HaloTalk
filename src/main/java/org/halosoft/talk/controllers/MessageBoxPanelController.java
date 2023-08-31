@@ -33,8 +33,7 @@ public class MessageBoxPanelController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        
-        //this.msgTextArea.prefWidthProperty().bind( this.msgBoxLayout.widthProperty().multiply(0.8) );
+        this.msgTextArea.maxWidthProperty().bind( this.msgBoxLayout.widthProperty().multiply(0.9) );
     }
     
     public void setMessage(String message, Pos pos){
