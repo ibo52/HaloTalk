@@ -10,17 +10,22 @@ import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -46,27 +51,16 @@ public class ChatPanelController implements Initializable {
     private Label userNameLabel;
     @FXML
     private VBox messageBoxLayout;
+    @FXML
+    private TextField messageTextField;
+    @FXML
+    private Button sendButton;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-
-        /*
-        addMessage("deneme kontrol sereseracvasdmaskf"
-                + "2. satır"
-                + "ve 3. astır"
-                + "sdfks",Pos.TOP_LEFT);
-        
-        addMessage("asdfskiaerjgpğsdşsdıofdjvfoperufsdılfjsdılfg"
-                + "sdoşfjasıdfjğawefjaıofjweıofjısdoğfjsdofjadsı",Pos.TOP_RIGHT);
-        
-        addMessage("esrar-eltaraf-elkalemmityye",Pos.TOP_RIGHT);
-        
-        addMessage("tamamt",Pos.TOP_LEFT);
-        */
-
     }
     
     public void setContents(String userName, Image image){
@@ -75,11 +69,10 @@ public class ChatPanelController implements Initializable {
     }
     
     public void addMessage(String message, Pos pos){
-        
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("messageBoxPanel.fxml"));
+
         try {
-            Parent msgBox= fxmlLoader.load();
-            MessageBoxPanelController msgController=fxmlLoader.getController();
+            Parent msgBox= App.loadFXML( App.class.getResource("messageBoxPanel.fxml").toString() );
+            MessageBoxPanelController msgController= (MessageBoxPanelController) msgBox.getUserData();
             
             msgController.setmsgBoxLayoutAlignment(pos);
             msgController.setMessage(message, pos);
@@ -91,6 +84,19 @@ public class ChatPanelController implements Initializable {
         
         
         
+    }
+
+    @FXML
+    private void sendButtonMouseClicked(MouseEvent event) {
+        
+        String message=this.messageTextField.getText();
+        
+        if ( !message.equals(new String("") )) {
+            
+            this.addMessage(message, Pos.TOP_RIGHT);
+            
+            this.messageTextField.setText("");
+        }
     }
     
 }
