@@ -10,17 +10,17 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.ResourceBundle;
+import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
@@ -32,22 +32,26 @@ import org.halosoft.talk.objects.Broadcaster;
  */
 public class HostSelectorController implements Initializable {
 
-    private Broadcaster statEmitter;
+    private Broadcaster LANBroadcaster;
     
     @FXML
     private VBox usersBox;
     @FXML
     private BorderPane chatPanelLayout;
+    @FXML
+    private StackPane leftStackPane;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        statEmitter=new Broadcaster();
-        statEmitter.start();
+        LANBroadcaster=new Broadcaster();
+        LANBroadcaster.start();
         
         LANBrowser();
+        //this.chatPanelLayout.addEventFilter(EventType.ROOT, eh);
         
+        this.appendUser("sample host;1;sample status message", "127.0.0.1");
         // TODO
     }
     
@@ -61,8 +65,12 @@ public class HostSelectorController implements Initializable {
             
             chatPanelLayout.setCenter(chatPanel);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
+    }
+    
+    public StackPane getLeftStackPane(){
+        return this.leftStackPane;
     }
     
     public void LANBrowser(){
@@ -82,9 +90,9 @@ public class HostSelectorController implements Initializable {
                              if ( InetAddress.getByName(host).isReachable(50) ) {
                                  
                                  //check if host has this application
-                                 BroadcastClient requester =new BroadcastClient(host);
+                                 BroadcastClient LANdiscover =new BroadcastClient(host);
                                  
-                                 requester.start();
+                                 LANdiscover.start();
                                  
                                  
                                  Iterator iter=usersBox.getChildren().iterator();
@@ -98,12 +106,12 @@ public class HostSelectorController implements Initializable {
 
                                      if (host.equals(ctrlr.getID()) ) {
                                          appendFlag=false;
-                                         updateUser(new String(requester.getBuffer(), 0, requester.getBufferLength()), v);
+                                         updateUser(new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()), v);
                                          break;
                                      }
                                  }
                                  if (appendFlag) {
-                                    appendUser(new String(requester.getBuffer(), 0, requester.getBufferLength() ), host);
+                                    appendUser(new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength() ), host);
                                  }
                              }
                          } catch (UnknownHostException ex) {
@@ -116,7 +124,7 @@ public class HostSelectorController implements Initializable {
                    try {
                        Thread.sleep(3000);
                    } catch (InterruptedException ex) {
-                       statEmitter.stop();
+                       LANBroadcaster.stop();
                        System.out.println("statEmitter stopped beacuse of interrupt");
                        ex.printStackTrace();
                    }
@@ -142,6 +150,13 @@ public class HostSelectorController implements Initializable {
                     ctrlr.setUserName(parse[0]);
                     ctrlr.setStatus(Integer.parseInt(parse[1]));
                     ctrlr.setCustomStatus(parse[2]);
+                    
+                    FadeTransition ft=new FadeTransition();
+                    ft.setDuration(Duration.millis(300));
+                    ft.setFromValue(0.2);
+                    ft.setToValue(1);
+                    
+                    ft.play();
                 }
             }
         });
@@ -168,6 +183,14 @@ public class HostSelectorController implements Initializable {
                         
                         ctrlr.setID(ipAddress);
                         usersBox.getChildren().add(Box);
+                        
+                        TranslateTransition tt=new TranslateTransition();
+                        tt.setDuration(Duration.millis(300));
+                        tt.setNode(Box);
+                        tt.setFromX(-100);
+                        tt.setToX(0);
+                        
+                        tt.play();
                     }
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
