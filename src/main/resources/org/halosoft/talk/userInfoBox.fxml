@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootPane" onMouseClicked="#rootPaneMouseClicked" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserInfoBoxController">
+<BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#rootPaneMouseClicked" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserInfoBoxController">
    <center>
       <VBox BorderPane.alignment="TOP_LEFT">
          <BorderPane.margin>
@@ -58,9 +58,9 @@
       </VBox>
    </right>
    <left>
-      <VBox fx:id="userImageBox" alignment="CENTER" style="-fx-background-color: red; -fx-background-radius: 30% 30%;" BorderPane.alignment="CENTER">
+      <VBox fx:id="userImageBox" alignment="CENTER" onMouseClicked="#userImageBoxMouseClicked" prefHeight="72.0" prefWidth="72.0" style="-fx-background-color: red; -fx-background-radius: 30% 30%;" BorderPane.alignment="CENTER">
          <children>
-            <ImageView fx:id="userImage" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" smooth="false">
+            <ImageView fx:id="userImage" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true" smooth="false">
                <image>
                   <Image url="@../../../images/logo-circle-512x512.png" />
                </image>
