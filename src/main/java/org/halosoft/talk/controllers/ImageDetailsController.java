@@ -6,7 +6,9 @@ package org.halosoft.talk.controllers;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.Set;
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
@@ -33,17 +35,33 @@ public class ImageDetailsController implements Initializable {
     @FXML
     private StackPane stackPane;
     @FXML
-    private ScrollPane userImagePane;
+    private ScrollPane userImageBox;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        //this.rootPane.maxWidthProperty().bind();
+        this.userImage.fitWidthProperty().bind(this.userImageBox.widthProperty());
+        this.userImage.fitHeightProperty().bind(this.userImageBox .heightProperty());
+        this.userImageBox.prefWidthProperty().bind(this.rootPane.prefWidthProperty());
+        this.userImageBox.prefHeightProperty().bind(this.rootPane.prefHeightProperty());
 
-        this.userImage.fitWidthProperty().bind(this.userImagePane.widthProperty());
-        this.userImage.fitHeightProperty().bind(this.userImagePane .heightProperty());
-    }  
+    }
+    
+    public void initRootProperty(DoubleProperty width){
+        this.rootPane.prefWidthProperty().bind(width);
+        this.rootPane.prefHeightProperty().bind(width);
+    }
+    public void initRootProperty(DoubleBinding width){
+        this.rootPane.prefWidthProperty().bind(width);
+        this.rootPane.prefHeightProperty().bind(width);
+    }
+    public void initRootProperty(ReadOnlyDoubleProperty width){
+        this.rootPane.prefWidthProperty().bind(width);
+        this.rootPane.prefHeightProperty().bind(width);
+    }
     
     public void setUserImage(Image img){
         this.userImage.setImage(img);
@@ -52,5 +70,4 @@ public class ImageDetailsController implements Initializable {
     public void setUserID(String userID) {
         this.userID.setText( userID );
     }
-    
 }
