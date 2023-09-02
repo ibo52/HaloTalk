@@ -42,10 +42,10 @@
    <bottom>
       <HBox BorderPane.alignment="CENTER">
          <children>
-          <Button mnemonicParsing="false" text="Message" />
+          <Button fx:id="sendMessageButton" mnemonicParsing="false" onMouseClicked="#sendMessageButtonMouseClicked" text="Message" />
             <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
                <children>
-                  <Button alignment="CENTER" mnemonicParsing="false" text="..." textAlignment="CENTER">
+                  <Button fx:id="showDetailsButton" alignment="CENTER" mnemonicParsing="false" onMouseClicked="#showDetailsButtonMouseClicked" text="..." textAlignment="CENTER">
                      <font>
                         <Font name="System Bold" size="13.0" />
                      </font>
