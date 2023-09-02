@@ -68,6 +68,32 @@ public class HostSelectorController implements Initializable {
             System.out.println(ex.getMessage());
         }
     }
+    public void bringChatScreen(ImageDetailsController imageDetails_ctrlr){
+        try {
+            
+            Parent chatPanel=App.loadFXML("chatPanel");
+            ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
+            
+            ctrlr.setContents(imageDetails_ctrlr.getUserID(), imageDetails_ctrlr.getImage());
+            
+            chatPanelLayout.setCenter(chatPanel);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+    public void bringChatScreen(UserContactController uContact_ctrlr){
+        try {
+            
+            Parent chatPanel=App.loadFXML("chatPanel");
+            ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
+            
+            ctrlr.setContents(uContact_ctrlr.getUserID(), uContact_ctrlr.getImage());
+            
+            chatPanelLayout.setCenter(chatPanel);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
     
     public StackPane getLeftStackPane(){
         return this.leftStackPane;
