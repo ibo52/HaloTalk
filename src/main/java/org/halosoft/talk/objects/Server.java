@@ -12,6 +12,8 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -20,6 +22,7 @@ import java.net.SocketException;
 public class Server extends CommunicationObject {
     
     private ServerSocket server;
+    private Map<String, Socket> clients;
     
     private Thread startThread;
     
@@ -34,12 +37,13 @@ public class Server extends CommunicationObject {
     
     @Override
     public void initSocket(){
+        clients=new HashMap<>();
         
         try {
             server=new ServerSocket(50001, 1, InetAddress.getByName("127.0.0.1") );
        
         } catch (IOException ex) {
-            ex.printStackTrace();
+            System.out.println("Server initSocket:"+ex.getMessage());
         }
     }
     public ServerSocket getServerSocket(){
@@ -65,23 +69,22 @@ public class Server extends CommunicationObject {
                     
                     try {
                         var client=server.accept();
+                        clients.put(client.getInetAddress().getHostAddress(), client);
+                         
                         setClientSocket(client);
 
                         setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
                         setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
 
-                        System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+                        //System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
 
-                        setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
-                        setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-
-                         //start sender/receiver threads
+                        //start sender/receiver threads
                         getReceiverThread().setDaemon(true);
                         getSenderThread().setDaemon(true);
 
                         getReceiverThread().start();
                         getSenderThread().start();
-
+                        /*
                         try {
                             getSenderThread().join();
                             getReceiverThread().join();
@@ -90,30 +93,30 @@ public class Server extends CommunicationObject {
                         catch (InterruptedException ex) {
                             System.out.println("interrupted");
                         }
+                        */
 
                     } catch (SocketException ex) {
                             System.err.println( ex.getMessage()
                             +":\tPossibly socket is closed. Starter thread will be interrupt");
-
+                            
                             startThread.interrupt();
                             break;
 
                     }catch (IOException ex) {
-                            ex.printStackTrace();
+                            System.err.println("Server listen:"+ex.getMessage());
                     }
 
                 }
 
-                }
-                });
+            }
+        });
 
-                startThread.setDaemon(true);
+        startThread.setDaemon(true);
 
-                startThread.start();
+        startThread.start();
             
         } else if ( startThread.isAlive() ) {
             System.err.println("Server.start :server already started.");
-            return;
         }
         
     }
@@ -126,30 +129,17 @@ public class Server extends CommunicationObject {
             this.startThread.interrupt();
 
         } catch (IOException ex) {
-            ex.printStackTrace();
+            System.err.println("Server stop:"+ex.getMessage());
         }
     }
+    @Override
     public void join(){
         super.join();
         
         try {
             this.startThread.join();
         } catch (InterruptedException ex) {
-            ex.printStackTrace();
+            System.err.println("Server join threads:"+ex.getMessage());
         }
-    }
-    public static void main(String[] args) {
-        System.out.println("Test server obj");
-        
-        var s=new Server();
-
-        s.start();
-        
-        s.join();
-        System.out.println("server will stop");
-        s.stop();
-        System.out.println("done");
-        
-    }
-    
+    } 
 }

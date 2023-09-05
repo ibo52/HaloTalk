@@ -9,6 +9,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 
 /**
  *
@@ -17,6 +18,8 @@ import java.net.SocketException;
 public class Broadcaster {
     
     private DatagramSocket server;
+    
+    private String hostName;
     int port;
     
     private int userStatus;
@@ -27,14 +30,16 @@ public class Broadcaster {
     public Broadcaster(){
         this.port=50002;
         this.userStatus=2;
-        customStatus="heyyo! I am using HaloTalk.";
-        
+        this.customStatus="heyyo! I am using HaloTalk.";
+                
         try {
             this.server=new DatagramSocket(this.port);
             this.server.setBroadcast(true);
             
-        } catch (SocketException ex) {
-            ex.printStackTrace();
+            this.hostName=System.getenv("USERNAME")+"@"+InetAddress.getLocalHost().getHostName();
+            
+        } catch (SocketException | UnknownHostException ex) {
+            System.out.println(ex.getMessage());
         }
         
     }
@@ -59,11 +64,26 @@ public class Broadcaster {
                         int remotePort=request.getPort();
                         
                         //System.out.println("remote request from:"+remoteCli.getHostName());
-                        
-                        String data=System.getenv("USERNAME")+"@"+InetAddress.getLocalHost().getHostName();
-                        data+=";"+getStatus();
-                        data+=";"+getCustomStatus();
-                        
+                        String data="";
+                        switch(buffer.toString()){
+                            
+                            case "HNAME":
+                                data=String.valueOf(getHostName());
+                                break;
+                            case "STAT":
+                                data=String.valueOf(getStatus() );
+                                break;
+                            
+                            case "CSTAT":
+                                data=String.valueOf(getCustomStatus() );
+                                break;
+                                
+                            default:
+                                data=getHostName();
+                                data+=";"+getStatus();
+                                data+=";"+getCustomStatus();
+                                break;
+                        }
                         buffer=data.getBytes();
                         
                         DatagramPacket response=new DatagramPacket(buffer, buffer.length, remoteCli,remotePort);
@@ -92,6 +112,12 @@ public class Broadcaster {
     public void stop(){
         this.starter.interrupt();
         this.server.close();
+        
+        System.out.println("stop exectued on broadcaster");
+    }
+    
+    public String getHostName(){
+        return this.hostName;
     }
     public void setCustomStatus(String statusMessage){
         this.customStatus=statusMessage;

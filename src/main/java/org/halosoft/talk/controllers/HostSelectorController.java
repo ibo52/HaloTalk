@@ -24,6 +24,8 @@ import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
+import org.halosoft.talk.objects.Client;
+import org.halosoft.talk.objects.Server;
 
 /**
  * FXML Controller class
@@ -31,8 +33,10 @@ import org.halosoft.talk.objects.Broadcaster;
  * @author ibrahim
  */
 public class HostSelectorController implements Initializable {
-
-    private Broadcaster LANBroadcaster;
+    private Server server;              //to let others conect to you
+    
+    private Client connectorClient;     //to request connection from others
+    private Broadcaster LANBroadcaster; //to browse for local devices that use this program
     
     @FXML
     private VBox usersBox;
@@ -45,11 +49,13 @@ public class HostSelectorController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        server=new Server();
+        server.start();
+        
         LANBroadcaster=new Broadcaster();
         LANBroadcaster.start();
         
         LANBrowser();
-        //this.chatPanelLayout.addEventFilter(EventType.ROOT, eh);
         
         this.appendUser("sample host;1;sample status message", "127.0.0.1");
         // TODO
@@ -57,15 +63,24 @@ public class HostSelectorController implements Initializable {
     
     public void bringChatScreen(UserInfoBoxController userInfoBox_ctrlr){
         try {
+            if (this.chatPanelLayout.getCenter()!=null ) {
+                ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
+                oldCtrlr.closeClient();
+            }
             
             Parent chatPanel=App.loadFXML("chatPanel");
             ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
             
             ctrlr.setContents(userInfoBox_ctrlr.getUserID(), userInfoBox_ctrlr.getImage());
             
+            connectorClient=new Client( userInfoBox_ctrlr.getID() );
+            //connectorClient.start();
+            ctrlr.setClient(connectorClient);
+            
             chatPanelLayout.setCenter(chatPanel);
+            
         } catch (IOException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("hostSelector bringChatScreen:"+ex.getMessage());
         }
     }
     public void bringChatScreen(ImageDetailsController imageDetails_ctrlr){
@@ -107,9 +122,9 @@ public class HostSelectorController implements Initializable {
                
                while( !Thread.currentThread().isInterrupted() ){
                    
-                    for (int i = 1; i < 254; i++) {
+                    for (int i = 110; i < 254; i++) {
                         
-                         String host="192.168.1."+i;
+                         String host="192.168.43."+i;
                         
                          try {
                              //check if there is proper network device with this ip address
@@ -120,7 +135,11 @@ public class HostSelectorController implements Initializable {
                                  
                                  LANdiscover.start();
                                  
-                                 
+                                 //if LANbrowser finds own broadcaster(itself) on LAN
+                                 //just continue next iteration
+                                 if ( new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";")[0].equals(LANBroadcaster.getHostName()) ) {
+                                     continue;
+                                 }
                                  Iterator iter=usersBox.getChildren().iterator();
                                  boolean appendFlag=true;
                                  

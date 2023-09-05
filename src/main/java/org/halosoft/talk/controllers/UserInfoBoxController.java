@@ -124,12 +124,10 @@ public class UserInfoBoxController implements Initializable {
             //imageDetailsController.setUserImage(this.getImage());
             leftStackPane.getChildren().add(imageDetails);
             
-            //bind width and height to parent
-            
             //scale transition for fancy effect
             ScaleTransition st=new ScaleTransition();
             st.setNode(imageDetails);
-            st.setDuration(Duration.millis(900));
+            st.setDuration(Duration.millis(300));
             
             st.setFromX(0);
             st.setFromY(0);
@@ -156,6 +154,7 @@ public class UserInfoBoxController implements Initializable {
     @FXML
     private void userImageBoxMouseClicked(MouseEvent event) {
         this.showUserInfoDetails();
+        event.consume();
     }
     
 }

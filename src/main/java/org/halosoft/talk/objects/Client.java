@@ -9,25 +9,36 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  *
  * @author ibrahim
  */
 public class Client extends CommunicationObject{
+    
     @Override
     public void initSocket(){
         
         try {
+            
+            Socket client=new Socket();
 
-            var client=new Socket(this.getRemoteIp(), this.getRemotePort());
-
+            client.connect(new InetSocketAddress(
+                    this.getRemoteIp(),
+                    this.getRemotePort() ),
+                    300);
+            
             this.setClientSocket(client);
             
             setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
             setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
         
+        }catch( SocketTimeoutException ex ){
+            System.out.println("Server does not respond:"+ex.getMessage());
+            
         }catch (ConnectException ex) {
             System.out.println("Client could not connect to Address.\n"
                     + "Possibly server is down or not accessible due to firewall.\n"
@@ -47,6 +58,9 @@ public class Client extends CommunicationObject{
     public Client(String ipAddr, int port){
         super(ipAddr, port);
     }
+    public Client(String ipAddr){
+        super(ipAddr);
+    }
     @Override
     public void start(){
         //start sender/receiver threads
@@ -59,17 +73,5 @@ public class Client extends CommunicationObject{
         super.stop();
         
         //overrided for later possible implements
-    }
-    
-    public static void main(String[] args) {
-        System.out.println("client start");
-        
-        var cli=new Client();
-        
-        cli.start();
-        cli.join();
-        System.out.println("cli will stop");
-        cli.stop();
-    }
-    
+    }  
 }

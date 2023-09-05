@@ -61,6 +61,10 @@ public class UserContactController implements Initializable {
     public void setImage(Image img){
         this.userImage.setImage(img);
     }
+    public void setCustomStatusText(String status){
+        this.userStatusText.setText(status);
+    }
+    
     
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {

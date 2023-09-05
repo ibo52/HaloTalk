@@ -123,6 +123,11 @@ public class ImageDetailsController implements Initializable {
             Parent uContact=App.loadFXML("userContact");
             UserContactController ctrlr=(UserContactController) uContact.getUserData();
             
+            //set contents of contact
+            ctrlr.setImage(this.getImage());
+            ctrlr.setUserID(this.getUserID());
+            ctrlr.setCustomStatusText("heyyo! i am using haloTalk");
+            
             //get host selector rootpane and its controller
             Parent hostSelector=this.rootPane.getParent().getParent();
             HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();

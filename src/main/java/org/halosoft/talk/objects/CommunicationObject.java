@@ -38,14 +38,11 @@ public class CommunicationObject {
     
     public CommunicationObject(){
         //initialize remote socket
-        this.remoteIp="127.0.0.1";
-        this.remotePort=50001;
-
-        initSocket();
-        initThreads();
-        
-        localIn = new BufferedReader(
-        new InputStreamReader(System.in));
+        this("127.0.0.1",50001);
+    }
+    public CommunicationObject(String ipAddr){
+        //initialize remote socket
+        this(ipAddr,50001);
     }
     public CommunicationObject(String ipAddr, int port){
         //initialize remote socket
@@ -102,8 +99,14 @@ public class CommunicationObject {
     public void setSocketInputStream(DataInputStream in){
         this.socketIn=in;
     }
+    public DataInputStream getSocketInputStream(){
+        return this.socketIn;
+    }
     public void setSocketOutputStream(DataOutputStream out){
         this.socketOut=out;
+    }
+    public DataOutputStream getSocketOutputStream(){
+        return this.socketOut;
     }
     public Thread getSenderThread(){
         return sender;
@@ -121,14 +124,14 @@ public class CommunicationObject {
                 System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
             
             } catch( EOFException ex ){
-                System.err.println("EOFException:"
+                System.err.println("receiver EOFException:"
                         + "\tPossiby remote end closed the connection."
                         + " Stop will be invoked");
                 this.stop();
                 break;
                 
             }catch (IOException ex) {
-                ex.printStackTrace();
+                System.out.println("receiver:"+ex.getMessage());
                 
             }
             
