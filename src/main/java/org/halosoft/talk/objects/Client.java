@@ -40,12 +40,11 @@ public class Client extends CommunicationObject{
             System.out.println("Server does not respond:"+ex.getMessage());
             
         }catch (ConnectException ex) {
-            System.out.println("Client could not connect to Address.\n"
+            System.out.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
                     + "Possibly server is down or not accessible due to firewall.\n"
                     + "Returned error is:"+ex.getMessage());
             System.exit(ex.hashCode());
             
-        
         } catch (IOException ex) {
             ex.printStackTrace();
             System.exit(ex.hashCode());
@@ -73,5 +72,19 @@ public class Client extends CommunicationObject{
         super.stop();
         
         //overrided for later possible implements
-    }  
+    } 
+    public static void main(String[] args) {
+        System.out.println("test cli");
+        Client c=new Client("192.168.1.66");
+        c.start();
+        
+        try {
+            c.getSocketOutputStream().writeUTF("hello from client");
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        c.stop();
+        System.out.println("client done");
+    }
 }

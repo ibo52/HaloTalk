@@ -22,14 +22,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
+import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class UserInfoBoxController implements Initializable {
-    
-    private String id;
+public class UserInfoBoxController extends userObject implements Initializable {
 
     @FXML
     private ImageView userImage;
@@ -50,16 +49,31 @@ public class UserInfoBoxController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setStatus(0);
-        setID("user");
+        setStatus(this.getStatus());
+        setID(this.getID());
         // TODO
     }   
     
-    public void setUserName(String name){
+    @Override
+    public void setContents(userObject userData){
+        super.setContents(userData);
+        
+        this.userID.setText(this.getHostName());
+        this.userImage.setImage(this.getImage());
+        this.customStatusLabel.setText(this.getStatusMessage());
+        this.setStatus(this.getStatus());
+        
+    }
+    @Override
+    public void setName(String name){
+        super.setName(name);
         this.userID.setText(name);
     }
     
+    @Override
     public void setStatus(int status){
+        super.setStatus(status);
+        
         String statusStyle="-fx-background-color: %s; -fx-background-radius: 30% 30%;";
         
         Tooltip ttip=new Tooltip();
@@ -80,28 +94,23 @@ public class UserInfoBoxController implements Initializable {
                 ttip.setText("Online");
                 break;
         }
-        
+        ttip.setText(ttip.getText()+":"+this.getName()+" "+this.getSurName());
         Tooltip.install(this.rootPane, ttip);
         //Tooltip.install(this.userImageBox, ttip);
         
         
     }
     
-    public void setCustomStatus(String status){
+    @Override
+    public void setStatusMessage(String status){
+        super.setStatusMessage(status);
         customStatusLabel.setText(status);
     }
-    
-    public String getID(){
-        return this.id;
-    }
-    public void setID(String id){
-        this.id=id;
-    }
-    public String getUserID(){
-        return this.userID.getText();
-    }
-    public Image getImage(){
-        return this.userImage.getImage();
+
+    @Override
+    public void setImage(Image img){
+        super.setImage(img);
+        this.userImage.setImage(img);
     }
     
     private void showUserInfoDetails(){
@@ -120,8 +129,8 @@ public class UserInfoBoxController implements Initializable {
             //set max size of child at parent
             imageDetailsController.initRootProperty(leftStackPane.widthProperty().multiply(0.8));
             
-            imageDetailsController.setUserID(this.getUserID());
-            //imageDetailsController.setUserImage(this.getImage());
+            imageDetailsController.setContents(this);
+            
             leftStackPane.getChildren().add(imageDetails);
             
             //scale transition for fancy effect
@@ -130,7 +139,7 @@ public class UserInfoBoxController implements Initializable {
             st.setDuration(Duration.millis(300));
             
             st.setFromX(0);
-            st.setFromY(0);
+            st.setFromY(0);//st.setFromZ(0);st.setToZ(0.5);
             st.setToX(1);
             st.setToY(1);
             st.play();
@@ -155,6 +164,5 @@ public class UserInfoBoxController implements Initializable {
     private void userImageBoxMouseClicked(MouseEvent event) {
         this.showUserInfoDetails();
         event.consume();
-    }
-    
+    }  
 }

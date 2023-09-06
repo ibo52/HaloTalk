@@ -31,6 +31,9 @@ public class Server extends CommunicationObject {
         super();
         
     }
+    public Server(String ipAddr){
+        super(ipAddr);
+    }
     public Server(String ipAddr, int port){
         super(ipAddr, port);
     }
@@ -40,10 +43,10 @@ public class Server extends CommunicationObject {
         clients=new HashMap<>();
         
         try {
-            server=new ServerSocket(50001, 1, InetAddress.getByName("127.0.0.1") );
+            server=new ServerSocket(this.getRemotePort(), 1, InetAddress.getByName(this.getRemoteIp() ) );
        
         } catch (IOException ex) {
-            System.out.println("Server initSocket:"+ex.getMessage());
+            System.out.println("ServerSocket init:"+ex.getMessage());
         }
     }
     public ServerSocket getServerSocket(){
@@ -59,6 +62,7 @@ public class Server extends CommunicationObject {
     
     @Override
     public void start(){
+        
         if ( startThread==null || !startThread.isAlive() ) {
             
             startThread=new Thread(new Runnable(){
@@ -76,15 +80,16 @@ public class Server extends CommunicationObject {
                         setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
                         setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
 
-                        //System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+                        System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
 
                         //start sender/receiver threads
+                        /*
                         getReceiverThread().setDaemon(true);
                         getSenderThread().setDaemon(true);
 
                         getReceiverThread().start();
                         getSenderThread().start();
-                        /*
+                        
                         try {
                             getSenderThread().join();
                             getReceiverThread().join();
@@ -97,13 +102,16 @@ public class Server extends CommunicationObject {
 
                     } catch (SocketException ex) {
                             System.err.println( ex.getMessage()
-                            +":\tPossibly socket is closed. Starter thread will be interrupt");
+                            +":\tPossibly some remote socket is closed.");
                             
-                            startThread.interrupt();
-                            break;
+                            //startThread.interrupt();
+                            //break;
 
                     }catch (IOException ex) {
                             System.err.println("Server listen:"+ex.getMessage());
+                            startThread.interrupt();
+                            stop();//server stop
+                            
                     }
 
                 }
@@ -112,18 +120,19 @@ public class Server extends CommunicationObject {
         });
 
         startThread.setDaemon(true);
-
+        
         startThread.start();
             
         } else if ( startThread.isAlive() ) {
-            System.err.println("Server.start :server already started.");
+            System.err.println("Server start :server already started @"
+                    +this.getRemoteIp()+":"+this.getRemotePort());
         }
         
     }
     @Override
     public void stop(){
         super.stop();
-        
+        System.out.println("server stop invoke");
         try {
             this.server.close();
             this.startThread.interrupt();
@@ -141,5 +150,13 @@ public class Server extends CommunicationObject {
         } catch (InterruptedException ex) {
             System.err.println("Server join threads:"+ex.getMessage());
         }
-    } 
+    }
+    public static void main(String[] args) {
+        System.out.println("server test");
+        Server s=new Server("192.168.1.66",50001);
+        s.start();
+        s.join();
+        
+        System.out.println("server done");
+    }
 }

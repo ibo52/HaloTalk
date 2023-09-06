@@ -38,7 +38,7 @@ public class CommunicationObject {
     
     public CommunicationObject(){
         //initialize remote socket
-        this("127.0.0.1",50001);
+        this("0.0.0.0",50001);
     }
     public CommunicationObject(String ipAddr){
         //initialize remote socket
@@ -125,13 +125,24 @@ public class CommunicationObject {
             
             } catch( EOFException ex ){
                 System.err.println("receiver EOFException:"
-                        + "\tPossiby remote end closed the connection."
-                        + " Stop will be invoked");
-                this.stop();
+                        + "Possiby remote end closed the connection:\n"
+                        + "\tclient will be closed\n"
+                        + "\treceiver/sender thraeds will be interrupted");
+                
+                this.receiver.interrupt();
+                this.sender.interrupt();
+                this.initThreads();     //reinit threads for new connections
+                
+                try {
+                    this.client.close();
+                } catch (IOException ex1) {
+                    System.err.println("another exception over "+ex.getCause()
+                            +"-> client close:"+ex1.getMessage());
+                }
                 break;
                 
             }catch (IOException ex) {
-                System.out.println("receiver:"+ex.getMessage());
+                System.err.println("receiver thread:"+ex.getMessage());
                 
             }
             
@@ -155,12 +166,11 @@ public class CommunicationObject {
                 //System.out.println("<you>:"+message);
             
             } catch (InterruptedException ex) {
-                System.err.println(ex.getMessage()
-                +":\tSender thread");
+                System.err.println("Sender thread interrupt:"+ex.getMessage());
                 break;
                 
             }catch (IOException ex) {
-                ex.printStackTrace();
+                System.err.println("sender thread:"+ex.getMessage());
             }
         }
     }
@@ -184,7 +194,7 @@ public class CommunicationObject {
             socketOut.close();
             
         } catch (IOException ex) {
-            ex.printStackTrace();
+            System.err.println("CommunicationObject stop:"+ex.getMessage());
         }
         catch (NullPointerException ex) {
             System.err.println("Socket.close:Socket is already 'NULL'");

@@ -14,19 +14,21 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.halosoft.talk.objects.userObject;
 
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class UserContactController implements Initializable {
+public class UserContactController extends userObject implements Initializable {
 
     @FXML
     private BorderPane rootPane;
@@ -40,6 +42,8 @@ public class UserContactController implements Initializable {
     private Label userStatusText;
     @FXML
     private Button sendMessageButton;
+    @FXML
+    private Label userHostName;
 
     /**
      * Initializes the controller class.
@@ -49,19 +53,58 @@ public class UserContactController implements Initializable {
         // TODO
     }
     
-    public String getUserID(){
-        return this.userID.getText();
+    @Override
+    public void setStatus(int status){
+        super.setStatus(status);
+        
+        String statusStyle="-fx-background-color: %s; -fx-background-radius: 30% 30%;";
+        
+        Tooltip ttip=new Tooltip();
+        
+        switch(status){
+            case 0:
+                this.userImageBox.setStyle(statusStyle.replace("%s","gray"));
+                ttip.setText("Offline");
+                break;
+                
+            case 1:
+                this.userImageBox.setStyle(statusStyle.replace("%s","red"));
+                ttip.setText("Busy");
+                break;
+                
+            case 2:
+                this.userImageBox.setStyle(statusStyle.replace("%s","green"));
+                ttip.setText("Online");
+                break;
+        }
+        Tooltip.install(this.userImageBox, ttip);
+   
     }
-    public void setUserID(String id){
-        this.userID.setText(id);
+    @Override
+    public void setContents(userObject userData){
+        super.setContents(userData);
+
+        this.userID.setText(this.getName());
+        
+        if ( !this.getSurName().equals("*") ) {
+            
+            this.userID.setText(this.userID.getText()+" "+this.getSurName());
+        }
+        
+        this.userHostName.setText(this.getHostName());
+        this.userImage.setImage(this.getImage());
+        this.userStatusText.setText(this.getStatusMessage());
+        this.setStatus(this.getStatus());
     }
-    public Image getImage(){
-        return this.userImage.getImage();
-    }
+  
+    @Override
     public void setImage(Image img){
+        super.setImage(img);
         this.userImage.setImage(img);
     }
-    public void setCustomStatusText(String status){
+    @Override
+    public void setStatusMessage(String status){
+        super.setStatusMessage(status);
         this.userStatusText.setText(status);
     }
     
@@ -81,11 +124,8 @@ public class UserContactController implements Initializable {
         st.setFromY(1);
         st.setToX(0);
         st.setToY(0);
-        st.setOnFinished(new EventHandler<ActionEvent>(){
-            @Override
-            public void handle(ActionEvent t) {
-                hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
-            }
+        st.setOnFinished((ActionEvent t) -> {
+            hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
         });
         
         st.play();

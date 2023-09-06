@@ -26,6 +26,7 @@ import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
 import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.Server;
+import org.halosoft.talk.objects.userObject;
 
 /**
  * FXML Controller class
@@ -57,11 +58,13 @@ public class HostSelectorController implements Initializable {
         
         LANBrowser();
         
-        this.appendUser("sample host;1;sample status message", "127.0.0.1");
+        this.appendUser(new userObject("ibram","mut",2,
+                "bir tavuk dürüm bir de sen be gülüm",
+        "0.0.0.0"));
         // TODO
     }
     
-    public void bringChatScreen(UserInfoBoxController userInfoBox_ctrlr){
+    public void bringChatScreen(userObject ctrlr_userData){
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
@@ -71,42 +74,17 @@ public class HostSelectorController implements Initializable {
             Parent chatPanel=App.loadFXML("chatPanel");
             ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
             
-            ctrlr.setContents(userInfoBox_ctrlr.getUserID(), userInfoBox_ctrlr.getImage());
+            ctrlr.setContents(ctrlr_userData);
             
-            connectorClient=new Client( userInfoBox_ctrlr.getID() );
+            connectorClient=new Client( ctrlr_userData.getID() );
             //connectorClient.start();
             ctrlr.setClient(connectorClient);
             
             chatPanelLayout.setCenter(chatPanel);
+            this.server.getSocketOutputStream().writeUTF("deneme kontrol fgrom server");
             
         } catch (IOException ex) {
             System.out.println("hostSelector bringChatScreen:"+ex.getMessage());
-        }
-    }
-    public void bringChatScreen(ImageDetailsController imageDetails_ctrlr){
-        try {
-            
-            Parent chatPanel=App.loadFXML("chatPanel");
-            ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
-            
-            ctrlr.setContents(imageDetails_ctrlr.getUserID(), imageDetails_ctrlr.getImage());
-            
-            chatPanelLayout.setCenter(chatPanel);
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-    public void bringChatScreen(UserContactController uContact_ctrlr){
-        try {
-            
-            Parent chatPanel=App.loadFXML("chatPanel");
-            ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
-            
-            ctrlr.setContents(uContact_ctrlr.getUserID(), uContact_ctrlr.getImage());
-            
-            chatPanelLayout.setCenter(chatPanel);
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
         }
     }
     
@@ -122,10 +100,10 @@ public class HostSelectorController implements Initializable {
                
                while( !Thread.currentThread().isInterrupted() ){
                    
-                    for (int i = 110; i < 254; i++) {
+                    for (int i = 66; i < 68; i++) {
                         
-                         String host="192.168.43."+i;
-                        
+                         String host="192.168.1."+i;
+
                          try {
                              //check if there is proper network device with this ip address
                              if ( InetAddress.getByName(host).isReachable(50) ) {
@@ -135,11 +113,22 @@ public class HostSelectorController implements Initializable {
                                  
                                  LANdiscover.start();
                                  
-                                 //if LANbrowser finds own broadcaster(itself) on LAN
-                                 //just continue next iteration
-                                 if ( new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";")[0].equals(LANBroadcaster.getHostName()) ) {
+                                 //parse incoming user data
+                                 String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
+                                 if (idt[0].equals("NO_RESPONSE") ) {
+                                     System.out.println(host+" is up but does not use HaloTalk!");
                                      continue;
                                  }
+                                 
+                                 //if LANbrowser finds own broadcaster(itself) on LAN
+                                 //just continue next iteration
+                                 /*if ( idt[0].equals("NO_RESPONSE") || idt[0].equals(LANBroadcaster.getHostName()) ) {
+                                     continue;
+                                 }*/
+                                 
+                                 userObject userData=new userObject(idt[3],
+                                         idt[4],Integer.parseInt(idt[1]),
+                                         idt[2],host);
                                  Iterator iter=usersBox.getChildren().iterator();
                                  boolean appendFlag=true;
                                  
@@ -148,15 +137,15 @@ public class HostSelectorController implements Initializable {
                                      Parent v=(Parent)iter.next();
                                      
                                      UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-
+                                     
                                      if (host.equals(ctrlr.getID()) ) {
                                          appendFlag=false;
-                                         updateUser(new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()), v);
+                                         updateUser(userData, v);
                                          break;
                                      }
                                  }
                                  if (appendFlag) {
-                                    appendUser(new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength() ), host);
+                                    appendUser(userData);
                                  }
                              }
                          } catch (UnknownHostException ex) {
@@ -181,33 +170,27 @@ public class HostSelectorController implements Initializable {
         browserThread.start();
     }
     
-    public void updateUser(String userInfo, Parent Box){
+    public void updateUser(userObject userInfo, Parent Box){
         
         Platform.runLater(new Runnable(){
             @Override
             public void run() {
 
                 UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
-                if ( !userInfo.equals(new String("NO_RESPONSE" ))) {
 
-                    String[] parse=userInfo.split(";");
+                ctrlr.setContents(ctrlr);
 
-                    ctrlr.setUserName(parse[0]);
-                    ctrlr.setStatus(Integer.parseInt(parse[1]));
-                    ctrlr.setCustomStatus(parse[2]);
-                    
-                    FadeTransition ft=new FadeTransition();
-                    ft.setDuration(Duration.millis(300));
-                    ft.setFromValue(0.2);
-                    ft.setToValue(1);
-                    
-                    ft.play();
-                }
+                FadeTransition ft=new FadeTransition();
+                ft.setDuration(Duration.millis(300));
+                ft.setFromValue(0.2);
+                ft.setToValue(1);
+
+                ft.play();
             }
         });
         
     }
-    public void appendUser(String userInfo, String ipAddress){
+    public void appendUser(userObject userData){
         
         Platform.runLater(new Runnable(){
             @Override
@@ -218,25 +201,17 @@ public class HostSelectorController implements Initializable {
 
                     UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
 
-                    if ( !userInfo.equals(new String("NO_RESPONSE" ))) { 
+                    ctrlr.setContents(userData);
 
-                        String[] parse=userInfo.split(";");
+                    usersBox.getChildren().add(Box);
 
-                        ctrlr.setUserName(parse[0]);
-                        ctrlr.setStatus(Integer.parseInt(parse[1]));
-                        ctrlr.setCustomStatus(parse[2]);
-                        
-                        ctrlr.setID(ipAddress);
-                        usersBox.getChildren().add(Box);
-                        
-                        TranslateTransition tt=new TranslateTransition();
-                        tt.setDuration(Duration.millis(300));
-                        tt.setNode(Box);
-                        tt.setFromX(-100);
-                        tt.setToX(0);
-                        
-                        tt.play();
-                    }
+                    TranslateTransition tt=new TranslateTransition();
+                    tt.setDuration(Duration.millis(300));
+                    tt.setNode(Box);
+                    tt.setFromX(-100);
+                    tt.setToX(0);
+
+                    tt.play();
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
                 }

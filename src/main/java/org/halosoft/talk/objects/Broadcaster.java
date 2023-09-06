@@ -15,30 +15,21 @@ import java.net.UnknownHostException;
  *
  * @author ibrahim
  */
-public class Broadcaster {
+public class Broadcaster extends userObject {
     
     private DatagramSocket server;
-    
-    private String hostName;
     int port;
-    
-    private int userStatus;
-    private String customStatus;
     
     Thread starter;
     
     public Broadcaster(){
         this.port=50002;
-        this.userStatus=2;
-        this.customStatus="heyyo! I am using HaloTalk.";
                 
         try {
             this.server=new DatagramSocket(this.port);
             this.server.setBroadcast(true);
-            
-            this.hostName=System.getenv("USERNAME")+"@"+InetAddress.getLocalHost().getHostName();
-            
-        } catch (SocketException | UnknownHostException ex) {
+
+        } catch (SocketException ex) {
             System.out.println(ex.getMessage());
         }
         
@@ -75,13 +66,16 @@ public class Broadcaster {
                                 break;
                             
                             case "CSTAT":
-                                data=String.valueOf(getCustomStatus() );
+                                data=String.valueOf(getStatusMessage() );
                                 break;
                                 
                             default:
                                 data=getHostName();
                                 data+=";"+getStatus();
-                                data+=";"+getCustomStatus();
+                                data+=";"+getStatusMessage();
+                                data+=";"+getName();
+                                data+=";"+getSurName();
+                                //data+=";"+getImage();
                                 break;
                         }
                         buffer=data.getBytes();
@@ -115,25 +109,9 @@ public class Broadcaster {
         
         System.out.println("stop exectued on broadcaster");
     }
-    
-    public String getHostName(){
-        return this.hostName;
-    }
-    public void setCustomStatus(String statusMessage){
-        this.customStatus=statusMessage;
-    }
-    public String getCustomStatus(){
-        return this.customStatus;
-    }
-    
-    public void setStatus(int status){
-        this.userStatus=status;
-    }
-    public int getStatus(){
-        return this.userStatus;
-    }
-    
+
     public static void main(String[] args) {
+        System.out.println("Broadcaster Test");
         var s=new Broadcaster();
         
         s.start();

@@ -8,8 +8,10 @@ package org.halosoft.talk.controllers;
 
 import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -26,12 +28,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.Client;
+import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class ChatPanelController implements Initializable {
+public class ChatPanelController extends userObject implements Initializable {
     private Client remoteClient;
     @FXML
     private BorderPane rootPane;
@@ -61,9 +64,12 @@ public class ChatPanelController implements Initializable {
     public void closeClient(){
         this.remoteClient.stop();
     }
-    public void setContents(String userName, Image image){
-        this.userNameLabel.setText(userName);
-        this.userImageView.setImage(image);
+    @Override
+    public void setContents(userObject userData){
+        super.setContents(userData);
+        
+        this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
+        this.userImageView.setImage(this.getImage());
     }
     
     public void addMessage(String message, Pos pos){
@@ -90,15 +96,25 @@ public class ChatPanelController implements Initializable {
                 
                 try {
                     String message=remoteClient.getSocketInputStream().readUTF();
-
-                    addMessage(message, Pos.TOP_LEFT);
                     
-                } catch (IOException ex) {
-                    System.out.println("chatPanel client listenMessage:"+ex.getMessage());
+                    Platform.runLater( () -> {
+                        addMessage(message, Pos.TOP_LEFT);
+                    });
+                    
+                    
+                } catch ( SocketException ex) {
+                    System.out.println("chatPanel client Socket:"+ex.getMessage());
+                    this.remoteClient=null;
+                    break;
+                }catch (IOException ex) {
+                    System.out.println("chatPanel client Socket:"+ex.getMessage());
+                    this.remoteClient=null;
+                    break;
                 }
             }
         });
         msgListener.setDaemon(true);
+        msgListener.setName("chatPanelMsgListener");
         msgListener.start();
     }
 

@@ -27,12 +27,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
+import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class ImageDetailsController implements Initializable {
+public class ImageDetailsController extends userObject implements Initializable {
 
 
     @FXML
@@ -63,6 +64,15 @@ public class ImageDetailsController implements Initializable {
 
     }
     
+    @Override
+    public void setContents(userObject userData){
+        super.setContents(userData);
+        
+        this.userID.setText(this.getID());
+        this.userImage.setImage(this.getImage());
+        this.setStatus(this.getStatus());
+    }
+    
     public void initRootProperty(DoubleProperty width){
         this.rootPane.prefWidthProperty().bind(width);
         this.rootPane.prefHeightProperty().bind(width);
@@ -77,13 +87,13 @@ public class ImageDetailsController implements Initializable {
     }
     
     public void setUserImage(Image img){
+        super.setImage(img);
         this.userImage.setImage(img);
     }
-    public Image getImage(){
-        return this.userImage.getImage();
-    }
 
-    public void setUserID(String userID) {
+    @Override
+    public void setID(String userID) {
+        super.setID(userID);
         this.userID.setText( userID );
     }
     public String getUserID(){
@@ -124,9 +134,7 @@ public class ImageDetailsController implements Initializable {
             UserContactController ctrlr=(UserContactController) uContact.getUserData();
             
             //set contents of contact
-            ctrlr.setImage(this.getImage());
-            ctrlr.setUserID(this.getUserID());
-            ctrlr.setCustomStatusText("heyyo! i am using haloTalk");
+            ctrlr.setContents(this);
             
             //get host selector rootpane and its controller
             Parent hostSelector=this.rootPane.getParent().getParent();
