@@ -5,9 +5,15 @@
 package org.halosoft.talk.controllers;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.animation.FadeTransition;
@@ -81,8 +87,7 @@ public class HostSelectorController implements Initializable {
             ctrlr.setClient(connectorClient);
             
             chatPanelLayout.setCenter(chatPanel);
-            this.server.getSocketOutputStream().writeUTF("deneme kontrol fgrom server");
-            
+                        
         } catch (IOException ex) {
             System.out.println("hostSelector bringChatScreen:"+ex.getMessage());
         }
@@ -92,18 +97,60 @@ public class HostSelectorController implements Initializable {
         return this.leftStackPane;
     }
     
-    public void LANBrowser(){
+    private String calculateNetworkIdentity(){
+       /*Returns network identity of sub network*/
+        InetAddress local=null;
+       int subnetMask=-1;
+
+       try {
+           //get first network interface index to get subnet mask
+           NetworkInterface ni=NetworkInterface.getNetworkInterfaces().nextElement();
+
+           for (InterfaceAddress addr:ni.getInterfaceAddresses()){
+               if (addr.getNetworkPrefixLength()<=24) {
+
+                   local=addr.getAddress();
+                   subnetMask=addr.getNetworkPrefixLength();
+                   break;
+               }
+           }
+       } catch (SocketException ex) {
+           System.out.println(ex.getMessage());
+           Platform.exit();
+       }
+
+       //logical AND ip with subnet mask to calculate network identity address
+       int addressToBitwise=ByteBuffer.wrap(
+               local.getAddress() ).getInt() &(-1<< (32-subnetMask) );
+       
+       byte[] calc=ByteBuffer.allocate(4).putInt(addressToBitwise).array();
+
+       String host= Byte.toUnsignedInt(calc[0])+"."
+                   +Byte.toUnsignedInt(calc[1])+"."
+                   +Byte.toUnsignedInt(calc[2])+"."
+                   +Byte.toUnsignedInt(calc[3]);
+       //return calculated identity address
+       return host;
+    }
+    
+    private void LANBrowser(){
         
         Thread browserThread=new Thread( new Runnable(){
+            
            @Override
            public void run(){
                
+               String hostIdentity=calculateNetworkIdentity();
+               
                while( !Thread.currentThread().isInterrupted() ){
                    
-                    for (int i = 66; i < 68; i++) {
+                    for (int i = 1; i < 254; i++) {
+                        String host=hostIdentity.substring( 
+                                0, 
+                                hostIdentity.lastIndexOf('.')+1);
                         
-                         String host="192.168.1."+i;
-
+                        host+=+i;
+                        
                          try {
                              //check if there is proper network device with this ip address
                              if ( InetAddress.getByName(host).isReachable(50) ) {
@@ -149,9 +196,9 @@ public class HostSelectorController implements Initializable {
                                  }
                              }
                          } catch (UnknownHostException ex) {
-                             System.out.println(ex.getMessage());
+                             System.out.println("LANbrowser()"+ex.getMessage());
                          } catch (IOException ex) {
-                             System.out.println(ex.getMessage());
+                             System.out.println("LANbrowser()"+ex.getMessage());
                          }
                     }
                     
