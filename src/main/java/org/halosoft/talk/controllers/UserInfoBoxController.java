@@ -7,9 +7,12 @@ package org.halosoft.talk.controllers;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
@@ -131,6 +134,14 @@ public class UserInfoBoxController extends userObject implements Initializable {
             
             imageDetailsController.setContents(this);
             
+            //remove all components on stackpane except first
+            while ( leftStackPane.getChildren().size()>1 ) {
+                //node to be removed
+                Node n=leftStackPane.getChildren().get(1);
+
+                leftStackPane.getChildren().remove(n);
+            }
+            
             leftStackPane.getChildren().add(imageDetails);
             
             //scale transition for fancy effect
@@ -139,7 +150,7 @@ public class UserInfoBoxController extends userObject implements Initializable {
             st.setDuration(Duration.millis(300));
             
             st.setFromX(0);
-            st.setFromY(0);//st.setFromZ(0);st.setToZ(0.5);
+            st.setFromY(0);
             st.setToX(1);
             st.setToY(1);
             st.play();
