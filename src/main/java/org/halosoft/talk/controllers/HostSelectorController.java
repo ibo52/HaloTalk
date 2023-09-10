@@ -5,7 +5,6 @@
 package org.halosoft.talk.controllers;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -13,11 +12,9 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.animation.FadeTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -140,9 +137,9 @@ public class HostSelectorController implements Initializable {
            @Override
            public void run(){
                
-               String hostIdentity=calculateNetworkIdentity();
-               
                while( !Thread.currentThread().isInterrupted() ){
+                   
+                   String hostIdentity=calculateNetworkIdentity();
                    
                     for (int i = 1; i < 254; i++) {
                         String host=hostIdentity.substring( 
@@ -150,10 +147,11 @@ public class HostSelectorController implements Initializable {
                                 hostIdentity.lastIndexOf('.')+1);
                         
                         host+=+i;
-                        
+
                          try {
                              //check if there is proper network device with this ip address
-                             if ( InetAddress.getByName(host).isReachable(50) ) {
+                             if ( !InetAddress.getByName(host).isLoopbackAddress()
+                                     & InetAddress.getByName(host).isReachable(50) ) {
                                  
                                  //check if host has this application
                                  BroadcastClient LANdiscover =new BroadcastClient(host);
@@ -228,6 +226,7 @@ public class HostSelectorController implements Initializable {
                 ctrlr.setContents(ctrlr);
 
                 FadeTransition ft=new FadeTransition();
+                ft.setNode(Box);
                 ft.setDuration(Duration.millis(300));
                 ft.setFromValue(0.2);
                 ft.setToValue(1);
@@ -252,13 +251,8 @@ public class HostSelectorController implements Initializable {
 
                     usersBox.getChildren().add(Box);
 
-                    TranslateTransition tt=new TranslateTransition();
-                    tt.setDuration(Duration.millis(300));
-                    tt.setNode(Box);
-                    tt.setFromX(-100);
-                    tt.setToX(0);
-
-                    tt.play();
+                    ctrlr.startAnimation();
+                    
                 } catch (IOException ex) {
                     System.out.println(ex.getMessage());
                 }

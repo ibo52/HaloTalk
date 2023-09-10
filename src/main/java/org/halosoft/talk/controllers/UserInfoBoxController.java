@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -25,13 +26,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
+import org.halosoft.talk.objects.Animateable;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class UserInfoBoxController extends userObject implements Initializable {
+public class UserInfoBoxController extends userObject implements Initializable,
+        Animateable{
 
     @FXML
     private ImageView userImage;
@@ -145,15 +148,7 @@ public class UserInfoBoxController extends userObject implements Initializable {
             leftStackPane.getChildren().add(imageDetails);
             
             //scale transition for fancy effect
-            ScaleTransition st=new ScaleTransition();
-            st.setNode(imageDetails);
-            st.setDuration(Duration.millis(300));
-            
-            st.setFromX(0);
-            st.setFromY(0);
-            st.setToX(1);
-            st.setToY(1);
-            st.play();
+            imageDetailsController.startAnimation();
             
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
@@ -176,4 +171,28 @@ public class UserInfoBoxController extends userObject implements Initializable {
         this.showUserInfoDetails();
         event.consume();
     }  
+
+    @Override
+    public void startAnimation() {
+        TranslateTransition tt=new TranslateTransition();
+        tt.setDuration(Duration.millis(300));
+        tt.setNode(this.rootPane);
+
+        tt.setFromX(-100);
+        tt.setToX(0);
+
+        tt.play();
+    }
+
+    @Override
+    public void stopAnimation() {
+        TranslateTransition tt=new TranslateTransition();
+        tt.setDuration(Duration.millis(300));
+        tt.setNode(this.rootPane);
+
+        tt.setFromX(0);
+        tt.setToX(this.rootPane.getHeight());
+
+        tt.play();
+    }
 }

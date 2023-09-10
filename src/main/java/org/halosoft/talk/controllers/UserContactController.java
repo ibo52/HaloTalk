@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -17,10 +18,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.halosoft.talk.objects.Animateable;
 import org.halosoft.talk.objects.userObject;
 
 /**
@@ -28,7 +32,8 @@ import org.halosoft.talk.objects.userObject;
  *
  * @author ibrahim
  */
-public class UserContactController extends userObject implements Initializable {
+public class UserContactController extends userObject implements Initializable,
+        Animateable{
 
     @FXML
     private BorderPane rootPane;
@@ -51,6 +56,16 @@ public class UserContactController extends userObject implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        this.rootPane.addEventHandler(KeyEvent.KEY_PRESSED,
+                new EventHandler<KeyEvent>(){
+            @Override
+            public void handle(KeyEvent t) {
+                
+                if (t.getCode().equals(KeyCode.ESCAPE)) {
+                    stopAnimation();
+                }
+            }
+        });
     }
     
     @Override
@@ -108,6 +123,13 @@ public class UserContactController extends userObject implements Initializable {
         this.userStatusText.setText(status);
     }
     
+    private void remove(){
+        Parent hostSelector=this.rootPane.getParent().getParent();
+        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
+        
+        hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
+
+    }
     
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
@@ -129,6 +151,41 @@ public class UserContactController extends userObject implements Initializable {
         });
         
         st.play();
+    }
+
+    @Override
+    public void startAnimation() {
+        
+        TranslateTransition tt=new TranslateTransition();
+        tt.setNode(this.rootPane);
+        tt.setDuration(Duration.millis(300));
+        
+        int height=(int) (this.rootPane.getHeight()<=0?
+                this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
+        
+        tt.setFromY(height);
+        tt.setToY(0);
+        tt.play();
+    }
+
+    @Override
+    public void stopAnimation() {
+
+        TranslateTransition tt=new TranslateTransition();
+        tt.setNode(this.rootPane);
+        tt.setDuration(Duration.millis(300));
+        
+        tt.setFromY(0);
+        tt.setToY(this.rootPane.getHeight());
+        System.out.println("ucontact h:"+this.rootPane.getHeight());
+        
+        tt.setOnFinished(new EventHandler<ActionEvent>(){
+            @Override
+            public void handle(ActionEvent t) {
+                remove();
+            }
+        });
+        tt.play();
     }
     
 }

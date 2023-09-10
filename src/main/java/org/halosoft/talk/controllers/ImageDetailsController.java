@@ -12,7 +12,6 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -27,13 +26,15 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
+import org.halosoft.talk.objects.Animateable;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class ImageDetailsController extends userObject implements Initializable {
+public class ImageDetailsController extends userObject implements Initializable,
+        Animateable{
 
 
     @FXML
@@ -57,11 +58,12 @@ public class ImageDetailsController extends userObject implements Initializable 
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         //this.rootPane.maxWidthProperty().bind();
+        
         this.userImage.fitWidthProperty().bind(this.userImageBox.widthProperty());
         this.userImage.fitHeightProperty().bind(this.userImageBox .heightProperty());
-        this.userImageBox.prefWidthProperty().bind(this.rootPane.prefWidthProperty());
-        this.userImageBox.prefHeightProperty().bind(this.rootPane.prefHeightProperty());
-
+        this.userImageBox.prefWidthProperty().bind(this.rootPane.widthProperty());
+        this.userImageBox.prefHeightProperty().bind(this.rootPane.heightProperty().multiply(0.92));
+        
     }
     
     @Override
@@ -108,21 +110,10 @@ public class ImageDetailsController extends userObject implements Initializable 
         HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
         hstCtrlr.bringChatScreen(this);
         
-        ScaleTransition st=new ScaleTransition();
-        st.setDuration(Duration.millis(300));
-        st.setNode(this.rootPane);
-        st.setFromX(1);
-        st.setFromY(1);
-        st.setToX(0);
-        st.setToY(0);
-        st.setOnFinished(new EventHandler<ActionEvent>(){
-            @Override
-            public void handle(ActionEvent t) {
-                hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
-            }
-        });
+        this.stopAnimation();
         
-        st.play();
+        
+        
     }
 
     @FXML
@@ -140,12 +131,52 @@ public class ImageDetailsController extends userObject implements Initializable 
             Parent hostSelector=this.rootPane.getParent().getParent();
             HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
             
+            
+            
             hstCtrlr.getLeftStackPane().getChildren().remove(this.rootPane);
             
             hstCtrlr.getLeftStackPane().getChildren().add(uContact);
             
+            ctrlr.startAnimation();
+            
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    @Override
+    public void startAnimation() {
+        
+        ScaleTransition st=new ScaleTransition();
+            st.setNode(this.rootPane);
+            st.setDuration(Duration.millis(300));
+            
+            st.setFromX(0);
+            st.setFromY(0);
+            st.setToX(1);
+            st.setToY(1);
+            st.play();
+        
+    }
+
+    @Override
+    public void stopAnimation() {
+        
+        //get host selector rootpane and its controller
+        Parent hostSelector=this.rootPane.getParent().getParent();
+        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
+        
+        ScaleTransition st=new ScaleTransition();
+        st.setDuration(Duration.millis(300));
+        st.setNode(this.rootPane);
+        st.setFromX(1);
+        st.setFromY(1);
+        st.setToX(0);
+        st.setToY(0);
+        st.setOnFinished((ActionEvent t) -> {
+            hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
+        });
+        
+        st.play();
     }
 }

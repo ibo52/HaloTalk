@@ -12,6 +12,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -22,6 +23,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -56,6 +60,19 @@ public class ChatPanelController extends userObject implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO 
+        this.messageTextField.addEventHandler(KeyEvent.KEY_PRESSED,
+                new EventHandler<KeyEvent>(){
+            @Override
+            public void handle(KeyEvent t) {
+                
+                if (t.getCode().equals(KeyCode.ENTER)) {
+
+                    sendButton.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED,
+                    0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
+                    true, true, true, true, true, true, null));
+                }
+            }
+            });
     }
     public void setClient(Client client){
         this.remoteClient=client;
@@ -83,8 +100,10 @@ public class ChatPanelController extends userObject implements Initializable {
             
             this.messageBoxLayout.getChildren().add(msgBox);
             
+            msgController.startAnimation();
+            
         } catch (IOException ex) {
-            System.out.println("addMessage:"+ex.getMessage());
+            System.err.println("addMessage:"+ex.getMessage());
         }   
     }
     
