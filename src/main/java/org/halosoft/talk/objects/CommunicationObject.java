@@ -4,17 +4,13 @@
  */
 package org.halosoft.talk.objects;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.Scanner;
 
 /**
  *
@@ -34,46 +30,96 @@ public class CommunicationObject {
     private Thread receiver;            //get messages from remote end
     private Thread sender;              //send messages to remote end
     
-    
-    
-    public CommunicationObject(){
-        //initialize remote socket
-        this("0.0.0.0",50001);
-    }
-    public CommunicationObject(String ipAddr){
-        //initialize remote socket
-        this(ipAddr,50001);
-    }
     public CommunicationObject(String ipAddr, int port){
-        //initialize remote socket
         this.remoteIp=ipAddr;
         this.remotePort=port;
         
-        initSocket();
-        initThreads();
-
         localIn = new BufferedReader(
         new InputStreamReader(System.in));
+        
+        this.sender=new Sender();
+        this.receiver=new Receiver();
+        
     }
-    public void initSocket(){
+    public CommunicationObject(){
+        this("0.0.0.0",50001);
+    }
+    public CommunicationObject(String ipAddr){
+        this(ipAddr,50001);
     }
     
-    private void initThreads(){
-
-        receiver=new Thread(new Runnable(){
-            @Override
-            public void run(){
-                receiver();
-            }
-        });
+    private class Receiver extends Thread{
         
-        sender= new Thread( new Runnable(){
-            @Override
-            public void run(){
-                sender();
+        public Receiver(){
+            super("communication Receiver");
+            super.setDaemon(true);
+        }
+        
+        @Override
+        public void run(){
+            
+            while ( !this.isInterrupted() ){
+            
+                try {
+                    String message=socketIn.readUTF();
+                    System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
+
+                } catch( EOFException ex ){
+                    System.err.println("receiver EOFException:"
+                            + "Possiby remote end closed the connection:\n"
+                            + "\tclient will be closed\n"
+                            + "\treceiver/sender thraeds will be interrupted");
+
+                    break;
+
+                }catch (IOException ex) {
+                    System.err.println("receiver thread:"+ex.getMessage());
+
+                }
+            
             }
-        });
+            
+        }
     }
+    
+    private class Sender extends Thread{
+        
+        public Sender(){
+            super("communication Sender");
+            super.setDaemon(true);
+        }
+        
+        @Override
+        public void run(){
+            
+            while ( !this.isInterrupted() ){
+            
+            try {
+                
+                while( !localIn.ready() ){//wait for if input buffer is ready
+                    Thread.sleep(200);
+                    
+                    if( client.isClosed() ){
+                        break;
+                    }
+                }
+                String message=localIn.readLine();
+                
+                socketOut.writeUTF(message);
+                //System.out.println("<you>:"+message);
+            
+            } catch (InterruptedException ex) {
+                System.err.println("Sender thread interrupt:"+ex.getMessage());
+                break;
+                
+            }catch (IOException ex) {
+                System.err.println("sender thread:"+ex.getMessage());
+            }
+        }
+            
+        }
+    }
+
     
     public String getRemoteIp(){
         return this.remoteIp;
@@ -114,68 +160,8 @@ public class CommunicationObject {
     public Thread getReceiverThread(){
         return receiver;
     }
-    //-----------------
-    public void receiver(){
-        
-        while ( !receiver.isInterrupted() ){
-            
-            try {
-                String message=socketIn.readUTF();
-                System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
-            
-            } catch( EOFException ex ){
-                System.err.println("receiver EOFException:"
-                        + "Possiby remote end closed the connection:\n"
-                        + "\tclient will be closed\n"
-                        + "\treceiver/sender thraeds will be interrupted");
-                
-                this.receiver.interrupt();
-                this.sender.interrupt();
-                this.initThreads();     //reinit threads for new connections
-                
-                try {
-                    this.client.close();
-                } catch (IOException ex1) {
-                    System.err.println("another exception over "+ex.getCause()
-                            +"-> client close:"+ex1.getMessage());
-                }
-                break;
-                
-            }catch (IOException ex) {
-                System.err.println("receiver thread:"+ex.getMessage());
-                
-            }
-            
-        }
-    }
-    public void sender(){
-        while ( !sender.isInterrupted() ){
-            
-            try {
-                
-                while( !localIn.ready() ){//wait for if input buffer is ready
-                    Thread.sleep(200);
-                    
-                    if( client.isClosed() ){
-                        break;
-                    }
-                }
-                String message=localIn.readLine();
-                
-                socketOut.writeUTF(message);
-                //System.out.println("<you>:"+message);
-            
-            } catch (InterruptedException ex) {
-                System.err.println("Sender thread interrupt:"+ex.getMessage());
-                break;
-                
-            }catch (IOException ex) {
-                System.err.println("sender thread:"+ex.getMessage());
-            }
-        }
-    }
-
-    public void start(){
+    
+    public void startCommunicationThreads(){
         this.receiver.setDaemon(true);
         this.sender.setDaemon(true);
         
@@ -183,7 +169,7 @@ public class CommunicationObject {
         this.sender.start();
     }
     
-    public void stop(){
+    public void stopCommunicationThreads(){
         
         this.receiver.interrupt();
         this.sender.interrupt();
@@ -203,7 +189,7 @@ public class CommunicationObject {
         Thread.currentThread().interrupt();
     }
     
-    public void join(){
+    public void joinCommunicationThreads(){
         try {
             //waits for the threads of this class to done or interrupt
             this.sender.join();

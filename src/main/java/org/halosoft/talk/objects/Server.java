@@ -12,34 +12,44 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import javafx.application.Platform;
 
 /**
  *
  * @author ibrahim
  */
-public class Server extends CommunicationObject {
+public class Server extends CommunicationObject implements Connectible {
     
     private ServerSocket server;
     private Map<String, Socket> clients;
     
     private Thread startThread;
     
+    private RSA rsa;
+    private int[] REMOTE_KEY;
+    
     public Server(){
-        
         super();
-        
+        this.initialize();
+        this.rsa=new RSA();
     }
     public Server(String ipAddr){
         super(ipAddr);
+        this.initialize();
+        this.rsa=new RSA();
     }
     public Server(String ipAddr, int port){
+        
         super(ipAddr, port);
+        this.initialize();
+        this.rsa=new RSA();
     }
     
     @Override
-    public void initSocket(){
+    public void initialize(){
         clients=new HashMap<>();
         
         try {
@@ -81,7 +91,9 @@ public class Server extends CommunicationObject {
                         setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
 
                         System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
-
+                        
+                        int[] CLI_KEY=handshake();
+                        REMOTE_KEY=CLI_KEY;
                         //start sender/receiver threads
                         /*
                         getReceiverThread().setDaemon(true);
@@ -129,9 +141,30 @@ public class Server extends CommunicationObject {
         }
         
     }
+    
+    
+    public int[] handshake(){
+        ByteBuffer outgoingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        outgoingPublicKey.asLongBuffer().put( this.rsa.getPublicKey() );
+        
+        ByteBuffer incomingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        try {
+            this.getSocketOutputStream().write( outgoingPublicKey.array() );
+            
+            int recv=this.getSocketInputStream().read(incomingPublicKey.array());
+            System.out.println("public key reached:"+incomingPublicKey.getInt()+","
+            +incomingPublicKey.getInt());
+            
+        } catch (IOException ex) {
+            System.out.println("Handshake Failed:"+ex.getMessage());
+            Platform.exit();
+        }
+        return incomingPublicKey.asIntBuffer().array();
+    }
+    
     @Override
     public void stop(){
-        super.stop();
+        super.stopCommunicationThreads();
         System.out.println("server stop invoke");
         try {
             this.server.close();
@@ -141,9 +174,9 @@ public class Server extends CommunicationObject {
             System.err.println("Server stop:"+ex.getMessage());
         }
     }
-    @Override
+    
     public void join(){
-        super.join();
+        super.joinCommunicationThreads();
         
         try {
             this.startThread.join();

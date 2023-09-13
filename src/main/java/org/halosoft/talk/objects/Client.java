@@ -12,15 +12,21 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import javafx.application.Platform;
 
 /**
  *
  * @author ibrahim
  */
-public class Client extends CommunicationObject{
+public class Client extends CommunicationObject implements Connectible{
+    private RSA rsa;
     
+    private int[] REMOTE_KEY;
+    
+
     @Override
-    public void initSocket(){
+    public void initialize(){
         
         try {
             
@@ -53,23 +59,54 @@ public class Client extends CommunicationObject{
     
     public Client(){
         super();
+        this.initialize();
+        this.rsa=new RSA();
     }
     public Client(String ipAddr, int port){
         super(ipAddr, port);
+        this.initialize();
+        this.rsa=new RSA();
     }
     public Client(String ipAddr){
         super(ipAddr);
+        this.initialize();
+        this.rsa=new RSA();
     }
+    
+    public int[] handshake(){
+        ByteBuffer outgoingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        outgoingPublicKey.asLongBuffer().put( this.rsa.getPublicKey() );
+        
+        ByteBuffer incomingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        try {
+            
+            
+            int recv=this.getSocketInputStream().read(incomingPublicKey.array());
+            
+            System.out.println("public key reached:"+incomingPublicKey.getInt()+","
+            +incomingPublicKey.getInt());
+            
+            //send this public key
+            this.getSocketOutputStream().write( outgoingPublicKey.array() );
+            
+        } catch (IOException ex) {
+            System.out.println("Handshake Failed:"+ex.getMessage());
+            Platform.exit();
+        }
+        
+        return incomingPublicKey.asIntBuffer().array();
+    }
+    
     @Override
     public void start(){
         //start sender/receiver threads
-        super.start();
+        super.startCommunicationThreads();
         
         //overrided for later possible implements
     }
     
     public void stop(){
-        super.stop();
+        super.stopCommunicationThreads();
         
         //overrided for later possible implements
     } 
