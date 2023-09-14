@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,17 +36,18 @@ public class DataManipulator {
                bitLength , bi );
     }
     
+    public static BigInteger HexToBigInteger(String hex){
+        return new BigInteger(hex, 16);
+
+    }
+    
     public static String byteArrayToHex(byte[] data){
-        String dec=new String(data, StandardCharsets.UTF_8);
-        
-        
-        
-        return ";";
+        return new String(data, StandardCharsets.UTF_8);
     }
     
     public static String[] parseHex(String data){
         List<String> parsed=new ArrayList();
-        System.out.println("data is:"+data);
+        
         while(data.length()>0){
             int idx=data.indexOf("\\");
             
@@ -61,5 +63,24 @@ public class DataManipulator {
             
         }
         return parsed.toArray(new String[0]);
+    }
+    
+    public static String HexToString(String hexMessage){
+        //turn all 2 string letter to byte of chars
+        
+        StringBuilder decode=new StringBuilder("");
+        
+        for (int i = 0; i < hexMessage.length(); i+=2) {
+            
+            String s=hexMessage.substring(i, i+2);
+            System.out.println("s:"+s);
+            try {
+                decode.append(  new String
+                (new byte[]{ Byte.valueOf(s, 16).byteValue() }, "UTF-8")  );
+            } catch (UnsupportedEncodingException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return decode.toString();
     }
 }
