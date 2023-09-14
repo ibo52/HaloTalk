@@ -9,7 +9,7 @@ import java.util.Arrays;
 /**
  *
  * @author ibrahim
- * rivest shamir adelson algorithm
+ * rivest shamir adelman algorithm
  * to create public-private key pairs
 
  */
@@ -27,12 +27,8 @@ public class RSA {
         primes=findPrimes((int) Math.pow(10, 4));
         
         long[] selected=this.select2Primes(primes);
-        System.out.println("selected numbers:"+selected[0]+","+selected[1]);
         
         this.generateKeys(selected[0], selected[1]);
-        
-        System.out.println("PUBLIC:\t\t"+this.getPublicKey()[0]+","+this.getPublicKey()[1]);
-        System.out.println("PRIVATE:\t\t"+this.getPrivateKey()[0]+","+this.getPrivateKey()[1]);
     }
     
     public long[] getPublicKey(){
