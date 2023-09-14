@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import org.halosoft.talk.interfaces.Connectible;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -22,12 +23,12 @@ import javafx.application.Platform;
 public class Client extends CommunicationObject implements Connectible{
     private RSA rsa;
     
-    private int[] REMOTE_KEY;
+    private long[] REMOTE_KEY;
     
 
     @Override
     public void initialize(){
-        
+        this.rsa=new RSA();
         try {
             
             Socket client=new Socket();
@@ -41,60 +42,66 @@ public class Client extends CommunicationObject implements Connectible{
             
             setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
             setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-        
+            
+            long[] CLI_KEY=handshake();
+            REMOTE_KEY=CLI_KEY;
+            
         }catch( SocketTimeoutException ex ){
-            System.out.println("Server does not respond:"+ex.getMessage());
+            System.err.println("Server does not respond:"+ex.getMessage());
             
         }catch (ConnectException ex) {
-            System.out.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
+            System.err.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
                     + "Possibly server is down or not accessible due to firewall.\n"
                     + "Returned error is:"+ex.getMessage());
+            Platform.exit();
             System.exit(ex.hashCode());
             
         } catch (IOException ex) {
-            ex.printStackTrace();
+            System.err.println(this.getClass().getName()+" initialize:"+ex.getMessage());
+            Platform.exit();
             System.exit(ex.hashCode());
         }
     }
     
     public Client(){
         super();
+
         this.initialize();
-        this.rsa=new RSA();
+        
     }
     public Client(String ipAddr, int port){
         super(ipAddr, port);
+
         this.initialize();
-        this.rsa=new RSA();
     }
     public Client(String ipAddr){
         super(ipAddr);
+        
         this.initialize();
-        this.rsa=new RSA();
+
     }
     
-    public int[] handshake(){
+    private long[] handshake(){
         ByteBuffer outgoingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        
         outgoingPublicKey.asLongBuffer().put( this.rsa.getPublicKey() );
         
         ByteBuffer incomingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+
         try {
-            
-            
             int recv=this.getSocketInputStream().read(incomingPublicKey.array());
-            
-            System.out.println("public key reached:"+incomingPublicKey.getInt()+","
-            +incomingPublicKey.getInt());
             
             //send this public key
             this.getSocketOutputStream().write( outgoingPublicKey.array() );
             
         } catch (IOException ex) {
-            System.out.println("Handshake Failed:"+ex.getMessage());
+            System.err.println(this.getClass().getName()+"->Handshake Failed:"+ex.getMessage());
             Platform.exit();
         }
         
-        return incomingPublicKey.asIntBuffer().array();
+        long[] remoteKey=new long[2];
+        incomingPublicKey.asLongBuffer().get(remoteKey);
+        return remoteKey;
     }
     
     @Override
@@ -112,7 +119,7 @@ public class Client extends CommunicationObject implements Connectible{
     } 
     public static void main(String[] args) {
         System.out.println("test cli");
-        Client c=new Client("192.168.1.66");
+        Client c=new Client("0.0.0.0");
         c.start();
         
         try {
