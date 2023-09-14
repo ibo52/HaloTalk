@@ -14,35 +14,37 @@ import java.util.Arrays;
 
  */
 public class RSA {
-    private int[] PUBLIC_KEY;
-    private int[] PRIVATE_KEY;
+    private long[] PUBLIC_KEY;
+    private long[] PRIVATE_KEY;
     
     private boolean[] primes;
     
     public RSA(){
-        this.PRIVATE_KEY=new int[2];
-        this.PUBLIC_KEY=new int[2];
         
-        primes=findPrimes((int) Math.pow(10, 6));
-        int[] selected=this.select2Primes(primes);
+        this.PRIVATE_KEY=new long[2];
+        this.PUBLIC_KEY=new long[2];
+        
+        primes=findPrimes((int) Math.pow(10, 4));
+        
+        long[] selected=this.select2Primes(primes);
+        System.out.println("selected numbers:"+selected[0]+","+selected[1]);
         
         this.generateKeys(selected[0], selected[1]);
         
-        System.out.println("selcted keys for RSA:");
-        System.out.println("public:"+this.PUBLIC_KEY[0]+" " +this.PUBLIC_KEY[1]);
-        System.out.println("private:"+this.PRIVATE_KEY[0]+" " +this.PRIVATE_KEY[1]);
+        System.out.println("PUBLIC:\t\t"+this.getPublicKey()[0]+","+this.getPublicKey()[1]);
+        System.out.println("PRIVATE:\t\t"+this.getPrivateKey()[0]+","+this.getPrivateKey()[1]);
     }
     
-    public int[] getPublicKey(){
+    public long[] getPublicKey(){
         return this.PUBLIC_KEY;
     }
     
-    public int[] getPrivateKey(){
+    public long[] getPrivateKey(){
         return this.PRIVATE_KEY;
     }
     
-    private int[] select2Primes(boolean[] list){
-        int[] selected=new int[2];
+    private long[] select2Primes(boolean[] list){
+        long[] selected=new long[2];
         
         int random=(int) (Math.random()*list.length);
         
@@ -62,31 +64,30 @@ public class RSA {
         return selected;
     }
     
-    private void generateKeys(int prime1, int prime2){
-        int p=prime1;
-        int q=prime2;
+    private void generateKeys(long prime1, long prime2){
+        long p=prime1;
+        long q=prime2;
         
-        int n=p*q;
-        int z=(p-1)*(q-1);
+        long n=p*q;
+        long z=(p-1)*(q-1);
         
         /*select an e that 1<e<phi(n) relatively prime with z
         e not a factor of n phi(n)=z*/
-        int e=-1;
+        long e=-1;
         
-        for (int i = z-1; i > 1; i--) {
-            
+        for (long i = z-1; i > 1; i--) {
+
             if (RSA.isRelativelyPrime(i, z)) {
                 e=i;
                 break;
             }
         }
         /*choose d such that (e*d)-1 mod z == 0
-        * or d=1+(k*e*z) | d=e-1 % z
+        * or d=(1+(k*z))/e | d=e-1 % z
         */
-        int d=1;
-        
+        long d=1;
         while( (e*d)%z !=1 ){
-            d++;
+                d++;
         }
         
         /*n,e is public key to encrypt
@@ -105,32 +106,34 @@ public class RSA {
         double rootOfRange=Math.sqrt(range);
         
         for (int i = 2; i < rootOfRange; i++) {
-            
+
             if (primes[i]==true) {
-                
+
                 int squareOfI=i*i;
-                
+
                 while(squareOfI<range){
                     primes[squareOfI]=false;
                     squareOfI+=i;
                 }
             }
+  
         }
         
-        return primes;
-        
-        
+        primes[0]=false;
+        primes[1]=false;
+        return primes;    
     }
-    public static boolean isRelativelyPrime(int prime1, int prime2){
+    
+    public static boolean isRelativelyPrime(long prime1, long prime2){
         /*find if these two number relatively prime.
         if gcd(num1,num2)==1->relatively prime*/
         return RSA.gcd(prime1, prime2)==1;
     }
-    public static int gcd(int a, int b){
+    public static long gcd(long a, long b){
         /*find greatest common divisor between two numbers*/
         while(b!=0){
             
-            int temp=a;
+            long temp=a;
             a=b;
             b=temp%b;
         }
@@ -142,6 +145,23 @@ public class RSA {
         long t1=System.nanoTime();
         RSA rsa=new RSA();
         
-        System.out.println("elapsed:"+(System.nanoTime()-t1)/Math.pow(10, 9));
+        System.out.println("elapsed\t\t:"+(System.nanoTime()-t1)/Math.pow(10, 9));
+        //-------------------------
+        
+        int[] m={122};
+
+        String ciphered=Enigma.encrypt(m, rsa.PUBLIC_KEY);
+        System.out.println("byte cip:"+ciphered);
+
+        String cip=Enigma.encrypt("zaza", rsa.PUBLIC_KEY);
+        System.out.println("text cip:"+cip);
+
+        String de=Enigma.decrypt(cip, rsa.PRIVATE_KEY);
+        System.out.println("hex deciph:"+de);
+        System.out.println("decoded ehx:"+DataManipulator.HexToString(de));
+        /*
+        BigInteger[] decip=Enigma.decrypt(ciphered, rsa.PRIVATE_KEY);
+        System.out.println("deciphered\t\t:"+decip[0]);
+        */
     }
 }
