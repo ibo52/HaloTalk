@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import org.halosoft.talk.interfaces.Connectible;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,7 +30,7 @@ public class Server extends CommunicationObject implements Connectible {
     private Thread startThread;
     
     private RSA rsa;
-    private int[] REMOTE_KEY;
+    private long[] REMOTE_KEY;
     
     public Server(){
         super();
@@ -90,27 +91,10 @@ public class Server extends CommunicationObject implements Connectible {
                         setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
                         setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
 
-                        System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+                        //System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
                         
-                        int[] CLI_KEY=handshake();
+                        long[] CLI_KEY=handshake();
                         REMOTE_KEY=CLI_KEY;
-                        //start sender/receiver threads
-                        /*
-                        getReceiverThread().setDaemon(true);
-                        getSenderThread().setDaemon(true);
-
-                        getReceiverThread().start();
-                        getSenderThread().start();
-                        
-                        try {
-                            getSenderThread().join();
-                            getReceiverThread().join();
-
-                        }
-                        catch (InterruptedException ex) {
-                            System.out.println("interrupted");
-                        }
-                        */
 
                     } catch (SocketException ex) {
                             System.err.println( ex.getMessage()
@@ -143,23 +127,25 @@ public class Server extends CommunicationObject implements Connectible {
     }
     
     
-    public int[] handshake(){
+    private long[] handshake(){
         ByteBuffer outgoingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
         outgoingPublicKey.asLongBuffer().put( this.rsa.getPublicKey() );
         
         ByteBuffer incomingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
+        
         try {
             this.getSocketOutputStream().write( outgoingPublicKey.array() );
             
             int recv=this.getSocketInputStream().read(incomingPublicKey.array());
-            System.out.println("public key reached:"+incomingPublicKey.getInt()+","
-            +incomingPublicKey.getInt());
             
         } catch (IOException ex) {
-            System.out.println("Handshake Failed:"+ex.getMessage());
+            System.err.println(this.getClass().getName()+"->Handshake Failed:"+ex.getMessage());
             Platform.exit();
         }
-        return incomingPublicKey.asIntBuffer().array();
+        
+        long[] remoteKey=new long[2];
+        incomingPublicKey.asLongBuffer().get(remoteKey);
+        return remoteKey;
     }
     
     @Override
@@ -186,7 +172,7 @@ public class Server extends CommunicationObject implements Connectible {
     }
     public static void main(String[] args) {
         System.out.println("server test");
-        Server s=new Server("192.168.1.66",50001);
+        Server s=new Server("0.0.0.0",50001);
         s.start();
         s.join();
         
