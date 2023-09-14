@@ -14,7 +14,7 @@ import javafx.scene.control.Label;
 
 import javafx.scene.layout.HBox;
 import javafx.util.Duration;
-import org.halosoft.talk.objects.Animateable;
+import org.halosoft.talk.interfaces.Animateable;
 /**
  * FXML Controller class
  *

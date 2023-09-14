@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package org.halosoft.talk.objects;
+package org.halosoft.talk.interfaces;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

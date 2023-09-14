@@ -24,7 +24,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import org.halosoft.talk.objects.Animateable;
+import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.objects.userObject;
 
 /**

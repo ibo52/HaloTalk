@@ -26,7 +26,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
-import org.halosoft.talk.objects.Animateable;
+import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class

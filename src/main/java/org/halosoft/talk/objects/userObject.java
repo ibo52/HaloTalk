@@ -7,7 +7,6 @@ package org.halosoft.talk.objects;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelBuffer;
 import org.halosoft.talk.App;
 
 /**

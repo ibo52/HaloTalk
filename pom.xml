@@ -98,4 +98,6 @@
             </plugin>
         </plugins>
     </build>
+    <description>Simple messenger for LAN devices</description>
+    <name>HaloTalk messenger</name>
 </project>
