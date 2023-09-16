@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -118,17 +120,27 @@ public class HostSelectorController implements Initializable {
                    String hostIdentity=NetworkDeviceManager
                            .calculateNetworkIdentity(ni);
                    
-                    for (int i = 1; i < 254; i++) {
+                   ExecutorService executorService = Executors.newFixedThreadPool(10);
+                   
+                   int i=Integer.valueOf(hostIdentity.substring
+                            (hostIdentity.lastIndexOf('.')+1
+                             ,hostIdentity.length())  );
+                   
+                    for (; i < 254; i++) {
+                        
+                        final int executorArgument=i;
+                        executorService.execute(()->{
+
                         String host=hostIdentity.substring( 
                                 0, 
                                 hostIdentity.lastIndexOf('.')+1);
                         
-                        host+=+i;
+                        host+=+executorArgument;
                         
                          try {
                              //check if there is proper network device with this ip address
-                             if ( !InetAddress.getByName(host).isLoopbackAddress()
-                                     & InetAddress.getByName(host).isReachable(50) ) {
+                             if ( !InetAddress.getByName(host)
+                                     .isLoopbackAddress() ) {
                                  
                                  //check if host has this application
                                  BroadcastClient LANdiscover =new BroadcastClient(host);
@@ -139,38 +151,41 @@ public class HostSelectorController implements Initializable {
                                  String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
                                  
                                   //if LANbrowser finds own broadcaster(itself) on LAN
-                                 //just continue next iteration
-                                 if ( idt[0].equals("NO_RESPONSE") || idt[0].equals(LANBroadcaster.getHostName()) ) {
-                                     continue;
-                                 }
+                                 //dont add to userInfoPanel
+                                 if ( !idt[0].equals("NO_RESPONSE") & 
+                                         !idt[0].equals(LANBroadcaster.getHostName()) ) {
                                  
-                                 userObject userData=new userObject(idt[3],
-                                         idt[4],Integer.parseInt(idt[1]),
-                                         idt[2],host);
-                                 Iterator iter=usersBox.getChildren().iterator();
-                                 boolean appendFlag=true;
+                                    userObject userData=new userObject(idt[3],
+                                            idt[4],Integer.parseInt(idt[1]),
+                                            idt[2],host);
+                                    Iterator iter=usersBox.getChildren().iterator();
+                                    boolean appendFlag=true;
+
+                                    while( iter.hasNext() ){
+
+                                        Parent v=(Parent)iter.next();
+
+                                        UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
+
+                                        if (host.equals(ctrlr.getID()) ) {
+                                            appendFlag=false;
+                                            updateUser(userData, v);
+                                            break;
+                                        }
+                                    }
+                                    if (appendFlag) {
+                                       appendUser(userData);
+                                    }
                                  
-                                 while( iter.hasNext() ){
-                                     
-                                     Parent v=(Parent)iter.next();
-                                     
-                                     UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-                                     
-                                     if (host.equals(ctrlr.getID()) ) {
-                                         appendFlag=false;
-                                         updateUser(userData, v);
-                                         break;
-                                     }
-                                 }
-                                 if (appendFlag) {
-                                    appendUser(userData);
-                                 }
+                                }
                              }
                          } catch (UnknownHostException ex) {
                              System.out.println("LANbrowser()"+ex.getMessage());
                          } catch (IOException ex) {
                              System.out.println("LANbrowser()"+ex.getMessage());
                          }
+                         
+                         });
                     }
                     
                    try {
