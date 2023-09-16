@@ -12,6 +12,9 @@ import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import javafx.animation.FadeTransition;
@@ -28,6 +31,7 @@ import org.halosoft.talk.App;
 import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
 import org.halosoft.talk.objects.Client;
+import org.halosoft.talk.objects.NetworkDeviceManager;
 import org.halosoft.talk.objects.Server;
 import org.halosoft.talk.objects.userObject;
 
@@ -60,10 +64,11 @@ public class HostSelectorController implements Initializable {
         LANBroadcaster.start();
         
         LANBrowser();
-        
+        /*
         this.appendUser(new userObject("ibram","mut",2,
                 "bir tavuk dürüm bir de sen be gülüm",
         "0.0.0.0"));
+        */
         // TODO
     }
     
@@ -94,42 +99,6 @@ public class HostSelectorController implements Initializable {
         return this.leftStackPane;
     }
     
-    private String calculateNetworkIdentity(){
-       /*Returns network identity of sub network*/
-        InetAddress local=null;
-       int subnetMask=-1;
-
-       try {
-           //get first network interface index to get subnet mask
-           NetworkInterface ni=NetworkInterface.getNetworkInterfaces().nextElement();
-
-           for (InterfaceAddress addr:ni.getInterfaceAddresses()){
-               if (addr.getNetworkPrefixLength()<=24) {
-
-                   local=addr.getAddress();
-                   subnetMask=addr.getNetworkPrefixLength();
-                   break;
-               }
-           }
-       } catch (SocketException ex) {
-           System.out.println(ex.getMessage());
-           Platform.exit();
-       }
-
-       //logical AND ip with subnet mask to calculate network identity address
-       int addressToBitwise=ByteBuffer.wrap(
-               local.getAddress() ).getInt() &(-1<< (32-subnetMask) );
-       
-       byte[] calc=ByteBuffer.allocate(4).putInt(addressToBitwise).array();
-
-       String host= Byte.toUnsignedInt(calc[0])+"."
-                   +Byte.toUnsignedInt(calc[1])+"."
-                   +Byte.toUnsignedInt(calc[2])+"."
-                   +Byte.toUnsignedInt(calc[3]);
-       //return calculated identity address
-       return host;
-    }
-    
     private void LANBrowser(){
         
         Thread browserThread=new Thread( new Runnable(){
@@ -137,9 +106,17 @@ public class HostSelectorController implements Initializable {
            @Override
            public void run(){
                
+               NetworkDeviceManager m=new NetworkDeviceManager();
+               NetworkInterface ni=m.getInterfaceDevices(
+                       NetworkDeviceManager
+                               .ConnectionType.WIRELESS).get(0);
+               
+               //System.out.println("selected ni:"+ni.getName()+" ");
+
                while( !Thread.currentThread().isInterrupted() ){
                    
-                   String hostIdentity=calculateNetworkIdentity();
+                   String hostIdentity=NetworkDeviceManager
+                           .calculateNetworkIdentity(ni);
                    
                     for (int i = 1; i < 254; i++) {
                         String host=hostIdentity.substring( 
@@ -147,7 +124,7 @@ public class HostSelectorController implements Initializable {
                                 hostIdentity.lastIndexOf('.')+1);
                         
                         host+=+i;
-
+                        
                          try {
                              //check if there is proper network device with this ip address
                              if ( !InetAddress.getByName(host).isLoopbackAddress()
@@ -160,16 +137,12 @@ public class HostSelectorController implements Initializable {
                                  
                                  //parse incoming user data
                                  String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
-                                 if (idt[0].equals("NO_RESPONSE") ) {
-                                     System.out.println(host+" is up but does not use HaloTalk!");
+                                 
+                                  //if LANbrowser finds own broadcaster(itself) on LAN
+                                 //just continue next iteration
+                                 if ( idt[0].equals("NO_RESPONSE") || idt[0].equals(LANBroadcaster.getHostName()) ) {
                                      continue;
                                  }
-                                 
-                                 //if LANbrowser finds own broadcaster(itself) on LAN
-                                 //just continue next iteration
-                                 /*if ( idt[0].equals("NO_RESPONSE") || idt[0].equals(LANBroadcaster.getHostName()) ) {
-                                     continue;
-                                 }*/
                                  
                                  userObject userData=new userObject(idt[3],
                                          idt[4],Integer.parseInt(idt[1]),
@@ -215,7 +188,7 @@ public class HostSelectorController implements Initializable {
         browserThread.start();
     }
     
-    public void updateUser(userObject userInfo, Parent Box){
+    private void updateUser(userObject userInfo, Parent Box){
         
         Platform.runLater(new Runnable(){
             @Override
@@ -236,7 +209,7 @@ public class HostSelectorController implements Initializable {
         });
         
     }
-    public void appendUser(userObject userData){
+    private void appendUser(userObject userData){
         
         Platform.runLater(new Runnable(){
             @Override
