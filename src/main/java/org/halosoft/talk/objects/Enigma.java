@@ -68,7 +68,7 @@ public class Enigma {
         for(String d:data){
             
             BigInteger bi=new BigInteger( d, 16 );
-            System.out.println(d+" to "+bi);
+
             bi=bi.modPow(new BigInteger( Long.toString( key[1] ) ),
                     new BigInteger( Long.toString( key[0] ) ) );
             

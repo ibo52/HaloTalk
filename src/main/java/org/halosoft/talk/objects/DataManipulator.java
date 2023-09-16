@@ -73,7 +73,7 @@ public class DataManipulator {
         for (int i = 0; i < hexMessage.length(); i+=2) {
             
             String s=hexMessage.substring(i, i+2);
-            System.out.println("s:"+s);
+
             try {
                 decode.append(  new String
                 (new byte[]{ Byte.valueOf(s, 16).byteValue() }, "UTF-8")  );

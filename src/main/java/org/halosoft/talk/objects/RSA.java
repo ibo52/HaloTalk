@@ -20,11 +20,15 @@ public class RSA {
     private boolean[] primes;
     
     public RSA(){
+        this( (int)Math.pow(10, 4) );
+    }
+    
+    public RSA(int range){
         
         this.PRIVATE_KEY=new long[2];
         this.PUBLIC_KEY=new long[2];
         
-        primes=findPrimes((int) Math.pow(10, 4));
+        primes=findPrimes( range);
         
         long[] selected=this.select2Primes(primes);
         
@@ -45,7 +49,8 @@ public class RSA {
         int random=(int) (Math.random()*list.length);
         
         while(list[random]!=true){
-            random++;
+            
+            random=(random+1)%list.length;
         }
         
         selected[0]=random;
@@ -53,7 +58,12 @@ public class RSA {
         random=(int) (Math.random()*list.length);
         
         while(list[random]!=true){
-            random++;
+            
+            random=(random+1)%list.length;
+            
+            if (random == selected[0]) {
+                random=(random+1)%list.length;
+            }
         }
         selected[1]=random;
         
@@ -96,28 +106,33 @@ public class RSA {
     
     public static boolean[] findPrimes(int range){
         
-        boolean[] primes=new boolean[range];
-        Arrays.fill(primes, true);
+        if (range<2) {
+            return new boolean[]{false};
         
-        double rootOfRange=Math.sqrt(range);
-        
-        for (int i = 2; i < rootOfRange; i++) {
+        }else{
+            boolean[] primes=new boolean[range];
+            Arrays.fill(primes, true);
 
-            if (primes[i]==true) {
+            double rootOfRange=Math.sqrt(range);
 
-                int squareOfI=i*i;
+            for (int i = 2; i < rootOfRange; i++) {
 
-                while(squareOfI<range){
-                    primes[squareOfI]=false;
-                    squareOfI+=i;
+                if (primes[i]==true) {
+
+                    int squareOfI=i*i;
+
+                    while(squareOfI<range){
+                        primes[squareOfI]=false;
+                        squareOfI+=i;
+                    }
                 }
+
             }
-  
+
+            primes[0]=false;
+            primes[1]=false;
+            return primes;   
         }
-        
-        primes[0]=false;
-        primes[1]=false;
-        return primes;    
     }
     
     public static boolean isRelativelyPrime(long prime1, long prime2){
@@ -134,30 +149,5 @@ public class RSA {
             b=temp%b;
         }
         return a;
-    }
-    
-    public static void main(String[] args) {
-        System.out.println("rsa key generator test");
-        long t1=System.nanoTime();
-        RSA rsa=new RSA();
-        
-        System.out.println("elapsed\t\t:"+(System.nanoTime()-t1)/Math.pow(10, 9));
-        //-------------------------
-        
-        int[] m={122};
-
-        String ciphered=Enigma.encrypt(m, rsa.PUBLIC_KEY);
-        System.out.println("byte cip:"+ciphered);
-
-        String cip=Enigma.encrypt("zaza", rsa.PUBLIC_KEY);
-        System.out.println("text cip:"+cip);
-
-        String de=Enigma.decrypt(cip, rsa.PRIVATE_KEY);
-        System.out.println("hex deciph:"+de);
-        System.out.println("decoded ehx:"+DataManipulator.HexToString(de));
-        /*
-        BigInteger[] decip=Enigma.decrypt(ciphered, rsa.PRIVATE_KEY);
-        System.out.println("deciphered\t\t:"+decip[0]);
-        */
     }
 }
