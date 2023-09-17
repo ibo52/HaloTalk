@@ -16,6 +16,9 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import javafx.application.Platform;
 
 /**
@@ -27,7 +30,7 @@ public class Server extends CommunicationObject implements Connectible {
     private ServerSocket server;
     private Map<String, Socket> clients;
     
-    private Thread startThread;
+    private ExecutorService executorService;
     
     private RSA rsa;
     private long[] REMOTE_KEY;
@@ -52,6 +55,7 @@ public class Server extends CommunicationObject implements Connectible {
     @Override
     public void initialize(){
         clients=new HashMap<>();
+        executorService=Executors.newCachedThreadPool();
         
         try {
             server=new ServerSocket(this.getRemotePort(), 1, InetAddress.getByName(this.getRemoteIp() ) );
@@ -67,59 +71,44 @@ public class Server extends CommunicationObject implements Connectible {
         this.server=server;
     }
     
-    public Thread getStarterThread(){
-        return this.startThread;
-    }
-    
     @Override
     public void start(){
         
-        if ( startThread==null || !startThread.isAlive() ) {
+        if ( ((ThreadPoolExecutor)executorService).getActiveCount()<1 ) {
             
-            startThread=new Thread(new Runnable(){
-            @Override
-            public void run(){
+            executorService.execute( () -> {
                 
-                while( !startThread.isInterrupted() ){
+                while ( !Thread.currentThread().isInterrupted() ) {
                     
                     try {
-                        var client=server.accept();
-                        clients.put(client.getInetAddress().getHostAddress(), client);
-                         
-                        setClientSocket(client);
-
-                        setSocketInputStream( new DataInputStream(new BufferedInputStream( client.getInputStream() ) ) );
-                        setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
-
+                        
+                        java.net.Socket client1 = server.accept();
+                        
+                        clients.put(client1.getInetAddress().getHostAddress(), client1);
+                        
+                        setClientSocket(client1);
+                        
+                        setSocketInputStream(new DataInputStream(new BufferedInputStream(client1.getInputStream())));
+                        
+                        setSocketOutputStream(new DataOutputStream(client1.getOutputStream()));
                         //System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
                         
                         long[] CLI_KEY=handshake();
                         REMOTE_KEY=CLI_KEY;
-
-                    } catch (SocketException ex) {
-                            System.err.println( ex.getMessage()
-                            +":\tPossibly some remote socket is closed.");
-                            
-                            //startThread.interrupt();
-                            //break;
+                        
+                    }catch (SocketException ex) {
+                        System.err.println( ex.getMessage()
+                                +":\tPossibly some remote socket is closed.");
 
                     }catch (IOException ex) {
-                            System.err.println("Server listen:"+ex.getMessage());
-                            startThread.interrupt();
-                            stop();//server stop
+                        System.err.println("Server listen:"+ex.getMessage());
+                        stop();//server stop
                             
                     }
-
                 }
-
-            }
-        });
-
-        startThread.setDaemon(true);
-        
-        startThread.start();
+            });
             
-        } else if ( startThread.isAlive() ) {
+        } else {
             System.err.println("Server start :server already started @"
                     +this.getRemoteIp()+":"+this.getRemotePort());
         }
@@ -128,6 +117,7 @@ public class Server extends CommunicationObject implements Connectible {
     
     
     private long[] handshake(){
+        
         ByteBuffer outgoingPublicKey=ByteBuffer.allocate( Long.BYTES*2 );
         outgoingPublicKey.asLongBuffer().put( this.rsa.getPublicKey() );
         
@@ -151,30 +141,21 @@ public class Server extends CommunicationObject implements Connectible {
     @Override
     public void stop(){
         super.stopCommunicationThreads();
+        this.executorService.shutdownNow();
         System.out.println("server stop invoke");
         try {
             this.server.close();
-            this.startThread.interrupt();
+            this.executorService.shutdownNow();
 
         } catch (IOException ex) {
             System.err.println("Server stop:"+ex.getMessage());
         }
     }
     
-    public void join(){
-        super.joinCommunicationThreads();
-        
-        try {
-            this.startThread.join();
-        } catch (InterruptedException ex) {
-            System.err.println("Server join threads:"+ex.getMessage());
-        }
-    }
     public static void main(String[] args) {
         System.out.println("server test");
         Server s=new Server("0.0.0.0",50001);
         s.start();
-        s.join();
         
         System.out.println("server done");
     }
