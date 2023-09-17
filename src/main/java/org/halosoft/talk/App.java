@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import javafx.application.Platform;
 import javafx.scene.image.Image;
 
 /**
@@ -40,7 +41,14 @@ public class App extends Application {
 
         return p;
     }
-
+    
+    @Override
+    public void stop(){
+        
+        Platform.exit();
+        System.exit(0);
+        
+    }
     public static void main(String[] args) {
         launch();
     }
