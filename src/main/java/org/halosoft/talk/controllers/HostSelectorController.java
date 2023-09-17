@@ -6,19 +6,14 @@ package org.halosoft.talk.controllers;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -102,20 +97,30 @@ public class HostSelectorController implements Initializable {
     }
     
     private void LANBrowser(){
-        
+ 
         Thread browserThread=new Thread( new Runnable(){
             
            @Override
            public void run(){
-               
-               NetworkDeviceManager m=new NetworkDeviceManager();
-               NetworkInterface ni=m.getInterfaceDevices(
-                       NetworkDeviceManager
-                               .ConnectionType.WIRELESS).get(0);
-               
-               //System.out.println("selected ni:"+ni.getName()+" ");
 
                while( !Thread.currentThread().isInterrupted() ){
+                   
+                   if ( !NetworkDeviceManager.checkForConnectivity() ) {
+                       System.err.println("No internet connection. Sleep for 3000 ms");
+                       try {
+                           Thread.sleep(3000);
+                       } catch (InterruptedException ex) {
+                           System.out.println(ex.getMessage());
+                       }
+                       continue;
+                   }
+                   //get a device from manager and calculate network ID
+                   NetworkDeviceManager manager=new NetworkDeviceManager();
+               NetworkInterface ni=manager.getInterfaceDevices(
+                       NetworkDeviceManager
+                               .ConnectionType.WIRELESS).get(0);
+                   
+               //System.out.println("selected ni:"+ni.getName()+" ");
                    
                    String hostIdentity=NetworkDeviceManager
                            .calculateNetworkIdentity(ni);
@@ -187,6 +192,7 @@ public class HostSelectorController implements Initializable {
                          
                          });
                     }
+                    executorService.shutdown();
                     
                    try {
                        Thread.sleep(3000);
