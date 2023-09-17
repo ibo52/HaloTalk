@@ -11,6 +11,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -27,8 +29,7 @@ public class CommunicationObject {
     
     private BufferedReader localIn;     //to read from keyboard
  
-    private Thread receiver;            //get messages from remote end
-    private Thread sender;              //send messages to remote end
+    private ExecutorService executorService;//for receiver and sender runablesS
     
     public CommunicationObject(String ipAddr, int port){
         this.remoteIp=ipAddr;
@@ -37,8 +38,7 @@ public class CommunicationObject {
         localIn = new BufferedReader(
         new InputStreamReader(System.in));
         
-        this.sender=new Sender();
-        this.receiver=new Receiver();
+        executorService=Executors.newCachedThreadPool();
         
     }
     public CommunicationObject(){
@@ -48,17 +48,12 @@ public class CommunicationObject {
         this(ipAddr,50001);
     }
     
-    private class Receiver extends Thread{
-        
-        public Receiver(){
-            super("communication Receiver");
-            super.setDaemon(true);
-        }
+    private class Receiver implements Runnable{
         
         @Override
         public void run(){
             
-            while ( !this.isInterrupted() ){
+            while ( !Thread.currentThread().isInterrupted() ){
             
                 try {
                     String message=socketIn.readUTF();
@@ -82,17 +77,12 @@ public class CommunicationObject {
         }
     }
     
-    private class Sender extends Thread{
-        
-        public Sender(){
-            super("communication Sender");
-            super.setDaemon(true);
-        }
+    private class Sender implements Runnable{
         
         @Override
         public void run(){
             
-            while ( !this.isInterrupted() ){
+            while ( !Thread.currentThread().isInterrupted() ){
             
             try {
                 
@@ -154,25 +144,16 @@ public class CommunicationObject {
     public DataOutputStream getSocketOutputStream(){
         return this.socketOut;
     }
-    public Thread getSenderThread(){
-        return sender;
-    }
-    public Thread getReceiverThread(){
-        return receiver;
-    }
     
     public void startCommunicationThreads(){
-        this.receiver.setDaemon(true);
-        this.sender.setDaemon(true);
         
-        this.receiver.start();
-        this.sender.start();
+        executorService.execute(new Sender());
+        executorService.execute(new Receiver());
     }
     
     public void stopCommunicationThreads(){
         
-        this.receiver.interrupt();
-        this.sender.interrupt();
+        executorService.shutdownNow();
         
         try {
             this.client.close();
@@ -187,15 +168,5 @@ public class CommunicationObject {
         }
 
         Thread.currentThread().interrupt();
-    }
-    
-    public void joinCommunicationThreads(){
-        try {
-            //waits for the threads of this class to done or interrupt
-            this.sender.join();
-            this.receiver.join();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
     }
 }
