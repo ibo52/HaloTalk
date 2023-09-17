@@ -26,10 +26,18 @@ public class BroadcastClient {
     private byte[] buffer;
     private int bufferLength;
     
+    /**
+     * initializes a DatagramSocket to connect local service
+     * generally used for testing purposes
+     */
     public BroadcastClient(){
         this("localhost");
     }
     
+    /**
+     * initializes a DatagramSocket to connect remote service
+     * @param remoteIpAddress specific port for default remote ip
+     */
     public BroadcastClient(String remoteIpAddress){
         ip=remoteIpAddress;
         port=50002;
@@ -50,7 +58,10 @@ public class BroadcastClient {
         buffer = new byte[1024];
     }
     
-    
+    /**
+     * sends request to service, and fill the buffer by incoming user data.
+     * If service is down, then buffer fills with "NO_RESPONSE"
+     */
     public void start(){
         
         try {

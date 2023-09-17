@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- *
+ * Generate an communication object to send and receive messages
  * @author ibrahim
  */
 public class CommunicationObject {

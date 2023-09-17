@@ -21,7 +21,6 @@ import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -74,10 +73,19 @@ public class ChatPanelController extends userObject implements Initializable {
             }
             });
     }
+    
+    /**
+     * change remote client object of chat panel
+     * @param client remote end to communicate
+     */
     public void setClient(Client client){
         this.remoteClient=client;
         this.listenMessage();//listens the socketInputStream of remote end
     }
+    
+    /**
+     * close communication socket
+     */
     public void closeClient(){
         this.remoteClient.stop();
     }
@@ -89,6 +97,11 @@ public class ChatPanelController extends userObject implements Initializable {
         this.userImageView.setImage(this.getImage());
     }
     
+    /**
+     * Add incoming or outgoing messages to panel.
+     * @param message message to placed
+     * @param pos message position on screen. left or right
+     */
     public void addMessage(String message, Pos pos){
         
         try {
@@ -107,8 +120,11 @@ public class ChatPanelController extends userObject implements Initializable {
         }   
     }
     
+    /**
+     * listens for messages that comes from remote end
+     */
     private void listenMessage(){
-        /*listens for messages that comes from remote end*/
+        
         Thread msgListener=new Thread( () -> {
 
             while ( !Thread.currentThread().isInterrupted() ){

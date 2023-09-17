@@ -16,6 +16,13 @@ import java.util.List;
  */
 public class DataManipulator {
     
+    /**
+     * turns value of big integer to hexadecimal string, which defined as
+     * (size of next characters + next hex characters).
+     * Example Biginteger(254) -> "\02fe"
+     * @param bi 
+     * @return specific format of hexadecimal string
+     */
     public static String BigInterToHex(BigInteger bi){
 
         int bitLength=bi.bitLength()/4;//calculate half-bytes on hex data
@@ -36,15 +43,31 @@ public class DataManipulator {
                bitLength , bi );
     }
     
+    /**
+     * Turns hexadecimal string of big size to BigInteger value
+     * @param hex general hexadecimal string. Example: "ffd844d0a3"
+     * @return 
+     */
     public static BigInteger HexToBigInteger(String hex){
         return new BigInteger(hex, 16);
 
     }
     
+    /**
+     * turns array of bytes to hexadecimal string
+     * @param data
+     * @return 
+     */
     public static String byteArrayToHex(byte[] data){
         return new String(data, StandardCharsets.UTF_8);
     }
     
+    /**
+     * Parses specific format of hexadecimal string to array of
+     * general hexadecimal Strings
+     * @param data specific format of hexadecimal strings: Example: "\02fe\04aa3e"
+     * @return general hexadecimal strings. Example: "\02fe\04aa3e" -> {"fe", "aa3e"}
+     */
     public static String[] parseHex(String data){
         List<String> parsed=new ArrayList();
         
@@ -65,6 +88,12 @@ public class DataManipulator {
         return parsed.toArray(new String[0]);
     }
     
+    /**
+     * turns every 2 chars of hexadecimal string to UTF-8 string, then
+     * returns decoded message
+     * @param hexMessage message to decode Example: "48454c4c4f"
+     * @return UTF8 decoded message Example: "48454c4c4f" -> "HELLO"
+     */
     public static String HexToString(String hexMessage){
         //turn all 2 string letter to byte of chars
         

@@ -12,6 +12,8 @@ import org.halosoft.talk.App;
 /**
  *
  * @author ibrahim
+ * 
+ * Provides general information about an user
  */
 public class userObject {
     private String name;

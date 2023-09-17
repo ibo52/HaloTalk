@@ -9,7 +9,6 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.ScaleTransition;
 import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -75,14 +74,21 @@ public class ImageDetailsController extends userObject implements Initializable,
         this.setStatus(this.getStatus());
     }
     
-    public void initRootProperty(DoubleProperty width){
-        this.rootPane.prefWidthProperty().bind(width);
-        this.rootPane.prefHeightProperty().bind(width);
-    }
+    /**
+     * defines maximum width of node. Used to call from Parent node
+     * to set maximum size to its parents.
+     * @param width 
+     */
     public void initRootProperty(DoubleBinding width){
         this.rootPane.prefWidthProperty().bind(width);
         this.rootPane.prefHeightProperty().bind(width);
     }
+    
+    /**
+     * defines maximum width of node. Used to call from Parent node
+     * to set maximum size to its parents.
+     * @param width 
+     */
     public void initRootProperty(ReadOnlyDoubleProperty width){
         this.rootPane.prefWidthProperty().bind(width);
         this.rootPane.prefHeightProperty().bind(width);
@@ -98,9 +104,6 @@ public class ImageDetailsController extends userObject implements Initializable,
         super.setID(userID);
         this.userID.setText( userID );
     }
-    public String getUserID(){
-        return this.userID.getText();
-    }
 
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
@@ -111,9 +114,6 @@ public class ImageDetailsController extends userObject implements Initializable,
         hstCtrlr.bringChatScreen(this);
         
         this.stopAnimation();
-        
-        
-        
     }
 
     @FXML

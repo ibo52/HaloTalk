@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -69,6 +68,10 @@ public class HostSelectorController implements Initializable {
         // TODO
     }
     
+    /**
+     * Places chat panel of specific user to screen
+     * @param ctrlr_userData information about remote user
+     */
     public void bringChatScreen(userObject ctrlr_userData){
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
@@ -96,82 +99,85 @@ public class HostSelectorController implements Initializable {
         return this.leftStackPane;
     }
     
+    /**
+     * discovers the LAN for users of this program
+     */
     private void LANBrowser(){
- 
-        Thread browserThread=new Thread( new Runnable(){
+        
+        ExecutorService browserService=Executors.newSingleThreadExecutor();
+        
+        browserService.execute( () -> {
             
-           @Override
-           public void run(){
-
-               while( !Thread.currentThread().isInterrupted() ){
-                   
-                   if ( !NetworkDeviceManager.checkForConnectivity() ) {
-                       System.err.println("No internet connection. Sleep for 3000 ms");
-                       try {
-                           Thread.sleep(3000);
-                       } catch (InterruptedException ex) {
-                           System.out.println(ex.getMessage());
-                       }
-                       continue;
-                   }
-                   //get a device from manager and calculate network ID
-                   NetworkDeviceManager manager=new NetworkDeviceManager();
-               NetworkInterface ni=manager.getInterfaceDevices(
-                       NetworkDeviceManager
-                               .ConnectionType.WIRELESS).get(0);
-                   
-               //System.out.println("selected ni:"+ni.getName()+" ");
-                   
-                   String hostIdentity=NetworkDeviceManager
-                           .calculateNetworkIdentity(ni);
-                   
-                   ExecutorService executorService = Executors.newFixedThreadPool(10);
-                   
-                   int i=Integer.valueOf(hostIdentity.substring
-                            (hostIdentity.lastIndexOf('.')+1
-                             ,hostIdentity.length())  );
-                   
-                    for (; i < 254; i++) {
+            while( !Thread.currentThread().isInterrupted() ){
+                
+                if ( !NetworkDeviceManager.checkForConnectivity() ) {
+                    //System.err.println("No internet connection. Sleep for 3000 ms");
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                    continue;
+                }
+                //get a device from manager and calculate network ID
+                NetworkDeviceManager manager=new NetworkDeviceManager();
+                NetworkInterface ni=manager.getInterfaceDevices(
+                        NetworkDeviceManager
+                                .ConnectionType.WIRELESS).get(0);
+                
+                //System.out.println("selected ni:"+ni.getName()+" ");
+                
+                String hostIdentity=NetworkDeviceManager
+                        .calculateNetworkIdentity(ni);
+                
+                ExecutorService executorService = Executors.newFixedThreadPool(
+                Runtime.getRuntime().availableProcessors()*2);
+                
+                int i=Integer.parseInt(hostIdentity.substring
+                    (hostIdentity.lastIndexOf('.')+1
+                            ,hostIdentity.length())  );
+                
+                for (; i < 254; i++) {
+                    
+                    final int executorArgument=i;
+                    executorService.execute( ()->{
                         
-                        final int executorArgument=i;
-                        executorService.execute(()->{
-
-                        String host=hostIdentity.substring( 
-                                0, 
+                        String host=hostIdentity.substring(
+                                0,
                                 hostIdentity.lastIndexOf('.')+1);
                         
                         host+=+executorArgument;
                         
-                         try {
-                             //check if there is proper network device with this ip address
-                             if ( !InetAddress.getByName(host)
-                                     .isLoopbackAddress() ) {
-                                 
-                                 //check if host has this application
-                                 BroadcastClient LANdiscover =new BroadcastClient(host);
-                                 
-                                 LANdiscover.start();
-                                 
-                                 //parse incoming user data
-                                 String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
-                                 
-                                  //if LANbrowser finds own broadcaster(itself) on LAN
-                                 //dont add to userInfoPanel
-                                 if ( !idt[0].equals("NO_RESPONSE") & 
-                                         !idt[0].equals(LANBroadcaster.getHostName()) ) {
-                                 
+                        try {
+                            //check if there is proper network device with this ip address
+                            if ( !InetAddress.getByName(host)
+                                    .isLoopbackAddress() ) {
+                                
+                                //check if host has this application
+                                BroadcastClient LANdiscover =new BroadcastClient(host);
+                                
+                                LANdiscover.start();
+                                
+                                //parse incoming user data
+                                String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
+                                
+                                //if LANbrowser finds own broadcaster(itself) on LAN
+                                //dont add to userInfoPanel
+                                if ( !idt[0].equals("NO_RESPONSE") &
+                                        !idt[0].equals(LANBroadcaster.getHostName()) ) {
+                                    
                                     userObject userData=new userObject(idt[3],
                                             idt[4],Integer.parseInt(idt[1]),
                                             idt[2],host);
                                     Iterator iter=usersBox.getChildren().iterator();
                                     boolean appendFlag=true;
-
+                                    
                                     while( iter.hasNext() ){
-
+                                        
                                         Parent v=(Parent)iter.next();
-
+                                        
                                         UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-
+                                        
                                         if (host.equals(ctrlr.getID()) ) {
                                             appendFlag=false;
                                             updateUser(userData, v);
@@ -179,77 +185,74 @@ public class HostSelectorController implements Initializable {
                                         }
                                     }
                                     if (appendFlag) {
-                                       appendUser(userData);
+                                        appendUser(userData);
                                     }
-                                 
+                                    
                                 }
-                             }
-                         } catch (UnknownHostException ex) {
-                             System.out.println("LANbrowser()"+ex.getMessage());
-                         } catch (IOException ex) {
-                             System.out.println("LANbrowser()"+ex.getMessage());
-                         }
-                         
-                         });
-                    }
-                    executorService.shutdown();
-                    
-                   try {
-                       Thread.sleep(3000);
-                   } catch (InterruptedException ex) {
-                       LANBroadcaster.stop();
-                       System.out.println("statEmitter stopped beacuse of interrupt");
-                       ex.printStackTrace();
-                   }
+                            }
+                        } catch (UnknownHostException ex) {
+                            System.out.println("LANbrowser()"+ex.getMessage());
+                        }
+                        
+                    });
                 }
-           }
-        });
-        
-        browserThread.setDaemon(true);
-        browserThread.start();
-    }
-    
-    private void updateUser(userObject userInfo, Parent Box){
-        
-        Platform.runLater(new Runnable(){
-            @Override
-            public void run() {
-
-                UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
-
-                ctrlr.setContents(ctrlr);
-
-                FadeTransition ft=new FadeTransition();
-                ft.setNode(Box);
-                ft.setDuration(Duration.millis(300));
-                ft.setFromValue(0.2);
-                ft.setToValue(1);
-
-                ft.play();
+                executorService.shutdown();
+                
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ex) {
+                    LANBroadcaster.stop();
+                    System.out.println("statEmitter stopped beacuse of interrupt");
+                    ex.printStackTrace();
+                }
             }
         });
+        browserService.shutdown();
+    }
+    
+    /**
+     * updates specific user with new information data
+     * @param userInfo new information data of user
+     * @param Box Node contains information of that user
+     */
+    private void updateUser(userObject userInfo, Parent Box){
+        
+        Platform.runLater( () -> {
+            UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
+            
+            ctrlr.setContents(userInfo);
+            
+            FadeTransition ft=new FadeTransition();
+            ft.setNode(Box);
+            ft.setDuration(Duration.millis(300));
+            ft.setFromValue(0.2);
+            ft.setToValue(1);
+            
+            ft.play();
+        });
         
     }
+    
+    /**
+     * Creates a node with user information, appends it to screen
+     * @param userInfo information data of user
+     */
     private void appendUser(userObject userData){
         
-        Platform.runLater(new Runnable(){
-            @Override
-            public void run() {
-
-                try {
-                    Parent Box= App.loadFXML("userInfoBox");
-
-                    UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
-
-                    ctrlr.setContents(userData);
-
-                    usersBox.getChildren().add(Box);
-
-                    ctrlr.startAnimation();
-                    
-                } catch (IOException ex) {
-                    System.out.println(ex.getMessage());
-                }
+        Platform.runLater( () -> {
+            try {
+                Parent Box= App.loadFXML("userInfoBox");
+                
+                UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
+                
+                ctrlr.setContents(userData);
+                
+                usersBox.getChildren().add(Box);
+                
+                ctrlr.startAnimation();
+                
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
             }
         });
         

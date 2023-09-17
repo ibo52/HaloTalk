@@ -9,7 +9,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 
 /**
  *
@@ -22,6 +21,9 @@ public class Broadcaster extends userObject {
     
     Thread starter;
     
+    /**
+     * initializes DatagramSocket as a broadcast server.
+     */
     public Broadcaster(){
         this.port=50002;
                 
@@ -35,6 +37,10 @@ public class Broadcaster extends userObject {
         
     }
     
+    /**
+     * starts a thread in server to listen incoming requests.
+     * Returns user data according to request type
+     */
     public void start(){
         
         starter=new Thread(new Runnable(){
@@ -95,6 +101,9 @@ public class Broadcaster extends userObject {
         starter.start();
     }
     
+    /**
+     * if invoked, main thread will be blocked until listener interrupted
+     */
     public void join(){
         try {
             starter.join();
@@ -103,6 +112,9 @@ public class Broadcaster extends userObject {
         }
     }
     
+    /**
+     * closes the broadcast server
+     */
     public void stop(){
         this.starter.interrupt();
         this.server.close();

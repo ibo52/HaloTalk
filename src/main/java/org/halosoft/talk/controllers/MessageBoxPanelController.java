@@ -17,7 +17,7 @@ import javafx.util.Duration;
 import org.halosoft.talk.interfaces.Animateable;
 /**
  * FXML Controller class
- *
+ * Message boxes to use on chat panel
  * @author ibrahim
  */
 public class MessageBoxPanelController implements Initializable, Animateable{
