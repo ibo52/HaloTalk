@@ -28,8 +28,9 @@ public class userObject {
     
     
     
-    public userObject(String name, String surname, int status,
+    public userObject(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress, Image img){
+        this.hostName=hostName;
         this.name=name;
         this.surname=surname;
         this.status=status;
@@ -38,30 +39,26 @@ public class userObject {
         
         this.image=img;
         
-        try {
-            this.hostName=System.getenv("USERNAME")+"@"+InetAddress.getLocalHost().getHostName();
-        
-        } catch (UnknownHostException ex) {
-            System.err.println("userObject hostName init:"+ex.getMessage());
-            this.hostName="*";
-        }
-        
     }
-    public userObject(String name, String surname, int status,
+    public userObject(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress){
         
-        this(name, surname, status, StatusMessage, ipAddress,
+        this(hostName, name, surname, status, StatusMessage, ipAddress,
                 new Image(App.class.getResource(
                         "/images/logo-circle-512x512.png").toString())
         );   
     }
     public userObject(){
-        this(System.getenv("USERNAME"),"*",2,
+        this("unknown" ,System.getenv("USERNAME"),"*",2,
                 "Heyyo! I am using HaloTalk",
                 "127.0.0.1",
                 new Image(App.class.getResource(
                         "/images/logo-circle-512x512.png").toString())
         );
+        
+        try {
+            this.hostName=this.name+"@"+InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException ex) {}
     }
     
     public String getID(){
@@ -114,6 +111,7 @@ public class userObject {
     }
     
     public void setContents(userObject userData){
+        this.setHostName(userData.getHostName());
         this.setID(userData.getID());
         this.setImage(userData.getImage());
         this.setName(userData.getName());
