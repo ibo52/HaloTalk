@@ -8,7 +8,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -17,24 +20,33 @@ import java.net.SocketException;
 public class Broadcaster extends userObject {
     
     private DatagramSocket server;
-    int port;
+    private final int port;
     
-    Thread starter;
+    private ExecutorService executorService;
     
     /**
      * initializes DatagramSocket as a broadcast server.
+     * @param ipAddr ip address to bind broadcast server
      */
-    public Broadcaster(){
+    public Broadcaster(String ipAddr){
         this.port=50002;
-                
+        
+        executorService=Executors.newSingleThreadExecutor();
+
         try {
-            this.server=new DatagramSocket(this.port);
+            this.server=new DatagramSocket(null);
+            this.server.bind(new InetSocketAddress(ipAddr, port) );
             this.server.setBroadcast(true);
 
         } catch (SocketException ex) {
-            System.out.println(ex.getMessage());
-        }
-        
+            
+            System.out.println(this.getClass()+":"+ex.getMessage());
+        }        
+    }
+    
+    public Broadcaster(){
+
+        this( "localhost" );
     }
     
     /**
@@ -43,62 +55,59 @@ public class Broadcaster extends userObject {
      */
     public void start(){
         
-        starter=new Thread(new Runnable(){
-            @Override
-            public void run() {
-                
-                while ( !Thread.currentThread().isInterrupted() ){
-                    
-                    try {
-                        byte[] buffer=new byte[1024];
-                        
-                        //wait until notify from user request
-                        DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-                        server.receive(request);
-                        
-                        
-                        InetAddress remoteCli=request.getAddress();
-                        int remotePort=request.getPort();
-                        
-                        //System.out.println("remote request from:"+remoteCli.getHostName());
-                        String data="";
-                        switch(buffer.toString()){
-                            
-                            case "HNAME":
-                                data=String.valueOf(getHostName());
-                                break;
-                            case "STAT":
-                                data=String.valueOf(getStatus() );
-                                break;
-                            
-                            case "CSTAT":
-                                data=String.valueOf(getStatusMessage() );
-                                break;
-                                
-                            default:
-                                data=getHostName();
-                                data+=";"+getStatus();
-                                data+=";"+getStatusMessage();
-                                data+=";"+getName();
-                                data+=";"+getSurName();
-                                //data+=";"+getImage();
-                                break;
-                        }
-                        buffer=data.getBytes();
-                        
-                        DatagramPacket response=new DatagramPacket(buffer, buffer.length, remoteCli,remotePort);
-                        server.send(response);
-                        
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
-                    
-                }
-            }
+        executorService.execute( () -> {
             
+            while ( !Thread.currentThread().isInterrupted() ){
+                
+                try {
+                    byte[] buffer=new byte[1024];
+                    
+                    //wait until notify from user request
+                    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+                    server.receive(request);
+                    
+                    
+                    InetAddress remoteCli=request.getAddress();
+                    int remotePort=request.getPort();
+                    
+                    //System.out.println("remote request from:"+remoteCli.getHostName());
+                    String data="";
+                    switch(buffer.toString()){
+                        
+                        case "HNAME":
+                            data=String.valueOf(getHostName());
+                            break;
+                        case "STAT":
+                            data=String.valueOf(getStatus() );
+                            break;
+                            
+                        case "CSTAT":
+                            data=String.valueOf(getStatusMessage() );
+                            break;
+                            
+                        default:
+                            data=getHostName();
+                            data+=";"+getStatus();
+                            data+=";"+getStatusMessage();
+                            data+=";"+getName();
+                            data+=";"+getSurName();
+                            //data+=";"+getImage();
+                            break;
+                    }
+                    buffer=data.getBytes();
+                    
+                    DatagramPacket response=new DatagramPacket(buffer, buffer.length, remoteCli,remotePort);
+                    server.send(response);
+                    
+                } catch (IOException ex) {
+                    System.err.println(this.getClass().getName()
+                            +"listener Server :"+ex.getMessage());
+                }
+                
+            }
         });
         
-        starter.start();
+        executorService.shutdown();
     }
     
     /**
@@ -106,9 +115,11 @@ public class Broadcaster extends userObject {
      */
     public void join(){
         try {
-            starter.join();
+            while( !executorService.isTerminated() ){
+                Thread.sleep(300);
+            }
         } catch (InterruptedException ex) {
-            ex.printStackTrace();
+            System.out.println(this.getClass().getName()+" join():"+ex.getMessage());
         }
     }
     
@@ -116,10 +127,10 @@ public class Broadcaster extends userObject {
      * closes the broadcast server
      */
     public void stop(){
-        this.starter.interrupt();
+        executorService.shutdownNow();
         this.server.close();
         
-        System.out.println("stop exectued on broadcaster");
+        System.out.println("broadcaster stopped");
     }
 
     public static void main(String[] args) {
