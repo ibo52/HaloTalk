@@ -12,26 +12,27 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
+import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.userObject;
 /**
@@ -39,7 +40,11 @@ import org.halosoft.talk.objects.userObject;
  *
  * @author ibrahim
  */
-public class ChatPanelController extends userObject implements Initializable {
+public class ChatPanelController extends userObject implements Initializable,
+        Controllable{
+    
+    private HostSelectorController parentController;
+    
     private Client remoteClient;
     @FXML
     private BorderPane rootPane;
@@ -55,6 +60,8 @@ public class ChatPanelController extends userObject implements Initializable {
     private Button sendButton;
     @FXML
     private HBox statusBar;
+    @FXML
+    private StackPane stackPane;
     /**
      * Initializes the controller class.
      */
@@ -69,6 +76,31 @@ public class ChatPanelController extends userObject implements Initializable {
                         0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
                         true, true, true, true, true, true, null));
             }
+        });
+        
+        this.statusBar.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
+
+            Pane uContact;
+            while( this.stackPane.getChildren().size()>0){
+                Node n=this.stackPane.getChildren().get(0);
+                this.stackPane.getChildren().remove(n);
+            }
+            try {
+                uContact = (Pane) App.loadFXML("userContact");
+                UserContactController ctrlr=(UserContactController) uContact.getUserData();
+                ctrlr.setContents(this);
+                
+                ctrlr.setParentController(this.parentController);
+                uContact.setPrefWidth(240);
+                
+                this.stackPane.getChildren().add(uContact);
+                this.stackPane.setAlignment(uContact, Pos.TOP_LEFT);
+                
+            } catch (IOException ex) {
+                System.out.println("bind ucontact popup to cahtpanel statusbar:"
+                        +ex.getMessage());
+            }
+            
         });
     }
     
@@ -174,6 +206,21 @@ public class ChatPanelController extends userObject implements Initializable {
             
             this.messageTextField.setText("");
         }
+    }
+    
+    @Override
+    public void setParentController(Object ctrlr){
+        this.parentController=(HostSelectorController) ctrlr;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
     
 }

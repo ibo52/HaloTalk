@@ -6,14 +6,14 @@ package org.halosoft.talk.controllers;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -23,10 +23,11 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.interfaces.Animateable;
+import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.userObject;
 
 /**
@@ -35,8 +36,10 @@ import org.halosoft.talk.objects.userObject;
  * @author ibrahim
  */
 public class UserContactController extends userObject implements Initializable,
-        Animateable{
-
+        Animateable, Controllable{
+    
+    HostSelectorController parentController;
+    
     @FXML
     private BorderPane rootPane;
     @FXML
@@ -59,13 +62,9 @@ public class UserContactController extends userObject implements Initializable,
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
         this.rootPane.addEventHandler(KeyEvent.KEY_PRESSED,
-                new EventHandler<KeyEvent>(){
-            @Override
-            public void handle(KeyEvent t) {
-                
-                if (t.getCode().equals(KeyCode.ESCAPE)) {
-                    stopAnimation();
-                }
+                (KeyEvent t) -> {
+            if (t.getCode().equals(KeyCode.ESCAPE)) {
+                stopAnimation();
             }
         });
         
@@ -128,23 +127,12 @@ public class UserContactController extends userObject implements Initializable,
         this.userStatusText.setText(status);
     }
     
-    private void remove(){
-        
-        /*
-        Parent hostSelector=this.rootPane.getParent().getParent();
-        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
-        hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
-        */
-        ((StackPane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
-    }
-    
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
         
         //get host selector rootpane and its controller
-        Parent hostSelector=this.rootPane.getParent().getParent();
-        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
-        hstCtrlr.bringChatScreen(this);
+        System.out.println("->"+this.parentController);
+        parentController.bringChatScreen(this);
         
         ScaleTransition st=new ScaleTransition();
         st.setDuration(Duration.millis(300));
@@ -164,35 +152,69 @@ public class UserContactController extends userObject implements Initializable,
     public void startAnimation() {
         
         Platform.runLater( ()->{
+            final Duration duration=Duration.millis(300);
             this.rootPane.setVisible(true);
-            
+            //***---***
             TranslateTransition tt=new TranslateTransition();
-            tt.setNode(this.rootPane);
-            tt.setDuration(Duration.millis(300));
+            tt.setDuration(duration);
 
             int height=(int) (this.rootPane.getHeight()<=0?
                     this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
 
-            tt.setFromY(height);
+            tt.setFromY(-height);
             tt.setToY(0);
-            tt.play();
+            //-------
+            FadeTransition ft=new FadeTransition();
+            ft.setDuration(duration.multiply(1.2));
+            ft.setFromValue(0);
+            ft.setToValue(1);
+            
+            ParallelTransition pt=new ParallelTransition(this.rootPane,
+                    tt,ft);
+            pt.play();
         });
     }
 
     @Override
     public void stopAnimation() {
-
+        
+        final Duration duration=Duration.millis(300);
+        //---Translate effect
         TranslateTransition tt=new TranslateTransition();
-        tt.setNode(this.rootPane);
-        tt.setDuration(Duration.millis(300));
-        
+        tt.setDuration(duration);
+
+        int height=(int) (this.rootPane.getHeight()<=0?
+                this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
+
         tt.setFromY(0);
-        tt.setToY(this.rootPane.getHeight());
-        
-        tt.setOnFinished((ActionEvent t) -> {
-            remove();
+        tt.setToY(height);
+        //---Fade effect
+        FadeTransition ft=new FadeTransition();
+        ft.setDuration(duration);
+        ft.setFromValue(1);
+        ft.setToValue(0);
+
+        ParallelTransition pt=new ParallelTransition(this.rootPane,
+                tt,ft);
+
+        pt.setOnFinished((ActionEvent t) -> {
+        remove();
         });
-        tt.play();
+        pt.play();
     }
     
+    @Override
+    public void setParentController(Object ctrlr){
+        this.parentController=(HostSelectorController) ctrlr;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+    }
 }

@@ -23,10 +23,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
+import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
@@ -34,7 +36,7 @@ import org.halosoft.talk.objects.userObject;
  * @author ibrahim
  */
 public class ImageDetailsController extends userObject implements Initializable,
-        Animateable{
+        Animateable, Controllable{
 
     private HostSelectorController parentController;
     
@@ -108,10 +110,6 @@ public class ImageDetailsController extends userObject implements Initializable,
         super.setID(userID);
         this.userID.setText( userID );
     }
-    
-    public void setParentController(HostSelectorController ctrlr){
-        this.parentController=ctrlr;
-    }
 
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
@@ -127,11 +125,13 @@ public class ImageDetailsController extends userObject implements Initializable,
         
         try {
             //load contact pane fxml
-            Parent uContact=App.loadFXML("userContact");
+            Pane uContact=(Pane) App.loadFXML("userContact");
             UserContactController ctrlr=(UserContactController) uContact.getUserData();
             
+            uContact.setMaxSize(Long.MAX_VALUE, Long.MAX_VALUE);
             //set contents of contact
             ctrlr.setContents(this);
+            ctrlr.setParentController(this.parentController);
             
             //get host selector rootpane and its controller
             parentController.getLeftStackPane().getChildren().remove(this.rootPane);
@@ -177,5 +177,20 @@ public class ImageDetailsController extends userObject implements Initializable,
         });
         
         st.play();
+    }
+    
+    @Override
+    public void setParentController(Object ctrlr){
+        this.parentController=(HostSelectorController) ctrlr;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
 }

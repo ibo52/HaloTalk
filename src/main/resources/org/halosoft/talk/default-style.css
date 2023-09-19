@@ -9,6 +9,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
 
 /*HostSelector, ChatPanel statusBar*/
 #statusBar{
-    -fx-background-color:#dcdcff;
+    -fx-background-color:d0d0d0;
 }
-
+#logo{
+    -fx-text-fill:linear-gradient(to right, #f01010 20%,#ffff10 30%,
+        #10f010 60%,#f010f0 90%,#404040 100%);
+}

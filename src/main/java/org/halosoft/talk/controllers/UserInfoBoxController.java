@@ -21,11 +21,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
+import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
@@ -33,7 +35,7 @@ import org.halosoft.talk.objects.userObject;
  * @author ibrahim
  */
 public class UserInfoBoxController extends userObject implements Initializable,
-        Animateable{
+        Animateable, Controllable{
 
     private HostSelectorController parentController;
     
@@ -123,16 +125,12 @@ public class UserInfoBoxController extends userObject implements Initializable,
         this.userImage.setImage(img);
     }
     
-    public void setParentController(HostSelectorController ctrlr){
-        this.parentController=ctrlr;
-    }
-    
     private void showUserInfoDetails(){
         
         try {
-            Parent imageDetails=App.loadFXML("imageDetails");
+            Parent imageDetails= App.loadFXML("imageDetails");
             ImageDetailsController imageDetailsController=(ImageDetailsController) imageDetails.getUserData();
-
+            
             //set imageView and add to left stackpane
             StackPane leftStackPane=parentController.getLeftStackPane();
             
@@ -200,5 +198,20 @@ public class UserInfoBoxController extends userObject implements Initializable,
         });
 
         tt.play();
+    }
+
+    @Override
+    public void setParentController(Object ctrlr){
+        this.parentController=(HostSelectorController) ctrlr;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
 }

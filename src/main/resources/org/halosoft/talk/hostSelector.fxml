@@ -35,7 +35,7 @@
                <children>
                   <HBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label text="HaloTalk">
+                        <Label fx:id="logo" text="HaloTalk">
                            <font>
                               <Font size="40.0" />
                            </font>

@@ -82,10 +82,11 @@ public class HostSelectorController implements Initializable {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
                 oldCtrlr.closeClient();
             }
-            
+
             Parent chatPanel=App.loadFXML("chatPanel");
             ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
             
+            ctrlr.setParentController(this);
             ctrlr.setContents(ctrlr_userData);
             
             connectorClient=new Client( ctrlr_userData.getID() );
