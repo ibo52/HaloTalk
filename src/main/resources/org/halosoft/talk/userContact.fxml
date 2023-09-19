@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserContactController">
+<BorderPane fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="400.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserContactController">
    <top>
       <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
          <content>
@@ -45,7 +45,7 @@
                         <Insets bottom="20.0" left="5.0" right="5.0" top="5.0" />
                      </VBox.margin>
                   </HBox>
-                  <Label fx:id="userHostName" text="host name" textFill="#a10101" />
+                  <Label fx:id="userHostName" text="host name" textFill="#a10101" wrapText="true" />
                   <Label fx:id="userStatusText" maxWidth="1.7976931348623157E308" text="user Custom status text" wrapText="true">
                      <VBox.margin>
                         <Insets left="5.0" right="5.0" />

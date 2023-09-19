@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -22,6 +23,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.interfaces.Animateable;
@@ -66,6 +68,9 @@ public class UserContactController extends userObject implements Initializable,
                 }
             }
         });
+        
+        this.rootPane.setVisible(false);
+        this.startAnimation();
     }
     
     @Override
@@ -124,11 +129,13 @@ public class UserContactController extends userObject implements Initializable,
     }
     
     private void remove(){
+        
+        /*
         Parent hostSelector=this.rootPane.getParent().getParent();
         HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
-        
         hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
-
+        */
+        ((StackPane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
     
     @FXML
@@ -147,7 +154,7 @@ public class UserContactController extends userObject implements Initializable,
         st.setToX(0);
         st.setToY(0);
         st.setOnFinished((ActionEvent t) -> {
-            hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
+            remove();
         });
         
         st.play();
@@ -156,16 +163,20 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void startAnimation() {
         
-        TranslateTransition tt=new TranslateTransition();
-        tt.setNode(this.rootPane);
-        tt.setDuration(Duration.millis(300));
-        
-        int height=(int) (this.rootPane.getHeight()<=0?
-                this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
-        
-        tt.setFromY(height);
-        tt.setToY(0);
-        tt.play();
+        Platform.runLater( ()->{
+            this.rootPane.setVisible(true);
+            
+            TranslateTransition tt=new TranslateTransition();
+            tt.setNode(this.rootPane);
+            tt.setDuration(Duration.millis(300));
+
+            int height=(int) (this.rootPane.getHeight()<=0?
+                    this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
+
+            tt.setFromY(height);
+            tt.setToY(0);
+            tt.play();
+        });
     }
 
     @Override
@@ -177,13 +188,9 @@ public class UserContactController extends userObject implements Initializable,
         
         tt.setFromY(0);
         tt.setToY(this.rootPane.getHeight());
-        System.out.println("ucontact h:"+this.rootPane.getHeight());
         
-        tt.setOnFinished(new EventHandler<ActionEvent>(){
-            @Override
-            public void handle(ActionEvent t) {
-                remove();
-            }
+        tt.setOnFinished((ActionEvent t) -> {
+            remove();
         });
         tt.play();
     }

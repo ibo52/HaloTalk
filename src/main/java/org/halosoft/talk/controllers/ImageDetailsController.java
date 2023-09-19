@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.event.ActionEvent;
@@ -35,7 +36,8 @@ import org.halosoft.talk.objects.userObject;
 public class ImageDetailsController extends userObject implements Initializable,
         Animateable{
 
-
+    private HostSelectorController parentController;
+    
     @FXML
     private ImageView userImage;
     @FXML
@@ -63,6 +65,8 @@ public class ImageDetailsController extends userObject implements Initializable,
         this.userImageBox.prefWidthProperty().bind(this.rootPane.widthProperty());
         this.userImageBox.prefHeightProperty().bind(this.rootPane.heightProperty().multiply(0.92));
         
+        this.rootPane.setVisible(false);
+        this.startAnimation();
     }
     
     @Override
@@ -104,14 +108,16 @@ public class ImageDetailsController extends userObject implements Initializable,
         super.setID(userID);
         this.userID.setText( userID );
     }
+    
+    public void setParentController(HostSelectorController ctrlr){
+        this.parentController=ctrlr;
+    }
 
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
         
         //get host selector rootpane and its controller
-        Parent hostSelector=this.rootPane.getParent().getParent();
-        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
-        hstCtrlr.bringChatScreen(this);
+        parentController.bringChatScreen(this);
         
         this.stopAnimation();
     }
@@ -128,16 +134,9 @@ public class ImageDetailsController extends userObject implements Initializable,
             ctrlr.setContents(this);
             
             //get host selector rootpane and its controller
-            Parent hostSelector=this.rootPane.getParent().getParent();
-            HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
+            parentController.getLeftStackPane().getChildren().remove(this.rootPane);
             
-            
-            
-            hstCtrlr.getLeftStackPane().getChildren().remove(this.rootPane);
-            
-            hstCtrlr.getLeftStackPane().getChildren().add(uContact);
-            
-            ctrlr.startAnimation();
+            parentController.getLeftStackPane().getChildren().add(uContact);
             
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -146,8 +145,10 @@ public class ImageDetailsController extends userObject implements Initializable,
 
     @Override
     public void startAnimation() {
-        
-        ScaleTransition st=new ScaleTransition();
+        Platform.runLater(()->{
+            this.rootPane.setVisible(true);
+            
+            ScaleTransition st=new ScaleTransition();
             st.setNode(this.rootPane);
             st.setDuration(Duration.millis(300));
             
@@ -156,16 +157,14 @@ public class ImageDetailsController extends userObject implements Initializable,
             st.setToX(1);
             st.setToY(1);
             st.play();
-        
+        });   
     }
 
     @Override
     public void stopAnimation() {
         
         //get host selector rootpane and its controller
-        Parent hostSelector=this.rootPane.getParent().getParent();
-        HostSelectorController hstCtrlr=(HostSelectorController) hostSelector.getUserData();
-        
+
         ScaleTransition st=new ScaleTransition();
         st.setDuration(Duration.millis(300));
         st.setNode(this.rootPane);
@@ -174,7 +173,7 @@ public class ImageDetailsController extends userObject implements Initializable,
         st.setToX(0);
         st.setToY(0);
         st.setOnFinished((ActionEvent t) -> {
-            hstCtrlr.getLeftStackPane().getChildren().remove(rootPane);
+            parentController.getLeftStackPane().getChildren().remove(rootPane);
         });
         
         st.play();

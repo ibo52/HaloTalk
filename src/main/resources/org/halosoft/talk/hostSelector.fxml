@@ -1,23 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="480.0" prefWidth="640.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.HostSelectorController">
+<BorderPane prefHeight="480.0" prefWidth="880.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.HostSelectorController">
    <center>
-      <BorderPane fx:id="chatPanelLayout" minWidth="400.0" BorderPane.alignment="CENTER" />
+      <BorderPane fx:id="chatPanelLayout" prefWidth="480.0" BorderPane.alignment="CENTER" />
    </center>
    <left>
-      <StackPane fx:id="leftStackPane" minWidth="200.0" BorderPane.alignment="CENTER">
-         <children>
-            <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
-               <content>
-                  <VBox fx:id="usersBox" />
-               </content>
-            </ScrollPane>
-         </children>
-      </StackPane>
+      <BorderPane prefWidth="400.0" BorderPane.alignment="CENTER">
+         <center>
+            <StackPane fx:id="leftStackPane">
+               <children>
+                  <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+                     <content>
+                        <VBox fx:id="usersBox" />
+                     </content>
+                  </ScrollPane>
+               </children>
+            </StackPane>
+         </center>
+         <top>
+            <HBox fx:id="statusBar" alignment="CENTER" prefHeight="80.0" BorderPane.alignment="CENTER">
+               <children>
+                  <HBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="HaloTalk">
+                           <font>
+                              <Font size="40.0" />
+                           </font>
+                           <textFill>
+                              <LinearGradient endX="0.5428571428571429" endY="0.7714285714285715" startX="0.19047619047619047">
+                                 <stops>
+                                    <Stop>
+                                       <color>
+                                          <Color />
+                                       </color>
+                                    </Stop>
+                                    <Stop offset="1.0">
+                                       <color>
+                                          <Color red="1.0" />
+                                       </color>
+                                    </Stop>
+                                 </stops>
+                              </LinearGradient>
+                           </textFill>
+                        </Label>
+                     </children>
+                  </HBox>
+                  <HBox alignment="CENTER_RIGHT" spacing="2.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Button mnemonicParsing="false" text="Search" />
+                        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" text="..." />
+                     </children>
+                     <HBox.margin>
+                        <Insets left="2.0" right="2.0" />
+                     </HBox.margin>
+                  </HBox>
+               </children>
+            </HBox>
+         </top>
+      </BorderPane>
    </left>
 </BorderPane>

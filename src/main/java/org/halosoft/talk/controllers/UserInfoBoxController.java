@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -33,6 +35,8 @@ import org.halosoft.talk.objects.userObject;
 public class UserInfoBoxController extends userObject implements Initializable,
         Animateable{
 
+    private HostSelectorController parentController;
+    
     @FXML
     private ImageView userImage;
     @FXML
@@ -54,6 +58,9 @@ public class UserInfoBoxController extends userObject implements Initializable,
     public void initialize(URL url, ResourceBundle rb) {
         setStatus(this.getStatus());
         setID(this.getID());
+        
+        this.rootPane.setVisible(false);
+        this.startAnimation();
         // TODO
     }   
     
@@ -116,18 +123,18 @@ public class UserInfoBoxController extends userObject implements Initializable,
         this.userImage.setImage(img);
     }
     
+    public void setParentController(HostSelectorController ctrlr){
+        this.parentController=ctrlr;
+    }
+    
     private void showUserInfoDetails(){
         
         try {
             Parent imageDetails=App.loadFXML("imageDetails");
             ImageDetailsController imageDetailsController=(ImageDetailsController) imageDetails.getUserData();
-            
-            //get hostSelector rootPane and its controls
-            Parent p=this.rootPane.getParent().getParent().getParent().getParent().getParent().getParent();
-            HostSelectorController ctrlr=(HostSelectorController) p.getUserData();
-            
+
             //set imageView and add to left stackpane
-            StackPane leftStackPane=ctrlr.getLeftStackPane();
+            StackPane leftStackPane=parentController.getLeftStackPane();
             
             //set max size of child at parent
             imageDetailsController.initRootProperty(leftStackPane.widthProperty().multiply(0.8));
@@ -141,11 +148,8 @@ public class UserInfoBoxController extends userObject implements Initializable,
 
                 leftStackPane.getChildren().remove(n);
             }
-            
+            imageDetailsController.setParentController(parentController);
             leftStackPane.getChildren().add(imageDetails);
-            
-            //scale transition for fancy effect
-            imageDetailsController.startAnimation();
             
         } catch (IOException ex) {
             System.out.println(ex.getMessage());
@@ -156,11 +160,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
     private void rootPaneMouseClicked(MouseEvent event) {
         
         //get hostselector rootpane and its controller
-        Parent p=this.rootPane.getParent().getParent().getParent().getParent().getParent().getParent();
-        
-        HostSelectorController ctrlr=(HostSelectorController) p.getUserData();
-
-        ctrlr.bringChatScreen((UserInfoBoxController) this.rootPane.getUserData());
+        parentController.bringChatScreen((UserInfoBoxController) this.rootPane.getUserData());
     }
 
     @FXML
@@ -171,24 +171,33 @@ public class UserInfoBoxController extends userObject implements Initializable,
 
     @Override
     public void startAnimation() {
-        TranslateTransition tt=new TranslateTransition();
-        tt.setDuration(Duration.millis(300));
-        tt.setNode(this.rootPane);
+        
+        Platform.runLater( ()->{
+            this.rootPane.setVisible(true);
+            
+            TranslateTransition tt=new TranslateTransition();
+            tt.setDuration(Duration.millis(300));
+            tt.setNode(this.rootPane);
 
-        tt.setFromX(-100);
-        tt.setToX(0);
-
-        tt.play();
+            tt.setFromX(-this.rootPane.getWidth());
+            tt.setToX(0);
+            tt.play();
+        
+        });
     }
 
     @Override
     public void stopAnimation() {
         TranslateTransition tt=new TranslateTransition();
-        tt.setDuration(Duration.millis(300));
+        tt.setDuration(Duration.millis(1300));
         tt.setNode(this.rootPane);
 
         tt.setFromX(0);
-        tt.setToX(this.rootPane.getHeight());
+        tt.setToX(this.rootPane.getWidth());
+        
+        tt.setOnFinished((ActionEvent t) -> {
+            ((VBox)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+        });
 
         tt.play();
     }

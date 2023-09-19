@@ -61,6 +61,10 @@ public class userObject {
         } catch (UnknownHostException ex) {}
     }
     
+    /**
+     * 
+     * @return ip address of user
+     */
     public String getID(){
         return this.ipAddress;
     }

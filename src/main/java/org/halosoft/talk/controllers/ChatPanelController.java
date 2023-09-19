@@ -20,6 +20,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -28,6 +29,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.Client;
@@ -42,17 +44,17 @@ public class ChatPanelController extends userObject implements Initializable {
     @FXML
     private BorderPane rootPane;
     @FXML
-    private GridPane headerBarLayout;
-    @FXML
     private ImageView userImageView;
     @FXML
     private Label userNameLabel;
     @FXML
     private VBox messageBoxLayout;
     @FXML
-    private TextField messageTextField;
+    private TextArea messageTextField;
     @FXML
     private Button sendButton;
+    @FXML
+    private HBox statusBar;
     /**
      * Initializes the controller class.
      */
@@ -60,18 +62,14 @@ public class ChatPanelController extends userObject implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO 
         this.messageTextField.addEventHandler(KeyEvent.KEY_PRESSED,
-                new EventHandler<KeyEvent>(){
-            @Override
-            public void handle(KeyEvent t) {
+                (KeyEvent t) -> {
+            if (t.getCode().equals(KeyCode.ENTER)) {
                 
-                if (t.getCode().equals(KeyCode.ENTER)) {
-
-                    sendButton.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED,
-                    0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
-                    true, true, true, true, true, true, null));
-                }
+                sendButton.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED,
+                        0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
+                        true, true, true, true, true, true, null));
             }
-            });
+        });
     }
     
     /**
@@ -112,8 +110,6 @@ public class ChatPanelController extends userObject implements Initializable {
             msgController.setMessage(message, pos);
             
             this.messageBoxLayout.getChildren().add(msgBox);
-            
-            msgController.startAnimation();
             
         } catch (IOException ex) {
             System.err.println("addMessage:"+ex.getMessage());
