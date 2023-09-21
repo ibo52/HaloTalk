@@ -18,6 +18,9 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -38,6 +41,9 @@ import org.halosoft.talk.objects.userObject;
  * @author ibrahim
  */
 public class HostSelectorController implements Initializable {
+    
+    private ExecutorService executorService;    //executor to run runnables on thread
+    
     private Server server;              //to let others conect to you
     
     private Client connectorClient;     //to request connection from others
@@ -51,11 +57,18 @@ public class HostSelectorController implements Initializable {
     private StackPane leftStackPane;
     @FXML
     private HBox statusBar;
+    @FXML
+    private Label logo;
+    @FXML
+    private Button settingsButton;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        
+        executorService=Executors.newSingleThreadExecutor();
+        
         server=new Server();
         server.start();
         
@@ -83,7 +96,7 @@ public class HostSelectorController implements Initializable {
                 oldCtrlr.closeClient();
             }
 
-            Parent chatPanel=App.loadFXML("chatPanel");
+            Parent chatPanel=App.loadFXML("view/chatPanel");
             ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
             
             ctrlr.setParentController(this);
@@ -105,13 +118,12 @@ public class HostSelectorController implements Initializable {
     }
     
     /**
-     * discovers the LAN for users of this program
+     * browse through the subnet of LAN for users of this program
      */
-    private void LANBrowser(){
-        
-        ExecutorService browserService=Executors.newSingleThreadExecutor();
-        
-        browserService.execute( () -> {
+    private class LANBrowser implements Runnable{
+
+        @Override
+        public void run() {
             
             while( !Thread.currentThread().isInterrupted() ){
                 
@@ -204,6 +216,8 @@ public class HostSelectorController implements Initializable {
                 executorService.shutdown();
                 
                 try {
+                    garbageUserCollector();
+                    
                     Thread.sleep(3000);
                 } catch (InterruptedException ex) {
                     LANBroadcaster.stop();
@@ -211,8 +225,16 @@ public class HostSelectorController implements Initializable {
                     ex.printStackTrace();
                 }
             }
-        });
-        browserService.shutdown();
+            
+        }
+        
+    }
+    
+    private void LANBrowser(){
+        
+        executorService.execute( new LANBrowser() );
+        
+        executorService.shutdown();
     }
     
     private void garbageUserCollector(){
@@ -234,7 +256,6 @@ public class HostSelectorController implements Initializable {
                 
                 if (received[0].equals("NO_RESPONSE")) {
                     ctrlr.stopAnimation();
-                    this.usersBox.getChildren().remove(v);
                 }
             }
         });
@@ -272,7 +293,7 @@ public class HostSelectorController implements Initializable {
         
         Platform.runLater( () -> {
             try {
-                Parent Box= App.loadFXML("userInfoBox");
+                Parent Box= App.loadFXML("view/userInfoBox");
 
                 UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
                 
@@ -286,5 +307,21 @@ public class HostSelectorController implements Initializable {
             }
         });
         
+    }
+
+    @FXML
+    private void setttingsButtonMouseClicked(MouseEvent event) {
+        try {
+            Parent uSettings=App.loadFXML("view/userSettings");
+            
+            while( this.leftStackPane.getChildren().size()>1 ){
+                Parent n=(Parent) this.leftStackPane.getChildren().get(1);
+                this.leftStackPane.getChildren().remove(n);
+            }
+            
+            this.leftStackPane.getChildren().add(uSettings);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }
