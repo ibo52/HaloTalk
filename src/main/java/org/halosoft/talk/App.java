@@ -19,11 +19,12 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("hostSelector"), 840, 480);
+        scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
         stage.getIcons().add(new Image(App.class.getResource(
                 "/images/app-logo.png").toString()));
+        System.out.println("------------->"+App.class.getResource("").toString());
         scene.getStylesheets().add(App.class.
-                getResource("default-style.css").toExternalForm());
+                getResource("stylesheet/default-style.css").toExternalForm());
         
         stage.setScene(scene);
         stage.show();

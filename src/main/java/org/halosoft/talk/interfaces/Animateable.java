@@ -10,7 +10,13 @@ package org.halosoft.talk.interfaces;
  */
 public interface Animateable {
     
+    /**
+     * Start animation to general javafx controllers
+     */
      abstract void startAnimation();
      
+     /**
+     * Stop animation to general javafx controllers
+     */
      abstract void stopAnimation();
 }

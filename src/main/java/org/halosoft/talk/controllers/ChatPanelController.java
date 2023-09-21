@@ -86,7 +86,7 @@ public class ChatPanelController extends userObject implements Initializable,
                 this.stackPane.getChildren().remove(n);
             }
             try {
-                uContact = (Pane) App.loadFXML("userContact");
+                uContact = (Pane) App.loadFXML("view/userContact");
                 UserContactController ctrlr=(UserContactController) uContact.getUserData();
                 ctrlr.setContents(this);
                 
@@ -135,7 +135,7 @@ public class ChatPanelController extends userObject implements Initializable,
     public void addMessage(String message, Pos pos){
         
         try {
-            Parent msgBox= App.loadFXML( "messageBoxPanel" );
+            Parent msgBox= App.loadFXML( "view/messageBoxPanel" );
             MessageBoxPanelController msgController= (MessageBoxPanelController) msgBox.getUserData();
             
             msgController.setmsgBoxLayoutAlignment(pos);

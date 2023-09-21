@@ -125,7 +125,7 @@ public class ImageDetailsController extends userObject implements Initializable,
         
         try {
             //load contact pane fxml
-            Pane uContact=(Pane) App.loadFXML("userContact");
+            Pane uContact=(Pane) App.loadFXML("view/userContact");
             UserContactController ctrlr=(UserContactController) uContact.getUserData();
             
             uContact.setMaxSize(Long.MAX_VALUE, Long.MAX_VALUE);

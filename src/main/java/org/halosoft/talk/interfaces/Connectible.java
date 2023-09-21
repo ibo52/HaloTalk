@@ -14,10 +14,19 @@ import java.net.Socket;
  */
 public interface Connectible {
     
+    /**
+     * initialize sockets or other structures of 'Connectible'
+     */
     public void initialize();
     
+    /**
+     * start sockets or other structures of 'Connectible'
+     */
     abstract void start();
     
+    /**
+     * start sockets or other structures of 'Connectible'
+     */
     abstract void stop();
     //---
     abstract String getRemoteIp();

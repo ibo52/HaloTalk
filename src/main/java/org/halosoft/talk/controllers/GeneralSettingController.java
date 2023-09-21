@@ -71,7 +71,7 @@ public class GeneralSettingController implements Initializable, Animateable {
             TranslateTransition tt=new TranslateTransition();
             tt.setDuration(Duration.millis(300));
             tt.setNode(this.rootPane);
-            System.out.println("width settingsbox:"+this.rootPane.getWidth());
+
             tt.setFromX(-this.rootPane.getWidth());
             tt.setToX(0);
             tt.play();

@@ -128,7 +128,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
     private void showUserInfoDetails(){
         
         try {
-            Parent imageDetails= App.loadFXML("imageDetails");
+            Parent imageDetails= App.loadFXML("view/imageDetails");
             ImageDetailsController imageDetailsController=(ImageDetailsController) imageDetails.getUserData();
             
             //set imageView and add to left stackpane
@@ -187,14 +187,14 @@ public class UserInfoBoxController extends userObject implements Initializable,
     @Override
     public void stopAnimation() {
         TranslateTransition tt=new TranslateTransition();
-        tt.setDuration(Duration.millis(1300));
+        tt.setDuration(Duration.millis(300));
         tt.setNode(this.rootPane);
 
         tt.setFromX(0);
         tt.setToX(this.rootPane.getWidth());
         
         tt.setOnFinished((ActionEvent t) -> {
-            ((VBox)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+            this.remove();
         });
 
         tt.play();
