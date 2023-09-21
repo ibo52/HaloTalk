@@ -61,7 +61,7 @@
                   <HBox alignment="CENTER_RIGHT" spacing="2.0" HBox.hgrow="ALWAYS">
                      <children>
                         <Button mnemonicParsing="false" text="Search" />
-                        <Button alignment="CENTER_RIGHT" mnemonicParsing="false" text="..." />
+                        <Button fx:id="settingsButton" alignment="CENTER_RIGHT" mnemonicParsing="false" onMouseClicked="#setttingsButtonMouseClicked" text="..." />
                      </children>
                      <HBox.margin>
                         <Insets left="2.0" right="2.0" />
