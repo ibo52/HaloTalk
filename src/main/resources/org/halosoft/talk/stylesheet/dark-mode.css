@@ -1,0 +1,56 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Sep 19, 2023, 1:11:10 PM
+    Author     : ibrahim
+*/
+
+
+.root{
+    -fx-base: #101010;
+    -fx-background: derive(-fx-base,5%);
+    -fx-color: -fx-base;
+    -fx-text-base-color: ladder(
+        -fx-color,
+        -fx-light-text-color 45%,
+        -fx-dark-text-color  46%,
+        -fx-dark-text-color  59%,
+        -fx-mid-text-color   60%
+    );
+    -fx-background-color: #00cfde-fx-background;
+}
+
+/*to make textArea corners rounded*/
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+.text-area .scroll-pane .viewport{
+    -fx-background-color: transparent;
+}
+.text-area .scroll-pane .content{
+    -fx-background-color: transparent;
+}
+.text-area {
+  -fx-border-radius: 20 20 20 20;
+  -fx-background-radius: 20 20 20 20;
+
+  /* top-left, top-right, bottom-right, and bottom-left corners, in that 
+  order. */
+}
+
+/*To make TextField corners rounded*/
+.text-field{
+    -fx-border-radius: 20 20 20 20;
+    -fx-background-radius: 20 20 20 20;
+}
+
+/*HostSelector, ChatPanel statusBar*/
+#statusBar, #searchPane{
+    -fx-background-color: derive(-fx-base, 25%);
+}
+#logo{
+    -fx-text-fill:linear-gradient(to right, #f01010 20%,#ffff10 30%,
+        #10f010 60%,#f010f0 90%,#404040 100%);
+}
