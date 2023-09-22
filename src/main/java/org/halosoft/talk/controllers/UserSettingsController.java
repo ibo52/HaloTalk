@@ -14,6 +14,10 @@ import javafx.scene.Parent;
 
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
 /**
@@ -25,9 +29,11 @@ public class UserSettingsController implements Initializable {
 
 
     @FXML
-    private ScrollPane rootPane;
+    private StackPane rootPane;
     @FXML
     private VBox settingsBox;
+    @FXML
+    private ImageView undoButton;
     /**
      * Initializes the controller class.
      */
@@ -36,15 +42,15 @@ public class UserSettingsController implements Initializable {
         
         this.addSetting("Account", "User data, preferences",
                 new Image(App.class.getResource
-        ("/images/settings/account.png").toString()));
+        ("/images/icons/manage_accounts.png").toString()));
         
         this.addSetting("Preferences", "chat preferences, themes",
                 new Image(App.class.getResource
-        ("/images/settings/messenger.png").toString()));
+        ("/images/icons/chat.png").toString()));
         
         this.addSetting("Notifications", "message, call sounds",
                 new Image(App.class.getResource
-        ("/images/settings/notification.png").toString()));
+        ("/images/icons/notification.png").toString()));
     }   
     
     private void addSetting(String name, String contents, Image img){
@@ -65,6 +71,16 @@ public class UserSettingsController implements Initializable {
                 System.err.println("Error while initializing settings:"+ex.getMessage());
             }
         });
+    }
+    
+    private void remove(){
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+    }
+
+    @FXML
+    private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
+        this.remove();
     }
     
 

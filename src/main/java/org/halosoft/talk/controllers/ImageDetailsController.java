@@ -54,6 +54,8 @@ public class ImageDetailsController extends userObject implements Initializable,
     private Button sendMessageButton;
     @FXML
     private Button showDetailsButton;
+    @FXML
+    private ImageView undoButton;
     /**
      * Initializes the controller class.
      */
@@ -192,5 +194,11 @@ public class ImageDetailsController extends userObject implements Initializable,
     @Override
     public void remove() {
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+    }
+
+    @FXML
+    private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
+        this.remove();
     }
 }

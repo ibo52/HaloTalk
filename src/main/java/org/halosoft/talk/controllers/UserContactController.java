@@ -12,6 +12,7 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
@@ -54,6 +55,8 @@ public class UserContactController extends userObject implements Initializable,
     private Button sendMessageButton;
     @FXML
     private Label userHostName;
+    @FXML
+    private ImageView undoButton;
 
     /**
      * Initializes the controller class.
@@ -61,10 +64,13 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        this.rootPane.addEventHandler(KeyEvent.KEY_PRESSED,
-                (KeyEvent t) -> {
-            if (t.getCode().equals(KeyCode.ESCAPE)) {
-                stopAnimation();
+        this.rootPane.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent t) {
+                if (t.getCode().equals(KeyCode.ESCAPE)) {
+                    rootPane.removeEventHandler(KeyEvent.KEY_PRESSED, this);
+                    stopAnimation();
+                }
             }
         });
         
@@ -157,9 +163,9 @@ public class UserContactController extends userObject implements Initializable,
             //***---***
             TranslateTransition tt=new TranslateTransition();
             tt.setDuration(duration);
-
+            
             int height=(int) (this.rootPane.getHeight()<=0?
-                    this.rootPane.getScene().getHeight():this.rootPane.getScene().getHeight());
+                    this.rootPane.getScene().getHeight():this.rootPane.getPrefWidth());
 
             tt.setFromY(-height);
             tt.setToY(0);
@@ -216,5 +222,11 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void remove() {
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+    }
+
+    @FXML
+    private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
+        this.stopAnimation();
     }
 }
