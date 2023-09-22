@@ -27,7 +27,7 @@
                         <Rectangle2D />
                      </viewport>
                      <image>
-                        <Image url="@../../../images/logo-circle-512x512.png" />
+                        <Image url="@../../../../images/icons/person.png" />
                      </image>
                   </ImageView>
                </content>
@@ -40,6 +40,11 @@
                   <Insets bottom="2.0" left="5.0" right="10.0" top="2.0" />
                </padding>
             </Label>
+            <ImageView fx:id="undoButton" fitHeight="24.0" fitWidth="24.0" onMouseClicked="#undoButtonMouseClicked" pickOnBounds="true" preserveRatio="true" StackPane.alignment="TOP_RIGHT">
+               <image>
+                  <Image url="@../../../../images/icons/undo.png" />
+               </image>
+            </ImageView>
          </children>
       </StackPane>
    </center>

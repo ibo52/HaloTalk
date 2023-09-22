@@ -9,24 +9,38 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="400.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserContactController">
    <top>
-      <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER" BorderPane.alignment="CENTER">
-         <content>
-            <VBox fx:id="userImageBox" alignment="CENTER" style="-fx-background-color: yellow; -fx-background-radius: 30% 30%;">
+      <StackPane BorderPane.alignment="CENTER">
+         <children>
+            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="NEVER">
+               <content>
+                  <VBox fx:id="userImageBox" alignment="CENTER" style="-fx-background-color: yellow; -fx-background-radius: 30% 30%;">
+                     <children>
+                        <ImageView fx:id="userImage" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../../images/icons/person.png" />
+                           </image>
+                        </ImageView>
+                     </children>
+                  </VBox>
+               </content>
+            </ScrollPane>
+            <HBox alignment="TOP_RIGHT">
                <children>
-                  <ImageView fx:id="userImage" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="undoButton" fitHeight="32.0" fitWidth="32.0" onMouseClicked="#undoButtonMouseClicked" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../../images/logo-circle-512x512.png" />
+                        <Image url="@../../../../images/icons/undo.png" />
                      </image>
                   </ImageView>
                </children>
-            </VBox>
-         </content>
-      </ScrollPane>
+            </HBox>
+         </children>
+      </StackPane>
    </top>
    <center>
       <ScrollPane fitToWidth="true" BorderPane.alignment="CENTER">
@@ -37,18 +51,21 @@
                      <children>
                         <Label fx:id="userID" alignment="TOP_CENTER" contentDisplay="TOP" maxWidth="1.7976931348623157E308" text="User Name or identifier" textAlignment="CENTER" wrapText="true" HBox.hgrow="ALWAYS">
                            <font>
-                              <Font name="System Bold" size="13.0" />
+                              <Font name="System Bold" size="17.0" />
                            </font>
                         </Label>
                      </children>
                      <VBox.margin>
-                        <Insets bottom="20.0" left="5.0" right="5.0" top="5.0" />
+                        <Insets bottom="10.0" left="5.0" right="5.0" top="5.0" />
                      </VBox.margin>
                   </HBox>
-                  <Label fx:id="userHostName" text="host name" textFill="#a10101" wrapText="true" />
+                  <Label fx:id="userHostName" text="host name" textFill="#c30000" wrapText="true">
+                     <font>
+                        <Font size="15.0" />
+                     </font></Label>
                   <Label fx:id="userStatusText" maxWidth="1.7976931348623157E308" text="user Custom status text" wrapText="true">
                      <VBox.margin>
-                        <Insets left="5.0" right="5.0" />
+                        <Insets left="10.0" right="10.0" />
                      </VBox.margin>
                      <font>
                         <Font name="System Italic" size="13.0" />

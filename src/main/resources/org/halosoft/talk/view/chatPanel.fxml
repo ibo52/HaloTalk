@@ -21,12 +21,12 @@
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
                <children>
                   <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="115.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../../images/logo-circle-512x512.png" />
-                     </image>
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
+                     <image>
+                        <Image url="@../../../../images/icons/person.png" />
+                     </image>
                   </ImageView>
                   <Label fx:id="userNameLabel" alignment="CENTER" text="User name or IP Address">
                      <HBox.margin>
@@ -66,15 +66,22 @@
       </StackPane>
    </center>
    <bottom>
-      <HBox>
+      <HBox fx:id="bottomMessageBorder" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="messageTextField" maxHeight="120.0" prefHeight="40.0" promptText="Type a message" wrapText="true" HBox.hgrow="ALWAYS" />
-            <HBox alignment="CENTER">
+            <TextArea fx:id="messageTextField" prefHeight="40.0" prefWidth="400.0" promptText="Type a message" wrapText="true" HBox.hgrow="ALWAYS" />
+            <HBox alignment="TOP_RIGHT" HBox.hgrow="NEVER">
                <children>
-                  <Button fx:id="sendButton" mnemonicParsing="false" onMouseClicked="#sendButtonMouseClicked" text="Send">
+                  <Button fx:id="sendButton" mnemonicParsing="false" onMouseClicked="#sendButtonMouseClicked">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>
+                     <graphic>
+                        <ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../../images/icons/send.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
                   </Button>
                </children>
                <HBox.margin>
