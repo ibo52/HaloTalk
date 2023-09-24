@@ -4,46 +4,23 @@
  */
 package org.halosoft.talk.objects;
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Generate an communication object to send and receive messages
  * @author ibrahim
  */
-public class CommunicationObject {
-    private Socket client;              //for connected client
-    
-    private String remoteIp;            //ip of remote end
-    private int remotePort;             //port to enter to remote end
-    
-    private DataInputStream socketIn;   //incoming messages from remote
-    private DataOutputStream socketOut; //outgoing messages to remote
-    
-    private BufferedReader localIn;     //to read from keyboard
- 
-    private ExecutorService executorService;//for receiver and sender runablesS
+public class CommunicationObject extends SocketHandlerAdapter{
     
     public CommunicationObject(String ipAddr, int port){
-        this.remoteIp=ipAddr;
-        this.remotePort=port;
-        
-        localIn = new BufferedReader(
-        new InputStreamReader(System.in));
-        
-        executorService=Executors.newCachedThreadPool();
-        
+        super(ipAddr, port);
     }
+    
     public CommunicationObject(){
-        this("0.0.0.0",50001);
+        this("0.0.0.0", 50001);
     }
+    
     public CommunicationObject(String ipAddr){
         this(ipAddr,50001);
     }
@@ -108,41 +85,6 @@ public class CommunicationObject {
         }
             
         }
-    }
-
-    
-    public String getRemoteIp(){
-        return this.remoteIp;
-    }
-    public void setRemoteIp(String ip){
-        this.remoteIp=ip;
-    }
-    
-    public int getRemotePort(){
-        return this.remotePort;
-    }
-    public void setRemotePort(int port){
-        this.remotePort=port;
-    }
-    
-    public Socket getClientSocket(){
-        return this.client;
-    }
-    public void setClientSocket(Socket cli){
-        this.client=cli;
-    }
-    
-    public void setSocketInputStream(DataInputStream in){
-        this.socketIn=in;
-    }
-    public DataInputStream getSocketInputStream(){
-        return this.socketIn;
-    }
-    public void setSocketOutputStream(DataOutputStream out){
-        this.socketOut=out;
-    }
-    public DataOutputStream getSocketOutputStream(){
-        return this.socketOut;
     }
     
     public void startCommunicationThreads(){
