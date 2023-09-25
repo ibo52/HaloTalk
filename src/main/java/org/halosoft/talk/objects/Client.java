@@ -4,7 +4,6 @@
  */
 package org.halosoft.talk.objects;
 
-import org.halosoft.talk.interfaces.Connectible;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

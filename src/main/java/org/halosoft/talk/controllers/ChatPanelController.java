@@ -7,7 +7,6 @@ package org.halosoft.talk.controllers;
 
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -15,6 +14,8 @@ import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -95,8 +96,8 @@ public class ChatPanelController extends userObject implements Initializable,
         this.statusBar.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
 
             Pane uContact;
-            while( this.stackPane.getChildren().size()>0){
-                Node n=this.stackPane.getChildren().get(0);
+            while( this.stackPane.getChildren().size()>1){
+                Node n=this.stackPane.getChildren().get(1);
                 this.stackPane.getChildren().remove(n);
             }
             try {
@@ -120,17 +121,16 @@ public class ChatPanelController extends userObject implements Initializable,
     
     private void initChatHistory(){
         try {
-            this.chatHistory=new FileWriter(new File(new File(
-                            App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp()),"HIST" )
-                    ,true);
+            this.chatHistory=new FileWriter(Paths.get(App.class.
+                    getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp(),
+                            "HIST" ).toFile(), true);
         } catch (FileNotFoundException ex) {
             try {
                 System.out.println("no Conversation history file found. Skipping..");
-                new File(new File(
+                Files.createFile(Paths.get(
                         App.class.getResource("userBuffers").getPath(),
-                        this.remoteClient.getRemoteIp()),"HIST" )
-                        .createNewFile();
+                        this.remoteClient.getRemoteIp(), "HIST"));
                 this.initChatHistory();
                 
             } catch (IOException ex1) {
@@ -143,9 +143,10 @@ public class ChatPanelController extends userObject implements Initializable,
     
     private void initMessages(){
         try {
-            BufferedReader reader=new BufferedReader(new FileReader(new File(new File(
-                            App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp()),"HIST" )));
+            BufferedReader reader=new BufferedReader(new FileReader(
+                    Paths.get(App.class.getResource("userBuffers")
+                            .getPath(),this.remoteClient.getRemoteIp(),
+                            "HIST" ).toFile()));
             
             String line;
             while( (line=reader.readLine()) !=null){
@@ -175,10 +176,9 @@ public class ChatPanelController extends userObject implements Initializable,
             this.chatHistory.close();
             
             //delete remote end's socket IN file on close requested
-            new File(new File(
-                            App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp()),"IN" )
-                    .delete();
+            Files.delete(
+            Paths.get(App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp(),"IN" ));
             
         } catch (IOException ex) { 
             System.out.println(""+ex.getMessage());;
@@ -243,19 +243,15 @@ public class ChatPanelController extends userObject implements Initializable,
             //wait until there is socket in file exists
             while(true){
                 try {//access senrver socketIn file for that remote end
-                    FileReader clientInFile=new FileReader( new File(new File(
+                    FileReader clientInFile=new FileReader( Paths.get(
                             App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp()),"IN" ) );
+                            this.remoteClient.getRemoteIp(),"IN" ).toFile() );
                     this.remoteIn=new BufferedReader(clientInFile);
                     break;
 
                 } catch (FileNotFoundException ex) {
 
                     try {
-                        System.out.println("there is NO file to read"+
-                               new File(new File(
-                            App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp()),"IN" ).getPath() );
                         Thread.sleep(300);
                     } catch (InterruptedException ex1) {
                         ex1.printStackTrace();
