@@ -20,7 +20,7 @@ import javafx.application.Platform;
  *
  * @author ibrahim
  */
-public class Client extends CommunicationObject implements Connectible{
+public class Client extends CommunicationObject{
     private RSA rsa;
     
     private long[] REMOTE_KEY;
@@ -34,8 +34,8 @@ public class Client extends CommunicationObject implements Connectible{
             Socket client=new Socket();
 
             client.connect(new InetSocketAddress(
-                    this.getRemoteIp(),
-                    this.getRemotePort() ),
+                    this.remoteIp,
+                    this.remotePort ),
                     300);
             
             this.setClientSocket(client);
@@ -53,7 +53,6 @@ public class Client extends CommunicationObject implements Connectible{
             System.err.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
                     + "Possibly server is down or not accessible due to firewall.\n"
                     + "Returned error is:"+ex.getMessage());
-            Platform.exit();
             System.exit(ex.hashCode());
             
         } catch (IOException ex) {
@@ -65,19 +64,13 @@ public class Client extends CommunicationObject implements Connectible{
     
     public Client(){
         super();
-
-        this.initialize();
         
     }
     public Client(String ipAddr, int port){
         super(ipAddr, port);
-
-        this.initialize();
     }
     public Client(String ipAddr){
         super(ipAddr);
-        
-        this.initialize();
 
     }
     
@@ -113,22 +106,9 @@ public class Client extends CommunicationObject implements Connectible{
     }
     
     public void stop(){
+        this.executorService.shutdownNow();
         super.stopCommunicationThreads();
         
         //overrided for later possible implements
-    } 
-    public static void main(String[] args) {
-        System.out.println("test cli");
-        Client c=new Client("0.0.0.0");
-        c.start();
-        
-        try {
-            c.getSocketOutputStream().writeUTF("hello from client");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        
-        c.stop();
-        System.out.println("client done");
     }
 }
