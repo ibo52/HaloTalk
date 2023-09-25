@@ -17,9 +17,12 @@ import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -61,6 +64,16 @@ public class HostSelectorController implements Initializable {
     private Label logo;
     @FXML
     private Button settingsButton;
+    @FXML
+    private Button searchButton;
+    @FXML
+    private StackPane statusBarStackPane;
+    @FXML
+    private HBox searchPane;
+    @FXML
+    private TextField searchField;
+    @FXML
+    private ImageView searchPaneUndoButton;
     /**
      * Initializes the controller class.
      */
@@ -72,14 +85,13 @@ public class HostSelectorController implements Initializable {
         server=new Server();
         server.start();
         
-        LANBroadcaster=new Broadcaster();
+        LANBroadcaster=new Broadcaster("0.0.0.0");
         LANBroadcaster.start();
         
         LANBrowser();
         
         this.appendUser(new userObject("testing@127.0.0.1","test","user",2,
-                "bir tavuk dürüm bir de sen be gülüm"
-                +"asddddddddddddddddddddddddddddddddddd",
+                "This is a loopback address for Testing purposes",
         "127.0.0.1"));
         
         // TODO
@@ -93,23 +105,21 @@ public class HostSelectorController implements Initializable {
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
-                oldCtrlr.closeClient();
+                oldCtrlr.remove();
             }
 
             Parent chatPanel=App.loadFXML("view/chatPanel");
             ChatPanelController ctrlr=(ChatPanelController) chatPanel.getUserData();
             
             ctrlr.setParentController(this);
-            ctrlr.setContents(ctrlr_userData);
             
-            connectorClient=new Client( ctrlr_userData.getID() );
-            //connectorClient.start();
-            ctrlr.setClient(connectorClient);
+            ctrlr.setContents(ctrlr_userData);
             
             chatPanelLayout.setCenter(chatPanel);
                         
         } catch (IOException ex) {
             System.out.println("hostSelector bringChatScreen:"+ex.getMessage());
+            ex.printStackTrace();
         }
     }
     
@@ -142,10 +152,10 @@ public class HostSelectorController implements Initializable {
                         NetworkDeviceManager
                                 .ConnectionType.WIRELESS).get(0);
                 
-                System.out.println("selected ni:"+ni.getName()+" ");
-                
                 String hostIdentity=NetworkDeviceManager
                         .calculateNetworkIdentity(ni);
+                
+                System.out.println("selected ni:"+ni.getName()+" newtowrk ID:"+hostIdentity);
                 
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
@@ -231,7 +241,7 @@ public class HostSelectorController implements Initializable {
     }
     
     private void LANBrowser(){
-        
+
         executorService.execute( new LANBrowser() );
         
         executorService.shutdown();
@@ -308,7 +318,19 @@ public class HostSelectorController implements Initializable {
         });
         
     }
-
+    
+    @FXML
+    private void searchPaneUndoButtonMouseClicked(MouseEvent event) {
+        this.searchButton.fireEvent(event);
+    }
+    
+    @FXML
+    private void searchButtonMouseClicked(MouseEvent event) {
+        Node p=this.statusBarStackPane.getChildren().get(0);
+        this.statusBarStackPane.getChildren().remove(p);
+        this.statusBarStackPane.getChildren().add(p);
+    }
+    
     @FXML
     private void setttingsButtonMouseClicked(MouseEvent event) {
         try {
