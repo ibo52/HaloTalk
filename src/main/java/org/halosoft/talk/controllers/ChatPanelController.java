@@ -6,6 +6,11 @@ package org.halosoft.talk.controllers;
  */
 
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
 import java.net.SocketException;
@@ -45,7 +50,11 @@ public class ChatPanelController extends userObject implements Initializable,
     
     private HostSelectorController parentController;
     
+    private BufferedReader remoteIn;
+    private FileWriter chatHistory;
+    
     private Client remoteClient;
+    
     @FXML
     private BorderPane rootPane;
     @FXML
@@ -62,12 +71,16 @@ public class ChatPanelController extends userObject implements Initializable,
     private HBox statusBar;
     @FXML
     private StackPane stackPane;
+    @FXML
+    private HBox bottomMessageBorder;
+    
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO 
+        //bind send button event to enter key
         this.messageTextField.addEventHandler(KeyEvent.KEY_PRESSED,
                 (KeyEvent t) -> {
             if (t.getCode().equals(KeyCode.ENTER)) {
@@ -75,9 +88,10 @@ public class ChatPanelController extends userObject implements Initializable,
                 sendButton.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED,
                         0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
                         true, true, true, true, true, true, null));
-            }
+            }  
         });
         
+        //when user image clicked, open contact
         this.statusBar.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
 
             Pane uContact;
@@ -104,24 +118,81 @@ public class ChatPanelController extends userObject implements Initializable,
         });
     }
     
-    /**
-     * change remote client object of chat panel
-     * @param client remote end to communicate
-     */
-    public void setClient(Client client){
-        this.remoteClient=client;
-        this.listenMessage();//listens the socketInputStream of remote end
+    private void initChatHistory(){
+        try {
+            this.chatHistory=new FileWriter(new File(new File(
+                            App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp()),"HIST" )
+                    ,true);
+        } catch (FileNotFoundException ex) {
+            try {
+                System.out.println("no Conversation history file found. Skipping..");
+                new File(new File(
+                        App.class.getResource("userBuffers").getPath(),
+                        this.remoteClient.getRemoteIp()),"HIST" )
+                        .createNewFile();
+                this.initChatHistory();
+                
+            } catch (IOException ex1) {
+                ex1.printStackTrace();
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
     
+    private void initMessages(){
+        try {
+            BufferedReader reader=new BufferedReader(new FileReader(new File(new File(
+                            App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp()),"HIST" )));
+            
+            String line;
+            while( (line=reader.readLine()) !=null){
+                
+                String[] list=line.split(":");
+                if (list[0].equals("you")) {
+                    this.addMessage(list[1], Pos.TOP_RIGHT);
+
+                }else{
+                    this.addMessage(list[1], Pos.TOP_LEFT);
+
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            System.out.println("no hist file:"+ex.getMessage()+"\nskipping");
+        } catch (IOException ex) {
+            System.out.println("error whle read chat history:"+ex.getMessage());
+        }
+    }
     /**
      * close communication socket
      */
-    public void closeClient(){
-        this.remoteClient.stop();
+    public void close(){
+        try {
+            this.remoteClient.stop();
+            this.remoteIn.close();
+            this.chatHistory.close();
+            
+            //delete remote end's socket IN file on close requested
+            new File(new File(
+                            App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp()),"IN" )
+                    .delete();
+            
+        } catch (IOException ex) { 
+            System.out.println(""+ex.getMessage());;
+        }
     }
     @Override
     public void setContents(userObject userData){
         super.setContents(userData);
+        
+        //connect to desired remote end according to userData
+        remoteClient=new Client( this.getID() );
+        this.initMessages();//if there is communication history, load to screen
+        this.initChatHistory();
+        this.listenMessage();
         
         this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
         this.userImageView.setImage(this.getImage());
@@ -142,35 +213,81 @@ public class ChatPanelController extends userObject implements Initializable,
             msgController.setMessage(message, pos);
             
             this.messageBoxLayout.getChildren().add(msgBox);
-            
+                
         } catch (IOException ex) {
             System.err.println("addMessage:"+ex.getMessage());
         }   
     }
     
+    //use to save message to chatHistory
+    private void saveToFile(String message, Pos pos){
+        try{
+            if (pos.equals(Pos.TOP_LEFT)) {
+                this.chatHistory.write("remote:"+message);
+            }else{
+                this.chatHistory.write("you:"+message);
+            }
+            this.chatHistory.write("\n");
+            this.chatHistory.flush();
+        }catch(IOException ex){
+            ex.printStackTrace();
+        }
+    }
     /**
      * listens for messages that comes from remote end
      */
     private void listenMessage(){
         
         Thread msgListener=new Thread( () -> {
+            
+            //wait until there is socket in file exists
+            while(true){
+                try {//access senrver socketIn file for that remote end
+                    FileReader clientInFile=new FileReader( new File(new File(
+                            App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp()),"IN" ) );
+                    this.remoteIn=new BufferedReader(clientInFile);
+                    break;
+
+                } catch (FileNotFoundException ex) {
+
+                    try {
+                        System.out.println("there is NO file to read"+
+                               new File(new File(
+                            App.class.getResource("userBuffers").getPath(),
+                            this.remoteClient.getRemoteIp()),"IN" ).getPath() );
+                        Thread.sleep(300);
+                    } catch (InterruptedException ex1) {
+                        ex1.printStackTrace();
+                    }
+                }
+            }
 
             while ( !Thread.currentThread().isInterrupted() ){
                 
                 try {
-                    String message=remoteClient.getSocketInputStream().readUTF();
-                    
-                    Platform.runLater( () -> {
+                    while (!this.remoteIn.ready() ){
+                        Thread.sleep(300);
+                    }
+                    String message=this.remoteIn.readLine();
+                    Platform.runLater( ()->{
                         addMessage(message, Pos.TOP_LEFT);
                     });
-                    
+                    //save message history to file
+                    this.saveToFile(message, Pos.TOP_LEFT);
                     
                 } catch ( SocketException ex) {
                     System.out.println("chatPanel client Socket:"+ex.getMessage());
                     this.remoteClient=null;
                     break;
+                    
                 }catch (IOException ex) {
                     System.out.println("chatPanel client Socket:"+ex.getMessage());
+                    this.remoteClient=null;
+                    break;
+                    
+                } catch (InterruptedException ex) {
+                    System.out.println("chatPanel Client listen:"+ex.getMessage());
                     this.remoteClient=null;
                     break;
                 }
@@ -189,6 +306,8 @@ public class ChatPanelController extends userObject implements Initializable,
         if ( !message.equals(new String("") )) {
             
             this.addMessage(message, Pos.TOP_RIGHT);
+            //save message history to file
+            this.saveToFile(message, Pos.TOP_RIGHT);
             
             try {
                 //send message to remote end
@@ -220,6 +339,8 @@ public class ChatPanelController extends userObject implements Initializable,
 
     @Override
     public void remove() {
+        this.close();//close files and sockets
+        
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
     
