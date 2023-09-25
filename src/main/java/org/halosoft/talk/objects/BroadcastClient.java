@@ -69,18 +69,18 @@ public class BroadcastClient {
         
             //send signal to notify server
             client.send(request);
-            
-            client.setSoTimeout(100);//timeout for response
+
+            client.setSoTimeout(600);//timeout for response
             
             DatagramPacket response = new DatagramPacket(buffer, buffer.length);
             client.receive(response);
-            
+
             //System.out.println("received:"+new String(buffer, 0, response.getLength()));
             bufferLength=response.getLength();
             
         }catch (SocketTimeoutException ex) {
             String msg="NO_RESPONSE";
-            
+
             this.buffer=msg.getBytes();
             this.bufferLength=msg.length();
         

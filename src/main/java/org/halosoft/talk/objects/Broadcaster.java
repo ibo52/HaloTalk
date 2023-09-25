@@ -58,7 +58,6 @@ public class Broadcaster extends userObject {
         executorService.execute( () -> {
             
             while ( !Thread.currentThread().isInterrupted() ){
-                
                 try {
                     byte[] buffer=new byte[1024];
                     

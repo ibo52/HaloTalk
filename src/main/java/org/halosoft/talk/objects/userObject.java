@@ -45,16 +45,13 @@ public class userObject {
         
         this(hostName, name, surname, status, StatusMessage, ipAddress,
                 new Image(App.class.getResource(
-                        "/images/logo-circle-512x512.png").toString())
+                        "/images/icons/person.png").toString())
         );   
     }
     public userObject(){
         this("unknown" ,System.getenv("USERNAME"),"*",2,
                 "Heyyo! I am using HaloTalk",
-                "127.0.0.1",
-                new Image(App.class.getResource(
-                        "/images/logo-circle-512x512.png").toString())
-        );
+                "127.0.0.1");
         
         try {
             this.hostName=this.name+"@"+InetAddress.getLocalHost().getHostName();
