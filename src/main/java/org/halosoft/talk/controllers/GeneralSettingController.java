@@ -8,6 +8,8 @@ import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -42,8 +44,16 @@ public class GeneralSettingController implements Initializable, Animateable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        this.rootPane.setVisible(false);
-        this.startAnimation();
+        //start animation when width>0
+        this.rootPane.setTranslateX(Long.MAX_VALUE);//keep out of screen for start animation
+        this.rootPane.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                GeneralSettingController.this.startAnimation();
+                GeneralSettingController.this.rootPane.heightProperty()
+                        .removeListener(this);
+            }
+        });
     }    
     
     @FXML
@@ -64,9 +74,6 @@ public class GeneralSettingController implements Initializable, Animateable {
 
     @Override
     public void startAnimation() {
-        
-        Platform.runLater( ()->{
-            this.rootPane.setVisible(true);
             
             TranslateTransition tt=new TranslateTransition();
             tt.setDuration(Duration.millis(300));
@@ -76,7 +83,6 @@ public class GeneralSettingController implements Initializable, Animateable {
             tt.setToX(0);
             tt.play();
         
-        });
     }
 
     @Override

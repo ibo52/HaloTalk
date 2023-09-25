@@ -10,7 +10,8 @@ import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -64,6 +65,17 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        this.rootPane.setTranslateY(Long.MAX_VALUE);//keep out of screen for start animation
+        this.rootPane.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                UserContactController.this.startAnimation();
+                UserContactController.this.rootPane.heightProperty()
+                        .removeListener(this);
+            }
+        });
+        
+        
         this.rootPane.addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent t) {
@@ -73,9 +85,6 @@ public class UserContactController extends userObject implements Initializable,
                 }
             }
         });
-        
-        this.rootPane.setVisible(false);
-        this.startAnimation();
     }
     
     @Override
@@ -157,17 +166,13 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void startAnimation() {
         
-        Platform.runLater( ()->{
             final Duration duration=Duration.millis(300);
             this.rootPane.setVisible(true);
             //***---***
             TranslateTransition tt=new TranslateTransition();
             tt.setDuration(duration);
             
-            int height=(int) (this.rootPane.getHeight()<=0?
-                    this.rootPane.getScene().getHeight():this.rootPane.getPrefWidth());
-
-            tt.setFromY(-height);
+            tt.setFromY(-this.rootPane.getHeight());
             tt.setToY(0);
             //-------
             FadeTransition ft=new FadeTransition();
@@ -178,7 +183,6 @@ public class UserContactController extends userObject implements Initializable,
             ParallelTransition pt=new ParallelTransition(this.rootPane,
                     tt,ft);
             pt.play();
-        });
     }
 
     @Override

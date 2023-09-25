@@ -55,7 +55,6 @@ public class UserSettingsController implements Initializable {
     
     private void addSetting(String name, String contents, Image img){
         
-        Platform.runLater(()->{
             try {
                 // TODO
                 Parent p=App.loadFXML("view/generalSetting");
@@ -70,7 +69,6 @@ public class UserSettingsController implements Initializable {
             } catch (IOException ex) {
                 System.err.println("Error while initializing settings:"+ex.getMessage());
             }
-        });
     }
     
     private void remove(){

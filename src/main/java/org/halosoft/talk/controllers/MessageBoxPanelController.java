@@ -7,7 +7,8 @@ package org.halosoft.talk.controllers;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
@@ -36,8 +37,15 @@ public class MessageBoxPanelController implements Initializable, Animateable{
         // TODO
         this.msgTextArea.maxWidthProperty().bind( this.msgBoxLayout.widthProperty().multiply(0.9) );
         
-        this.msgBoxLayout.setVisible(false);
-        this.startAnimation();
+        this.msgBoxLayout.setTranslateX(Long.MAX_VALUE);
+        this.msgBoxLayout.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                MessageBoxPanelController.this.startAnimation();
+                MessageBoxPanelController.this.msgBoxLayout.widthProperty()
+                        .removeListener(this);
+            }
+        });
     }
     
     public void setMessage(String message, Pos pos){
@@ -51,22 +59,15 @@ public class MessageBoxPanelController implements Initializable, Animateable{
 
     @Override
     public void startAnimation() {
-        
-        Platform.runLater(()->{
-            this.msgBoxLayout.setVisible(true);
             
             TranslateTransition tt=new TranslateTransition();
             tt.setDuration(Duration.millis(300));
             tt.setNode(this.msgBoxLayout);
 
-            int width=(int) (this.msgBoxLayout.getParent()
-                    .getLayoutBounds().getWidth());
-
-            tt.setFromX(width);
+            tt.setFromX(this.msgBoxLayout.getWidth());
             tt.setToX(0);
 
             tt.play();
-    });
     }
 
     @Override
