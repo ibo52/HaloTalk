@@ -4,7 +4,6 @@
  */
 package org.halosoft.talk.objects;
 
-import org.halosoft.talk.interfaces.Connectible;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,9 +13,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import javafx.application.Platform;
@@ -25,50 +21,49 @@ import javafx.application.Platform;
  *
  * @author ibrahim
  */
-public class Server extends CommunicationObject implements Connectible {
+public class Server extends SocketHandlerAdapter {
     
     private ServerSocket server;
-    private Map<String, Socket> clients;
-    
-    private ExecutorService executorService;
     
     private RSA rsa;
     private long[] REMOTE_KEY;
     
-    public Server(){
-        super();
-        this.initialize();
-        this.rsa=new RSA();
-    }
-    public Server(String ipAddr){
-        super(ipAddr);
-        this.initialize();
-        this.rsa=new RSA();
-    }
     public Server(String ipAddr, int port){
         
         super(ipAddr, port);
-        this.initialize();
+
         this.rsa=new RSA();
     }
     
+    public Server(String ipAddr){
+        this(ipAddr,50001);
+
+    }
+    
+    public Server(){
+        this("0.0.0.0");
+    }
+    
+    /**
+     * this method calls automatically from super class constructor
+     */
     @Override
     public void initialize(){
-        clients=new HashMap<>();
+        
         executorService=Executors.newCachedThreadPool();
+        int MAX_ALLOWED_CLI=64;
         
         try {
-            server=new ServerSocket(this.getRemotePort(), 1, InetAddress.getByName(this.getRemoteIp() ) );
+            server=new ServerSocket(this.getRemotePort(), MAX_ALLOWED_CLI, 
+                    InetAddress.getByName(this.getRemoteIp() ) );
        
         } catch (IOException ex) {
             System.out.println("ServerSocket init:"+ex.getMessage());
         }
     }
+    
     public ServerSocket getServerSocket(){
         return this.server;
-    }
-    public void setServerSocket(ServerSocket server){
-        this.server=server;
     }
     
     @Override
@@ -82,19 +77,24 @@ public class Server extends CommunicationObject implements Connectible {
                     
                     try {
                         
-                        java.net.Socket client1 = server.accept();
+                        Socket client1 = server.accept();
                         
-                        clients.put(client1.getInetAddress().getHostAddress(), client1);
-                        
-                        setClientSocket(client1);
-                        
-                        setSocketInputStream(new DataInputStream(new BufferedInputStream(client1.getInputStream())));
-                        
-                        setSocketOutputStream(new DataOutputStream(client1.getOutputStream()));
-                        //System.out.printf("%s connected\n",client.getInetAddress().getHostAddress());
+                        /*System.out.printf("%s:%d connected\n",
+                                client1.getInetAddress().getHostAddress(),
+                                client1.getPort());*/
+                        setSocketInputStream(new DataInputStream(new BufferedInputStream(
+                        client1.getInputStream())));
+                
+                        setSocketOutputStream(new DataOutputStream(
+                        client1.getOutputStream()));
                         
                         long[] CLI_KEY=handshake();
                         REMOTE_KEY=CLI_KEY;
+                        
+                        ServerHandler serverHandler=new ServerHandler
+                                                  (client1,CLI_KEY);
+                        
+                        this.executorService.execute(serverHandler);
                         
                     }catch (SocketException ex) {
                         System.err.println( ex.getMessage()
@@ -102,8 +102,9 @@ public class Server extends CommunicationObject implements Connectible {
 
                     }catch (IOException ex) {
                         System.err.println("Server listen:"+ex.getMessage());
-                        stop();//server stop
                             
+                    }finally{
+                        //this.stop();//server stop
                     }
                 }
             });
@@ -140,7 +141,7 @@ public class Server extends CommunicationObject implements Connectible {
     
     @Override
     public void stop(){
-        super.stopCommunicationThreads();
+        
         this.executorService.shutdownNow();
         System.out.println("server stop invoke");
         try {
@@ -150,13 +151,5 @@ public class Server extends CommunicationObject implements Connectible {
         } catch (IOException ex) {
             System.err.println("Server stop:"+ex.getMessage());
         }
-    }
-    
-    public static void main(String[] args) {
-        System.out.println("server test");
-        Server s=new Server("0.0.0.0",50001);
-        s.start();
-        
-        System.out.println("server done");
     }
 }
