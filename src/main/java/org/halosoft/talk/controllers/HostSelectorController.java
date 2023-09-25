@@ -105,7 +105,11 @@ public class HostSelectorController implements Initializable {
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
-                oldCtrlr.remove();
+                if (ctrlr_userData.getID().equals( oldCtrlr.getID() )) {
+                    return;
+                }else{
+                    oldCtrlr.remove();
+                }
             }
 
             Parent chatPanel=App.loadFXML("view/chatPanel");
