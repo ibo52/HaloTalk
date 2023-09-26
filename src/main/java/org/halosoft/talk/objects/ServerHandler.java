@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.halosoft.talk.App;
@@ -34,8 +35,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
             
             try {
-                clientFile=new File(App.class
-                        .getResource("userBuffers").getPath(),
+                clientFile=new File(Paths.get(App.class
+                        .getResource("userBuffers").toURI()).toString(),
                         this.remoteIp );
 
                 Files.createDirectories(clientFile.toPath());//create path for specific user
@@ -53,7 +54,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 setSocketOutputStream(new DataOutputStream(
                         this.client.getOutputStream()));
             
-            } catch (IOException ex) {
+            } catch (IOException | URISyntaxException ex) {
                 ex.printStackTrace();
             }
         }
@@ -163,7 +164,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 try {
                     dataSender=new BufferedReader(
                             new FileReader(new File(
-                                    pathFile.toString(), "OUT")
+                                    pathFile, "OUT")
                             ));
                     
                 }catch (IOException ex) {

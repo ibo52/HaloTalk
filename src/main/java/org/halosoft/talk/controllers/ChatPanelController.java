@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
 import java.net.SocketException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -190,11 +191,15 @@ public class ChatPanelController extends userObject implements Initializable,
             
             //connect to desired remote end according to userData
             remoteClient=new Client( this.getID() );
-            userBuffersPath=new File(App.class.
-                    getResource("userBuffers").getPath(),
-                    this.remoteClient.getRemoteIp());
+            try {
+                userBuffersPath=new File(Paths.get(App.class.
+                        getResource("userBuffers").toURI()).toString(),
+                        this.remoteClient.getRemoteIp());
             
             Files.createDirectories(userBuffersPath.toPath());
+            } catch (URISyntaxException ex) {
+                ex.printStackTrace();
+            }
             
             this.initMessages();//if there is communication history, load to screen
             this.initChatHistoryWriter();
