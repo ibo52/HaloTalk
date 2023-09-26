@@ -14,7 +14,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.halosoft.talk.App;
 
@@ -28,21 +27,21 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         
     private long[] REMOTE_KEY;
     
-        private Path clientFile;
+        private File clientFile;
         
         
         public ServerHandler(Socket socket, long[] remoteKey){
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
             
             try {
-                clientFile=Paths.get(App.class
+                clientFile=new File(App.class
                         .getResource("userBuffers").getPath(),
                         this.remoteIp );
 
-                Files.createDirectories(clientFile);//create path for specific user
+                Files.createDirectories(clientFile.toPath());//create path for specific user
                 
                 //create input and output files of socket streams
-                Files.createFile(Paths.get(clientFile.toString(),"IN"));
+                Files.createFile(Paths.get(clientFile.getPath(),"IN"));
                 //Files.createFile(Paths.get(clientFile.toString(),"OUT"));
                 this.client = socket;
             
@@ -98,13 +97,13 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             private DataInputStream in;
             private FileWriter writer;
             
-            public ClientInputWriter(Path pathFile, DataInputStream sockIn
+            public ClientInputWriter(File pathFile, DataInputStream sockIn
             ,String socketIp){
                 this.in=sockIn;
                 this.ip=socketIp;
                 try {
-                    writer=new FileWriter(Paths.get(
-                            pathFile.toString(), "IN").toFile(),
+                    writer=new FileWriter(new File(
+                            pathFile, "IN"),
                             true);
                     
                 }catch (IOException ex) {
@@ -120,7 +119,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
 
                     try {
                         String incomingData=this.in.readUTF();
-                        System.out.println("Incoming to server:"+incomingData);
+
                         writer.write(incomingData);
                         writer.write("\n");
                         writer.flush();
@@ -157,14 +156,14 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             private DataOutputStream out;
             private BufferedReader dataSender;
             
-            public ClientOutputSender(Path pathFile, DataOutputStream sockOut
+            public ClientOutputSender(File pathFile, DataOutputStream sockOut
             ,String socketIp){
                 this.out=sockOut;
                 this.ip=socketIp;
                 try {
                     dataSender=new BufferedReader(
-                            new FileReader(Paths.get(
-                                    pathFile.toString(), "OUT").toFile()
+                            new FileReader(new File(
+                                    pathFile.toString(), "OUT")
                             ));
                     
                 }catch (IOException ex) {

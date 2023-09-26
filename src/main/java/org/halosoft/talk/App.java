@@ -22,7 +22,7 @@ public class App extends Application {
         scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
         stage.getIcons().add(new Image(App.class.getResource(
                 "/images/app-logo.png").toString()));
-        System.out.println("------------->"+App.class.getResource("").toString());
+        stage.setTitle("HaloTalk: simple LAN messenger");
         scene.getStylesheets().add(App.class.
                 getResource("stylesheet/default-style.css").toExternalForm());
         

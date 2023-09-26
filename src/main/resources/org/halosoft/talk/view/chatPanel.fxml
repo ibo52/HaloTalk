@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.ChatPanelController">
+<BorderPane fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="200.0" prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.ChatPanelController">
    <top>
       <HBox fx:id="statusBar" alignment="CENTER" prefHeight="80.0" BorderPane.alignment="CENTER">
          <children>
@@ -68,7 +68,7 @@
    <bottom>
       <HBox fx:id="bottomMessageBorder" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="messageTextField" prefHeight="40.0" prefWidth="400.0" promptText="Type a message" wrapText="true" HBox.hgrow="ALWAYS" />
+            <TextArea fx:id="messageTextField" prefHeight="40.0" prefWidth="100.0" promptText="Type a message" wrapText="true" HBox.hgrow="ALWAYS" />
             <HBox alignment="TOP_RIGHT" HBox.hgrow="NEVER">
                <children>
                   <Button fx:id="sendButton" mnemonicParsing="false" onMouseClicked="#sendButtonMouseClicked">

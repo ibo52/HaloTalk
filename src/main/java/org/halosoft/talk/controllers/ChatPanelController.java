@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -51,6 +52,7 @@ public class ChatPanelController extends userObject implements Initializable,
     
     private HostSelectorController parentController;
     
+    private File userBuffersPath;
     private BufferedReader remoteIn;
     private FileWriter chatHistory;
     
@@ -119,19 +121,18 @@ public class ChatPanelController extends userObject implements Initializable,
         });
     }
     
-    private void initChatHistory(){
+    private void initChatHistoryWriter(){
         try {
-            this.chatHistory=new FileWriter(Paths.get(App.class.
-                    getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp(),
-                            "HIST" ).toFile(), true);
+            this.chatHistory=new FileWriter(new File( 
+                  userBuffersPath, "HIST" ), true);
+            
         } catch (FileNotFoundException ex) {
             try {
-                System.out.println("no Conversation history file found. Skipping..");
-                Files.createFile(Paths.get(
-                        App.class.getResource("userBuffers").getPath(),
-                        this.remoteClient.getRemoteIp(), "HIST"));
-                this.initChatHistory();
+                
+                Files.createFile(new File(userBuffersPath, "HIST").toPath());
+                
+                this.chatHistory=new FileWriter(new File( 
+                  userBuffersPath, "HIST" ), true);
                 
             } catch (IOException ex1) {
                 ex1.printStackTrace();
@@ -144,8 +145,7 @@ public class ChatPanelController extends userObject implements Initializable,
     private void initMessages(){
         try {
             BufferedReader reader=new BufferedReader(new FileReader(
-                    Paths.get(App.class.getResource("userBuffers")
-                            .getPath(),this.remoteClient.getRemoteIp(),
+                    Paths.get(userBuffersPath.toString(),
                             "HIST" ).toFile()));
             
             String line;
@@ -161,7 +161,7 @@ public class ChatPanelController extends userObject implements Initializable,
                 }
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("no hist file:"+ex.getMessage()+"\nskipping");
+            System.out.println("no conversation history file found. Skipping");
         } catch (IOException ex) {
             System.out.println("error whle read chat history:"+ex.getMessage());
         }
@@ -177,8 +177,7 @@ public class ChatPanelController extends userObject implements Initializable,
             
             //delete remote end's socket IN file on close requested
             Files.delete(
-            Paths.get(App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp(),"IN" ));
+            Paths.get(userBuffersPath.toString(),"IN" ));
             
         } catch (IOException ex) { 
             System.out.println(""+ex.getMessage());;
@@ -186,16 +185,26 @@ public class ChatPanelController extends userObject implements Initializable,
     }
     @Override
     public void setContents(userObject userData){
-        super.setContents(userData);
-        
-        //connect to desired remote end according to userData
-        remoteClient=new Client( this.getID() );
-        this.initMessages();//if there is communication history, load to screen
-        this.initChatHistory();
-        this.listenMessage();
-        
-        this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
-        this.userImageView.setImage(this.getImage());
+        try {
+            super.setContents(userData);
+            
+            //connect to desired remote end according to userData
+            remoteClient=new Client( this.getID() );
+            userBuffersPath=new File(App.class.
+                    getResource("userBuffers").getPath(),
+                    this.remoteClient.getRemoteIp());
+            
+            Files.createDirectories(userBuffersPath.toPath());
+            
+            this.initMessages();//if there is communication history, load to screen
+            this.initChatHistoryWriter();
+            this.listenMessage();
+            
+            this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
+            this.userImageView.setImage(this.getImage());
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
     
     /**
@@ -243,9 +252,8 @@ public class ChatPanelController extends userObject implements Initializable,
             //wait until there is socket in file exists
             while(true){
                 try {//access senrver socketIn file for that remote end
-                    FileReader clientInFile=new FileReader( Paths.get(
-                            App.class.getResource("userBuffers").getPath(),
-                            this.remoteClient.getRemoteIp(),"IN" ).toFile() );
+                    FileReader clientInFile=new FileReader( new File(
+                            userBuffersPath.toString(),"IN" ) );
                     this.remoteIn=new BufferedReader(clientInFile);
                     break;
 
