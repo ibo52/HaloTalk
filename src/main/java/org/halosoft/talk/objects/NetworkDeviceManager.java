@@ -25,7 +25,7 @@ public class NetworkDeviceManager {
     
     public static enum ConnectionType{WIRELESS, ETHERNET, LOOPBACK};
     
-    private HashMap<String, ArrayList<NetworkInterface> > devices;
+    private final HashMap<String, ArrayList<NetworkInterface> > devices;
     
     private final static String osName=System.getProperty("os.name").toLowerCase();
     
@@ -103,7 +103,8 @@ public class NetworkDeviceManager {
                 return this.devices.get(this.ConnectionTypeKeyWords[2]);
             
             default:
-                return null;
+                //return wifi if possible, or else it will be loopback automatically
+                return this.devices.get(this.ConnectionTypeKeyWords[0]);
         }
     }
     
