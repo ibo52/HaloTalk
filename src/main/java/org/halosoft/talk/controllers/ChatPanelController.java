@@ -39,6 +39,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.Client;
@@ -77,7 +78,9 @@ public class ChatPanelController extends userObject implements Initializable,
     private StackPane stackPane;
     @FXML
     private HBox bottomMessageBorder;
-    
+
+    private Text MessageText; //to autosize messageTextfield
+    //ref:https://stackoverflow.com/questions/18588765/how-can-i-make-a-textarea-stretch-to-fill-the-content-expanding-the-parent-in-t
     /**
      * Initializes the controller class.
      */
@@ -118,8 +121,30 @@ public class ChatPanelController extends userObject implements Initializable,
                 System.out.println("bind ucontact popup to cahtpanel statusbar:"
                         +ex.getMessage());
             }
-            
         });
+        
+        //to autosize TextArea, we use Text object
+        MessageText=new Text();
+        MessageText.textProperty().bind(this.messageTextField.textProperty());
+        MessageText.wrappingWidthProperty().bind(
+                this.messageTextField.widthProperty().subtract(10));
+        
+        this.MessageText.textProperty().addListener((obs,o,n)->{
+            
+            StackPane p=new StackPane(MessageText);
+            p.layout();
+            
+            this.messageTextField.setPrefHeight(MessageText.getLayoutBounds()
+                    .getHeight()+10);
+        });
+        
+        
+        //let max message text area cover %33 of all chat screen
+        this.bottomMessageBorder.maxHeightProperty()
+                .bind(this.rootPane.heightProperty().divide(3));
+        this.messageTextField.maxHeightProperty().bind(
+                this.bottomMessageBorder.maxHeightProperty());
+        
     }
     
     private void initChatHistoryWriter(){
