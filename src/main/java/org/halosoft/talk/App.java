@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 
@@ -18,16 +19,30 @@ public class App extends Application {
     private static Scene scene;
 
     @Override
-    public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
-        stage.getIcons().add(new Image(App.class.getResource(
-                "/images/app-logo.png").toString()));
-        stage.setTitle("HaloTalk: simple LAN messenger");
-        scene.getStylesheets().add(App.class.
-                getResource("stylesheet/default-style.css").toExternalForm());
+    public void start(Stage stage) throws IOException, URISyntaxException {
         
-        stage.setScene(scene);
-        stage.show();
+        SplashScreen splash=new SplashScreen();
+        
+        splash.getTransition().setOnFinished((eh)->{
+            try {
+                splash.getStage().close();
+                
+                scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
+                stage.getIcons().add(new Image(App.class.getResource(
+                        "/images/app-logo.png").toURI().toString()));
+                stage.setTitle("HaloTalk: simple LAN messenger");
+                scene.getStylesheets().add(App.class.
+                        getResource("stylesheet/default-style.css").toExternalForm());
+                
+                stage.setScene(scene);
+                stage.show();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            } catch (URISyntaxException ex) {
+                ex.printStackTrace();
+            }
+        
+        });
     }
 
     static void setRoot(String fxml) throws IOException {
