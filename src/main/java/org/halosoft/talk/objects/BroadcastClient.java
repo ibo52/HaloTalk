@@ -58,6 +58,13 @@ public class BroadcastClient {
         buffer = new byte[1024];
     }
     
+    
+    public void start(String messageToSend){
+        buffer=messageToSend.getBytes();
+        this.bufferLength=buffer.length;
+        
+        this.start();
+    }
     /**
      * sends request to service, and fill the buffer by incoming user data.
      * If service is down, then buffer fills with "NO_RESPONSE"
