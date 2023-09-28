@@ -10,8 +10,11 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javafx.scene.image.Image;
+import org.halosoft.talk.App;
 
 /**
  *
@@ -30,6 +33,7 @@ public class Broadcaster extends userObject {
      */
     public Broadcaster(String ipAddr){
         this.port=50002;
+        this.initProperties();
         
         executorService=Executors.newSingleThreadExecutor();
 
@@ -42,6 +46,26 @@ public class Broadcaster extends userObject {
             
             System.out.println(this.getClass()+":"+ex.getMessage());
         }        
+    }
+    
+    private void initProperties(){
+        try {
+            Properties p=new Properties();
+            p.load(App.class.getResourceAsStream("/broadcaster.properties"));
+            
+            this.setContents(this.hostName, 
+                    p.getProperty("NAME"), p.getProperty("SURNAME"),
+                    Integer.parseInt(p.getProperty("STATUS")),
+                    p.getProperty("STATUS_MESSAGE"),
+                    this.ipAddress, new Image( App.class
+                            .getResourceAsStream(p.getProperty("IMAGE")) )
+            );
+
+        } catch(NullPointerException ex){
+            
+        }catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
     
     public Broadcaster(){
