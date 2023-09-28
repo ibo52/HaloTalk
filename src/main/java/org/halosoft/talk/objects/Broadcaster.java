@@ -92,32 +92,41 @@ public class Broadcaster extends userObject {
                     
                     InetAddress remoteCli=request.getAddress();
                     int remotePort=request.getPort();
-                    
+
                     //System.out.println("remote request from:"+remoteCli.getHostName());
-                    String data="";
-                    switch(buffer.toString()){
+                    StringBuilder data=new StringBuilder("");
+                    switch( new String(buffer,0, request.getLength()) ){
                         
                         case "HNAME":
-                            data=String.valueOf(getHostName());
+                            data.append( String.valueOf(getHostName()) );
                             break;
                         case "STAT":
-                            data=String.valueOf(getStatus() );
+                            data.append(getStatus() );
+                            System.out.println("comolokko");
                             break;
                             
                         case "CSTAT":
-                            data=String.valueOf(getStatusMessage() );
+                            data.append( String.valueOf(getStatusMessage()) );
+                            break;
+                            
+                        case "IMG":
+                            int d;
+                            while ((d=this.imageInputStream.read() )!=-1) {
+                                data.append(d);
+                            }
                             break;
                             
                         default:
-                            data=getHostName();
-                            data+=";"+getStatus();
-                            data+=";"+getStatusMessage();
-                            data+=";"+getName();
-                            data+=";"+getSurName();
+                            data.append( getHostName()
+                                    +";"+getStatus()
+                                    +";"+getStatusMessage()
+                                    +";"+getName()
+                                    +";"+getSurName());
                             //data+=";"+getImage();
                             break;
                     }
-                    buffer=data.getBytes();
+                    System.out.println("will be send:"+data);
+                    buffer=data.toString().getBytes();
                     
                     DatagramPacket response=new DatagramPacket(buffer, buffer.length, remoteCli,remotePort);
                     server.send(response);
