@@ -19,7 +19,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
         -fx-dark-text-color  59%,
         -fx-mid-text-color   60%
     );
-    -fx-background-color: #00cfde-fx-background;
+    -fx-background-color: -fx-background;
 }
 
 /*to make textArea corners rounded*/
