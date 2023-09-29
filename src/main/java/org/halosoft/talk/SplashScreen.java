@@ -4,7 +4,10 @@
  */
 package org.halosoft.talk;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Properties;
+import java.util.logging.Level;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.geometry.Insets;
@@ -35,12 +38,26 @@ public class SplashScreen {
     final int SCENE_HEIGHT=480;
     
     public SplashScreen(){
+        Properties appProperties=new Properties();
         try {
-            Label greeter=new Label("HaloSoft Inc.    github.com/ibo52");
+            appProperties.load(App.class.getResourceAsStream(
+                    "settings/bapplication.properties"));
+        } catch (NullPointerException ex) {
+            
+            appProperties.setProperty("SPLASH_LOGO", "/images/logo-circle-512x512.png");
+            appProperties.setProperty("SPLASH_LABEL", "HaloSoft Inc.    github.com/ibo52");
+            appProperties.setProperty("STYLESHEET", "stylesheet/default-style.css");
+        } catch (IOException ex) {
+            App.logger.log(Level.SEVERE, ex.getMessage(),ex);
+        }
+        
+        try {
+            Label greeter=new Label(appProperties.getProperty("SPLASH_LABEL"));
             greeter.setPadding(new Insets(10));
             
             ImageView img=new ImageView(App.class.
-                    getResource("/images/logo-circle-512x512.png").toURI().toString());
+                    getResource(appProperties.getProperty("SPLASH_LOGO"
+                    )).toURI().toString());
             
             
             HBox imgBox=new HBox(img);
@@ -67,7 +84,9 @@ public class SplashScreen {
             
             this.scene=new Scene(rootPane,SCENE_WIDTH,SCENE_HEIGHT);
             scene.getStylesheets().add(App.class.
-                        getResource("stylesheet/dark-mode.css").toExternalForm());
+                        getResource(appProperties.
+                                getProperty("STYLESHEET")
+                        ).toExternalForm());
             
             stage=new Stage();
             stage.setScene(scene);

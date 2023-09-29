@@ -8,9 +8,13 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.image.Image;
+
 
 /**
  * JavaFX App
@@ -18,9 +22,24 @@ import javafx.scene.image.Image;
 public class App extends Application {
 
     private static Scene scene;
-
+    
+    protected static final Logger logger=Logger.getLogger(App.class.getName());
+    
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
+        
+        Properties appProperties=new Properties();
+        try{
+            appProperties.load(App.class.getResourceAsStream(
+                        "settings/wapplication.properties"));
+        } catch(NullPointerException ex){
+            App.logger.log(Level.CONFIG, "Could not found properties file for application."
+                            + " Default values will be used for Application.");
+            
+            appProperties.setProperty("LOGO", "/images/app-logo.png");
+            appProperties.setProperty("NAME", "HaloTalk - sİMPLE LAN MESSENGER");
+            appProperties.setProperty("STYLESHEET", "stylesheet/default-style.css");
+        }
         
         SplashScreen splashScreen=new SplashScreen();
         
@@ -30,16 +49,17 @@ public class App extends Application {
                 try {
                     this.updateProgress(20, 100);
                     stage.getIcons().add(new Image(App.class.getResource(
-                            "/images/app-logo.png").toURI().toString()));
+                          appProperties.getProperty("LOGO")).toURI().toString()));
 
                     this.updateProgress(35, 100);
-                    stage.setTitle("HaloTalk: simple LAN messenger");
+                    stage.setTitle(appProperties.getProperty("NAME"));
 
                     scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
                     this.updateProgress(85, 100);
 
                     scene.getStylesheets().add(App.class.
-                            getResource("stylesheet/default-style.css").toExternalForm());
+                            getResource(appProperties
+                                    .getProperty("STYLESHEET")).toExternalForm());
 
                     Platform.runLater(()->{
                         stage.setScene(scene);
@@ -47,9 +67,9 @@ public class App extends Application {
                     this.updateProgress(100, 100);
 
                 } catch (IOException ex) {
-                    ex.printStackTrace();
+                    App.logger.log(Level.SEVERE, ex.getMessage(),ex);
                 } catch (URISyntaxException ex) {
-                    ex.printStackTrace();
+                    App.logger.log(Level.WARNING, ex.getMessage(),ex);
                 }
                 return null;
             }
