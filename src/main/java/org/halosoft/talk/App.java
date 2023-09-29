@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.image.Image;
 
 /**
@@ -21,28 +22,55 @@ public class App extends Application {
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
         
-        SplashScreen splash=new SplashScreen();
+        SplashScreen splashScreen=new SplashScreen();
         
-        splash.getTransition().setOnFinished((eh)->{
-            try {
-                splash.getStage().close();
-                
-                scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
-                stage.getIcons().add(new Image(App.class.getResource(
-                        "/images/app-logo.png").toURI().toString()));
-                stage.setTitle("HaloTalk: simple LAN messenger");
-                scene.getStylesheets().add(App.class.
-                        getResource("stylesheet/default-style.css").toExternalForm());
-                
-                stage.setScene(scene);
-                stage.show();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            } catch (URISyntaxException ex) {
-                ex.printStackTrace();
+        Task loadTask=new Task<Void>(){
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    this.updateProgress(20, 100);
+                    stage.getIcons().add(new Image(App.class.getResource(
+                            "/images/app-logo.png").toURI().toString()));
+
+                    this.updateProgress(35, 100);
+                    stage.setTitle("HaloTalk: simple LAN messenger");
+
+                    scene = new Scene(loadFXML("view/hostSelector"), 840, 480);
+                    this.updateProgress(85, 100);
+
+                    scene.getStylesheets().add(App.class.
+                            getResource("stylesheet/default-style.css").toExternalForm());
+
+                    Platform.runLater(()->{
+                        stage.setScene(scene);
+                    });
+                    this.updateProgress(100, 100);
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } catch (URISyntaxException ex) {
+                    ex.printStackTrace();
+                }
+                return null;
             }
+
+            @Override
+            protected void succeeded() {
+                super.succeeded(); 
+
+                splashScreen.getTransition().stop();
+                splashScreen.getStage().close();
+
+                stage.show();
+            }
+        };
         
-        });
+        splashScreen.getProgressBar().progressProperty()
+                .bind(loadTask.progressProperty());
+        
+        Thread MainWindowLoadService=new Thread(loadTask);
+        MainWindowLoadService.setDaemon(true);
+        MainWindowLoadService.start();
     }
 
     static void setRoot(String fxml) throws IOException {
