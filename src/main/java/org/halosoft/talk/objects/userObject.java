@@ -4,8 +4,14 @@
  */
 package org.halosoft.talk.objects;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.logging.Level;
 import javafx.scene.image.Image;
 import org.halosoft.talk.App;
 
@@ -16,16 +22,17 @@ import org.halosoft.talk.App;
  * Provides general information about an user
  */
 public class userObject {
-    private String name;
-    private String surname;
-    private String hostName;
+    protected String name;
+    protected String surname;
+    protected String hostName;
     
-    private int status;
-    private String statusMessage;
+    protected int status;
+    protected String statusMessage;
     
-    private String ipAddress;
-    private Image image;
+    protected String ipAddress;
+    protected Image image;
     
+    protected BufferedReader imageInputStream;
     
     
     public userObject(String hostName, String name, String surname, int status,
@@ -38,7 +45,14 @@ public class userObject {
         this.ipAddress=ipAddress;
         
         this.image=img;
-        
+        try {
+            this.imageInputStream=Files.newBufferedReader(
+                    Paths.get(URI.create(img.getUrl()) ));
+
+        } catch (IOException ex) {
+            App.logger.log(Level.SEVERE, 
+                        userObject.class.getName(),ex);
+        }
     }
     public userObject(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress){
@@ -119,6 +133,19 @@ public class userObject {
         this.setSurname(userData.getSurName());
         this.setStatus(userData.getStatus());
         this.setStatusMessage(userData.getStatusMessage());
+    }
+    
+    public void setContents(String hostName, String name, String surname, int status,
+            String StatusMessage, String ipAddress, Image img){
+        this.hostName=hostName;
+        this.name=name;
+        this.surname=surname;
+        this.status=status;
+        this.statusMessage=StatusMessage;
+        this.ipAddress=ipAddress;
+        
+        this.image=img;
+        
     }
     
 }

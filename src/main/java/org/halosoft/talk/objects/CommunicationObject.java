@@ -6,6 +6,8 @@ package org.halosoft.talk.objects;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.logging.Level;
+import org.halosoft.talk.App;
 
 /**
  * Generate an communication object to send and receive messages
@@ -37,15 +39,19 @@ public class CommunicationObject extends SocketHandlerAdapter{
                     System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
 
                 } catch( EOFException ex ){
-                    System.err.println("receiver EOFException:"
+
+                    App.logger.log(Level.SEVERE, 
+                        CommunicationObject.class.getName()
+                            +"Receiver EOF reached:"
                             + "Possiby remote end closed the connection:\n"
                             + "\tclient will be closed\n"
-                            + "\treceiver/sender thraeds will be interrupted");
-
+                            + "\treceiver/sender thraeds will be interrupted"
+                            ,ex);
                     break;
 
                 }catch (IOException ex) {
-                    System.err.println("receiver thread:"+ex.getMessage());
+                    App.logger.log(Level.SEVERE, 
+                        CommunicationObject.class.getName(),ex);
 
                 }
             
@@ -76,11 +82,13 @@ public class CommunicationObject extends SocketHandlerAdapter{
                 //System.out.println("<you>:"+message);
             
             } catch (InterruptedException ex) {
-                System.err.println("Sender thread interrupt:"+ex.getMessage());
+                App.logger.log(Level.FINEST, 
+                        CommunicationObject.class.getName(),ex);
                 break;
                 
             }catch (IOException ex) {
-                System.err.println("sender thread:"+ex.getMessage());
+                App.logger.log(Level.SEVERE, 
+                        CommunicationObject.class.getName(),ex);
             }
         }
             
@@ -103,10 +111,13 @@ public class CommunicationObject extends SocketHandlerAdapter{
             socketOut.close();
             
         } catch (IOException ex) {
-            System.err.println("CommunicationObject stop:"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        CommunicationObject.class.getName(),ex);
         }
         catch (NullPointerException ex) {
-            System.err.println("Socket.close:Socket is already 'NULL'");
+            App.logger.log(Level.FINEST, 
+                        CommunicationObject.class.getName()
+                    +": Socket is already null",ex);
         }
 
         Thread.currentThread().interrupt();

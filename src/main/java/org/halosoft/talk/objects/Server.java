@@ -15,7 +15,9 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Level;
 import javafx.application.Platform;
+import org.halosoft.talk.App;
 
 /**
  *
@@ -58,7 +60,8 @@ public class Server extends SocketHandlerAdapter {
                     InetAddress.getByName(this.getRemoteIp() ) );
        
         } catch (IOException ex) {
-            System.out.println("ServerSocket init:"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        Server.class.getName(),ex);
         }
     }
     
@@ -97,11 +100,12 @@ public class Server extends SocketHandlerAdapter {
                         this.executorService.execute(serverHandler);
                         
                     }catch (SocketException ex) {
-                        System.err.println( ex.getMessage()
-                                +":\tPossibly some remote socket is closed.");
+                        App.logger.log(Level.FINER, 
+                        Server.class.getName(),ex);
 
                     }catch (IOException ex) {
-                        System.err.println("Server listen:"+ex.getMessage());
+                        App.logger.log(Level.SEVERE, 
+                        Server.class.getName(),ex);
                             
                     }finally{
                         //this.stop();//server stop
@@ -130,8 +134,9 @@ public class Server extends SocketHandlerAdapter {
             int recv=this.getSocketInputStream().read(incomingPublicKey.array());
             
         } catch (IOException ex) {
-            System.err.println(this.getClass().getName()+"->Handshake Failed:"+ex.getMessage());
-            Platform.exit();
+            App.logger.log(Level.SEVERE, 
+                        Server.class.getName(),ex);
+            System.exit(ex.hashCode());
         }
         
         long[] remoteKey=new long[2];
@@ -149,7 +154,8 @@ public class Server extends SocketHandlerAdapter {
             this.executorService.shutdownNow();
 
         } catch (IOException ex) {
-            System.err.println("Server stop:"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        Server.class.getName(),ex);
         }
     }
 }

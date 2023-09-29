@@ -23,7 +23,7 @@ public class App extends Application {
 
     private static Scene scene;
     
-    protected static final Logger logger=Logger.getLogger(App.class.getName());
+    public static final Logger logger=Logger.getLogger(App.class.getName());
     
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {

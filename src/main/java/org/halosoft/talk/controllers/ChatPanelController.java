@@ -19,6 +19,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -118,8 +119,9 @@ public class ChatPanelController extends userObject implements Initializable,
                 this.stackPane.setAlignment(uContact, Pos.TOP_LEFT);
                 
             } catch (IOException ex) {
-                System.out.println("bind ucontact popup to cahtpanel statusbar:"
-                        +ex.getMessage());
+
+                App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
             }
         });
         
@@ -161,10 +163,12 @@ public class ChatPanelController extends userObject implements Initializable,
                   userBuffersPath, "HIST" ), true);
                 
             } catch (IOException ex1) {
-                ex1.printStackTrace();
+                App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex1);
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
         }
     }
     
@@ -187,9 +191,13 @@ public class ChatPanelController extends userObject implements Initializable,
                 }
             }
         } catch (FileNotFoundException ex) {
-            System.out.println("no conversation history file found. Skipping");
+            App.logger.log(Level.FINEST,
+                    "No conversation history file found. Skipping");
+        
         } catch (IOException ex) {
-            System.out.println("error whle read chat history:"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName()
+                                +": Error while reading chat history",ex);
         }
     }
     /**
@@ -206,7 +214,8 @@ public class ChatPanelController extends userObject implements Initializable,
             Paths.get(userBuffersPath.toString(),"IN" ));
             
         } catch (IOException ex) { 
-            System.out.println(""+ex.getMessage());;
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
         }
     }
     @Override
@@ -223,7 +232,8 @@ public class ChatPanelController extends userObject implements Initializable,
             
             Files.createDirectories(userBuffersPath.toPath());
             } catch (URISyntaxException ex) {
-                ex.printStackTrace();
+                App.logger.log(Level.WARNING, 
+                        ChatPanelController.class.getName(),ex);
             }
             
             this.initMessages();//if there is communication history, load to screen
@@ -233,7 +243,8 @@ public class ChatPanelController extends userObject implements Initializable,
             this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
             this.userImageView.setImage(this.getImage());
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
         }
     }
     
@@ -254,7 +265,8 @@ public class ChatPanelController extends userObject implements Initializable,
             this.messageBoxLayout.getChildren().add(msgBox);
                 
         } catch (IOException ex) {
-            System.err.println("addMessage:"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
         }   
     }
     
@@ -269,7 +281,8 @@ public class ChatPanelController extends userObject implements Initializable,
             this.chatHistory.write("\n");
             this.chatHistory.flush();
         }catch(IOException ex){
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
         }
     }
     /**
@@ -292,7 +305,8 @@ public class ChatPanelController extends userObject implements Initializable,
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException ex1) {
-                        ex1.printStackTrace();
+                        App.logger.log(Level.FINEST, 
+                        ChatPanelController.class.getName(),ex);
                     }
                 }
             }
@@ -311,17 +325,23 @@ public class ChatPanelController extends userObject implements Initializable,
                     this.saveToFile(message, Pos.TOP_LEFT);
                     
                 } catch ( SocketException ex) {
-                    System.out.println("chatPanel client Socket:"+ex.getMessage());
+                    App.logger.log(Level.FINEST, 
+                        ChatPanelController.class.getName(),ex);
+                    
                     this.remoteClient=null;
                     break;
                     
                 }catch (IOException ex) {
-                    System.out.println("chatPanel client Socket:"+ex.getMessage());
+                    App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
+                    
                     this.remoteClient=null;
                     break;
                     
                 } catch (InterruptedException ex) {
-                    System.out.println("chatPanel Client listen:"+ex.getMessage());
+                    App.logger.log(Level.FINEST, 
+                        ChatPanelController.class.getName(),ex);
+                    
                     this.remoteClient=null;
                     break;
                 }
@@ -347,13 +367,14 @@ public class ChatPanelController extends userObject implements Initializable,
                 //send message to remote end
                 this.remoteClient.getSocketOutputStream().writeUTF(message);
             } catch(NullPointerException ex){
-                
-                System.err.println("chatPanelcontroller:"
-                        + "messsage could not send through client object:"
-                        +ex.getMessage());
+
+                App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName()
+                        +"messsage could not send through client object",ex);
                 
             }catch (IOException ex) {
-                System.out.println("chatPanelcontroller sendButton:"+ex.getMessage());
+                App.logger.log(Level.SEVERE, 
+                        ChatPanelController.class.getName(),ex);
             }
             
             

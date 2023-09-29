@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
@@ -140,7 +141,8 @@ public class ImageDetailsController extends userObject implements Initializable,
             parentController.getLeftStackPane().getChildren().add(uContact);
             
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        ImageDetailsController.class.getName(),ex);
         }
     }
 

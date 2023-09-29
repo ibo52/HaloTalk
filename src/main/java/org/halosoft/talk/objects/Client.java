@@ -13,7 +13,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 import javafx.application.Platform;
+import org.halosoft.talk.App;
 
 /**
  *
@@ -87,8 +89,9 @@ public class Client extends CommunicationObject{
             this.getSocketOutputStream().write( outgoingPublicKey.array() );
             
         } catch (IOException ex) {
-            System.err.println(this.getClass().getName()+"->Handshake Failed:"+ex.getMessage());
-            Platform.exit();
+            App.logger.log(Level.SEVERE, 
+                        Client.class.getName(),ex);
+            System.exit(ex.hashCode());
         }
         
         long[] remoteKey=new long[2];

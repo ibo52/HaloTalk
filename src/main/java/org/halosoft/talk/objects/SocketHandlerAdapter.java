@@ -12,6 +12,8 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Connectible;
 
 /**
@@ -59,7 +61,8 @@ public class SocketHandlerAdapter implements Connectible {
         try {
             this.client.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        SocketHandlerAdapter.class.getName(),ex);
         }
     }
 

@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.logging.Level;
+import org.halosoft.talk.App;
 
 /**
  *
@@ -79,7 +81,8 @@ public class NetworkDeviceManager {
             }
             
         } catch (SocketException ex) {
-            System.out.println(this.getClass().getName()+":"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        NetworkDeviceManager.class.getName(),ex);
         }
     }
     
@@ -120,7 +123,8 @@ public class NetworkDeviceManager {
         try {
             local = InetAddress.getLocalHost();
         } catch (UnknownHostException ex) {
-            System.out.println(ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                        NetworkDeviceManager.class.getName(),ex);
         }
         int subnetMask=-1;
 
@@ -166,7 +170,8 @@ public class NetworkDeviceManager {
             return false;
             
         } catch (SocketException ex) {
-            System.out.println(ex.getMessage());
+            App.logger.log(Level.WARNING, 
+                        NetworkDeviceManager.class.getName(),ex);
             return false;
         }
     }

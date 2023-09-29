@@ -9,6 +9,8 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import org.halosoft.talk.App;
 
 /**
  *
@@ -107,7 +109,8 @@ public class DataManipulator {
                 decode.append(  new String
                 (new byte[]{ Byte.valueOf(s, 16).byteValue() }, "UTF-8")  );
             } catch (UnsupportedEncodingException ex) {
-                ex.printStackTrace();
+                App.logger.log(Level.SEVERE, 
+                        DataManipulator.class.getName(),ex);
             }
         }
         return decode.toString();

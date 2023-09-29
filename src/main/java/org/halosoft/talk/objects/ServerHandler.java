@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 import org.halosoft.talk.App;
 
 /**
@@ -55,7 +56,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         this.client.getOutputStream()));
             
             } catch (IOException | URISyntaxException ex) {
-                ex.printStackTrace();
+                App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName(),ex);
             }
         }
 
@@ -80,7 +82,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             this.client.close();
             
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName(),ex);
         }
     }
     
@@ -108,7 +111,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                             true);
                     
                 }catch (IOException ex) {
-                    ex.printStackTrace();
+                    App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName(),ex);
                 }
                 
             }
@@ -127,17 +131,19 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         
                     } catch ( IOException ex) {
                         
-                        System.out.println("serverHandler for "+this.ip
-                                +":"+ex.getMessage());  
+                        App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName()
+                                +" ClientInputWriter",ex);
                         
                         try {
                             writer.flush();
                             writer.close();
                         } catch (IOException ex1) {
-                            System.out.println("another exception occured while"
-                                    + " closing FileWriter"
-                                    + "of serverHandler for "+this.ip
-                                +":"+ex1.getMessage());
+                            App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName()
+                                    +" ClientInputWriter: "
+                                    + "Another exception occured while"
+                                    + " closing FileWriter",ex);
                         }
                         Thread.currentThread().interrupt();
                         break;
@@ -168,7 +174,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                             ));
                     
                 }catch (IOException ex) {
-                    ex.printStackTrace();
+                    App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName()
+                            +" ClientOutputSender",ex);
                 }
                 
             }
@@ -187,17 +195,20 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         
                     } catch ( IOException ex) {
                         
-                        System.out.println("serverHandler for "+this.ip
-                                +":"+ex.getMessage());  
+                        App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName()
+                                +" ClientOutputSender",ex); 
                         
                     }finally{
                         try {
                             this.dataSender.close();
                         } catch (IOException ex) {
-                            System.out.println("another exception occured while"
+                            App.logger.log(Level.SEVERE, 
+                        ServerHandler.class.getName()
+                                    +" ClientOutputSender: "
+                                    + "Another exception occured while"
                                     + " closing BufferedReader"
-                                    + "of serverHandler for "+this.ip
-                                +":"+ex.getMessage());
+                                    + "of serverHandler",ex);
                         }
                         Thread.currentThread().interrupt();
                         break;

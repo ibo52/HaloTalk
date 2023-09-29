@@ -11,6 +11,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.logging.Level;
+import org.halosoft.talk.App;
+import org.halosoft.talk.controllers.ImageDetailsController;
 
 /**
  *
@@ -45,14 +48,16 @@ public class BroadcastClient {
         try {
             address=InetAddress.getByName(ip);
         } catch (UnknownHostException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        BroadcastClient.class.getName(),ex);
         }
         
         try {
             this.client=new DatagramSocket();
         
         }catch (SocketException ex) {
-                ex.printStackTrace();
+                App.logger.log(Level.SEVERE, 
+                        BroadcastClient.class.getName(),ex);
         }
         
         buffer = new byte[1024];
@@ -92,7 +97,8 @@ public class BroadcastClient {
             this.bufferLength=msg.length();
         
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        BroadcastClient.class.getName(),ex);
         }
 
     }

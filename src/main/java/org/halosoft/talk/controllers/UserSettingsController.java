@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -65,7 +66,8 @@ public class UserSettingsController implements Initializable {
                 this.settingsBox.getChildren().add(p);
 
             } catch (IOException ex) {
-                System.err.println("Error while initializing settings:"+ex.getMessage());
+                App.logger.log(Level.SEVERE, 
+                        UserSettingsController.class.getName(),ex);
             }
     }
     

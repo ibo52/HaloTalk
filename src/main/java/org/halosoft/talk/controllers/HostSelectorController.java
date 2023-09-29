@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -122,8 +123,8 @@ public class HostSelectorController implements Initializable {
             chatPanelLayout.setCenter(chatPanel);
                         
         } catch (IOException ex) {
-            System.out.println("hostSelector bringChatScreen:"+ex.getMessage());
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        HostSelectorController.class.getName(),ex);
         }
     }
     
@@ -146,7 +147,8 @@ public class HostSelectorController implements Initializable {
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException ex) {
-                        System.out.println(ex.getMessage());
+                        App.logger.log(Level.FINEST, 
+                        HostSelectorController.class.getName(),ex);
                     }
                     continue;
                 }
@@ -222,7 +224,8 @@ public class HostSelectorController implements Initializable {
                                 }
                             }
                         } catch (UnknownHostException ex) {
-                            System.out.println("LANbrowser()"+ex.getMessage());
+                            App.logger.log(Level.INFO, 
+                        HostSelectorController.class.getName(),ex);
                         }
                         
                     });
@@ -234,8 +237,8 @@ public class HostSelectorController implements Initializable {
                     Thread.sleep(3000);
                 } catch (InterruptedException ex) {
                     LANBroadcaster.stop();
-                    System.out.println("statEmitter stopped beacuse of interrupt");
-                    ex.printStackTrace();
+                    App.logger.log(Level.FINEST, 
+                        HostSelectorController.class.getName(),ex);
                 }
             }
             
@@ -291,7 +294,8 @@ public class HostSelectorController implements Initializable {
                 usersBox.getChildren().add(Box);
                 
             } catch (IOException ex) {
-                System.out.println(ex.getMessage());
+                App.logger.log(Level.SEVERE, 
+                        HostSelectorController.class.getName(),ex);
             }
         });
         
@@ -321,7 +325,8 @@ public class HostSelectorController implements Initializable {
             
             this.leftStackPane.getChildren().add(uSettings);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            App.logger.log(Level.SEVERE, 
+                        HostSelectorController.class.getName(),ex);
         }
     }
 }
