@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -29,6 +30,7 @@ public class SplashScreen {
     private Scene scene;
     private Stage stage;
     
+    private ProgressBar progressBar;
     final int SCENE_WIDTH=640;
     final int SCENE_HEIGHT=480;
     
@@ -55,10 +57,13 @@ public class SplashScreen {
             img.fitWidthProperty().bind(scroll.widthProperty().multiply(.6));
             img.fitHeightProperty().bind(scroll.heightProperty().subtract(.6));
             
+            progressBar=new ProgressBar();
+            progressBar.setPrefSize(Float.MAX_VALUE, 24);
             
             BorderPane rootPane=new BorderPane();
             rootPane.setTop(greeter);
             rootPane.setCenter(scroll);
+            rootPane.setBottom(progressBar);
             
             this.scene=new Scene(rootPane,SCENE_WIDTH,SCENE_HEIGHT);
             scene.getStylesheets().add(App.class.
@@ -71,8 +76,10 @@ public class SplashScreen {
             
             //Load splash screen fade effect
             splashTransition = new FadeTransition(Duration.seconds(1), imgBox);
+            splashTransition.setAutoReverse(true);
             splashTransition.setFromValue(0);
             splashTransition.setToValue(1);
+            splashTransition.setCycleCount(Integer.MAX_VALUE);
             splashTransition.play();
             
         } catch (URISyntaxException ex) {
@@ -85,6 +92,9 @@ public class SplashScreen {
     }
     public Stage getStage(){
         return this.stage;
+    }
+    public ProgressBar getProgressBar(){
+        return this.progressBar;
     }
     
     public Transition getTransition(){
