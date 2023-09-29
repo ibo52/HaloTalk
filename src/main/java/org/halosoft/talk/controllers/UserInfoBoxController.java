@@ -10,6 +10,8 @@ import java.util.ResourceBundle;
 import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -29,6 +31,7 @@ import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
+import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.userObject;
 /**
  * FXML Controller class
@@ -60,12 +63,11 @@ public class UserInfoBoxController extends userObject implements Initializable,
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         setStatus(this.getStatus());
-        setID(this.getID());
         
         //start animation when width>0
         this.rootPane.setTranslateX(Long.MAX_VALUE);//keep out of screen for start animation
         this.rootPane.widthProperty().addListener(new ChangeListener<Number>() {
-            @Override
+            @Override  
             public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
                 UserInfoBoxController.this.startAnimation();
                 UserInfoBoxController.this.rootPane.heightProperty()
@@ -73,7 +75,44 @@ public class UserInfoBoxController extends userObject implements Initializable,
             }
         });
         // TODO
+        this.userUpdater();
     }   
+    
+    /**
+     * check for remote user status(on/off line)
+     */
+    private void userUpdater(){
+        ScheduledService checkRemoteStatusService=new ScheduledService<Void>(){
+            @Override
+            protected Task<Void> createTask() {
+                
+                Task task=new Task<Void>(){
+                    @Override
+                    protected Void call() throws Exception {
+
+                        BroadcastClient cli=new BroadcastClient(getID());
+                        cli.start("STAT");
+
+                        String status=new String(cli.getBuffer(), 0, 
+                                cli.getBufferLength());
+
+                        if (status.equals("NO_RESPONSE")) {
+                            setStatus(0);
+                        }else{
+                            setStatus(Integer.valueOf(status));
+                        }
+                        return null;
+                    }
+
+                };
+                return task;
+            }
+            
+        };
+        
+        checkRemoteStatusService.setPeriod(Duration.seconds(3));
+        checkRemoteStatusService.start();
+    }
     
     @Override
     public void setContents(userObject userData){

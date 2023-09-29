@@ -230,7 +230,6 @@ public class HostSelectorController implements Initializable {
                 executorService.shutdown();
                 
                 try {
-                    garbageUserCollector();
                     
                     Thread.sleep(3000);
                 } catch (InterruptedException ex) {
@@ -249,31 +248,6 @@ public class HostSelectorController implements Initializable {
         executorService.execute( new LANBrowser() );
         
         executorService.shutdown();
-    }
-    
-    private void garbageUserCollector(){
-        ExecutorService s=Executors.newSingleThreadExecutor();
-        
-        s.execute( ()->{
-            Iterator iter=usersBox.getChildren().iterator();
-
-            while( iter.hasNext() ){
-
-                Parent v=(Parent)iter.next();
-
-                UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-
-                BroadcastClient cli=new BroadcastClient(ctrlr.getID());
-                
-                String[] received=new String(cli.getBuffer(), 0, 
-                        cli.getBufferLength()).split(";");
-                
-                if (received[0].equals("NO_RESPONSE")) {
-                    ctrlr.stopAnimation();
-                }
-            }
-        });
-        
     }
     
     /**
