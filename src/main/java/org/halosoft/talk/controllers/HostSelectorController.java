@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -46,7 +48,7 @@ import org.halosoft.talk.objects.userObject;
  */
 public class HostSelectorController implements Initializable {
     
-    private ExecutorService executorService;    //executor to run runnables on thread
+    private ScheduledExecutorService executorService;    //executor to run runnables on thread
     
     private Server server;              //to let others conect to you
     
@@ -81,7 +83,7 @@ public class HostSelectorController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         
-        executorService=Executors.newSingleThreadExecutor();
+        executorService=Executors.newScheduledThreadPool(1);
         
         server=new Server();
         server.start();
@@ -140,17 +142,12 @@ public class HostSelectorController implements Initializable {
         @Override
         public void run() {
             
-            while( !Thread.currentThread().isInterrupted() ){
-                
+                //check if any network interface is connected to internet
                 if ( !NetworkDeviceManager.checkForConnectivity() ) {
-                    System.err.println("No internet connection. Sleep for 3000 ms");
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException ex) {
-                        App.logger.log(Level.FINEST, 
-                        HostSelectorController.class.getName(),ex);
-                    }
-                    continue;
+                    
+                    App.logger.log(Level.FINEST, 
+                        "No internet connection. Pass LAN browsing");
+                    return;
                 }
                 //get a device from manager and calculate network ID
                 NetworkDeviceManager manager=new NetworkDeviceManager();
@@ -161,8 +158,8 @@ public class HostSelectorController implements Initializable {
                 String hostIdentity=NetworkDeviceManager
                         .calculateNetworkIdentity(ni);
                 
-                System.out.println("selected ni:"+ni.getName()+" newtowrk ID:"+hostIdentity);
-                
+                System.out.println("selected ni:"+ni.getName()+" network ID:"+hostIdentity);
+
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
                 
@@ -224,33 +221,22 @@ public class HostSelectorController implements Initializable {
                                 }
                             }
                         } catch (UnknownHostException ex) {
-                            App.logger.log(Level.INFO, 
-                        HostSelectorController.class.getName(),ex);
+                            App.logger.log(Level.INFO,ex.getMessage(),ex);
                         }
                         
                     });
                 }
                 executorService.shutdown();
-                
-                try {
-                    
-                    Thread.sleep(3000);
-                } catch (InterruptedException ex) {
-                    LANBroadcaster.stop();
-                    App.logger.log(Level.FINEST, 
-                        HostSelectorController.class.getName(),ex);
-                }
-            }
-            
         }
         
     }
     
     private void LANBrowser(){
-
-        executorService.execute( new LANBrowser() );
         
-        executorService.shutdown();
+        executorService.scheduleAtFixedRate(new LANBrowser(),
+                0, 5, TimeUnit.SECONDS);
+        
+        //executorService.shutdown();
     }
     
     /**
@@ -295,7 +281,7 @@ public class HostSelectorController implements Initializable {
                 
             } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
-                        HostSelectorController.class.getName(),ex);
+                        ex.getMessage(),ex);
             }
         });
         
@@ -326,7 +312,7 @@ public class HostSelectorController implements Initializable {
             this.leftStackPane.getChildren().add(uSettings);
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        HostSelectorController.class.getName(),ex);
+                        ex.getMessage(),ex);
         }
     }
 }
