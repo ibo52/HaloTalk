@@ -19,6 +19,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -58,6 +60,8 @@ public class ChatPanelController extends userObject implements Initializable,
     private File userBuffersPath;
     private BufferedReader remoteIn;
     private FileWriter chatHistory;
+    
+    private ExecutorService executorService;
     
     private Client remoteClient;
     
@@ -147,6 +151,7 @@ public class ChatPanelController extends userObject implements Initializable,
         this.messageTextField.maxHeightProperty().bind(
                 this.bottomMessageBorder.maxHeightProperty());
         
+        executorService=Executors.newCachedThreadPool();
     }
     
     private void initChatHistoryWriter(){
@@ -204,6 +209,8 @@ public class ChatPanelController extends userObject implements Initializable,
      */
     public void close(){
         try {
+            this.executorService.shutdownNow();
+            
             this.remoteClient.stop();
             this.remoteIn.close();
             this.chatHistory.close();
@@ -211,6 +218,10 @@ public class ChatPanelController extends userObject implements Initializable,
             //delete remote end's socket IN file on close requested
             Files.delete(
             Paths.get(userBuffersPath.toString(),"IN" ));
+            
+        } catch(NullPointerException ex){
+            App.logger.log(Level.FINE,"Socket or its files are null."
+                    + " Pass closing them",ex);
             
         } catch (IOException ex) { 
             App.logger.log(Level.SEVERE, 
@@ -290,23 +301,24 @@ public class ChatPanelController extends userObject implements Initializable,
      */
     private void listenMessage(){
         
-        Thread msgListener=new Thread( () -> {
+        executorService.execute(() -> {
             
-            //wait until there is socket in file exists
-            while(true){
-                try {//access senrver socketIn file for that remote end
+            
+            while( !Thread.currentThread().isInterrupted() ){
+                try {//access server socketIn file for that remote end
                     FileReader clientInFile=new FileReader( new File(
                             userBuffersPath.toString(),"IN" ) );
                     this.remoteIn=new BufferedReader(clientInFile);
                     break;
 
                 } catch (FileNotFoundException ex) {
-
+                    //wait until there is IN file for socket does exists
                     try {
                         Thread.sleep(300);
                     } catch (InterruptedException ex1) {
                         App.logger.log(Level.FINEST, 
                         "file reader of IN interrupted",ex);
+                        break;
                     }
                 }
             }
@@ -314,7 +326,7 @@ public class ChatPanelController extends userObject implements Initializable,
             while ( !Thread.currentThread().isInterrupted() ){
                 
                 try {
-                    while (!this.remoteIn.ready() ){
+                     while (!this.remoteIn.ready() ){
                         Thread.sleep(300);
                     }
                     String message=this.remoteIn.readLine();
@@ -324,32 +336,30 @@ public class ChatPanelController extends userObject implements Initializable,
                     //save message history to file
                     this.saveToFile(message, Pos.TOP_LEFT);
                     
+                } catch(NullPointerException ex){
+                    App.logger.log(Level.FINER, 
+                        "Possibly IN file closed by this or other class",ex);
+                    break;
                 } catch ( SocketException ex) {
                     App.logger.log(Level.FINEST, 
                         "Possibly socket closed",ex);
                     
-                    this.remoteClient=null;
                     break;
                     
                 }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
                         "Error while reading buffer file of IN",ex);
                     
-                    this.remoteClient=null;
                     break;
                     
                 } catch (InterruptedException ex) {
                     App.logger.log(Level.FINEST, 
                         "file reader of IN interrupted",ex);
                     
-                    this.remoteClient=null;
                     break;
                 }
             }
         });
-        msgListener.setDaemon(true);
-        msgListener.setName("chatPanelMsgListener");
-        msgListener.start();
     }
 
     @FXML
