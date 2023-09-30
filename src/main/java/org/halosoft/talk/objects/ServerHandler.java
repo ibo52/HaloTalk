@@ -8,6 +8,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -131,7 +132,12 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         writer.write("\n");
                         writer.flush();
                         
-                    } catch ( IOException ex) {
+                    }catch(EOFException ex){
+                        App.logger.log(Level.FINE, 
+                        "EOF reached. Possibly IN file closed by this or other class",ex);
+                        break;
+                    }
+                    catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
                         "Error while writing incoming messages to file",ex);
