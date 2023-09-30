@@ -90,7 +90,7 @@ public class Client extends CommunicationObject{
             
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        Client.class.getName(),ex);
+                        "handshake phase failed",ex);
             System.exit(ex.hashCode());
         }
         

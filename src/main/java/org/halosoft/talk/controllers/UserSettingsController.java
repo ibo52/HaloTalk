@@ -67,7 +67,7 @@ public class UserSettingsController implements Initializable {
 
             } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
-                        UserSettingsController.class.getName(),ex);
+                        ex.getMessage(),ex);
             }
     }
     

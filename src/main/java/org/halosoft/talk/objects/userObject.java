@@ -51,7 +51,7 @@ public class userObject {
 
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        userObject.class.getName(),ex);
+                        "Error while initializing BufferedReader of image",ex);
         }
     }
     public userObject(String hostName, String name, String surname, int status,

@@ -142,7 +142,7 @@ public class ImageDetailsController extends userObject implements Initializable,
             
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        ImageDetailsController.class.getName(),ex);
+                        ex.getMessage(),ex);
         }
     }
 

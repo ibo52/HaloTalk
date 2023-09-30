@@ -16,7 +16,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
-import javafx.application.Platform;
 import org.halosoft.talk.App;
 
 /**
@@ -61,7 +60,7 @@ public class Server extends SocketHandlerAdapter {
        
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        Server.class.getName(),ex);
+                        "Error while initializing server socket",ex);
         }
     }
     
@@ -101,11 +100,11 @@ public class Server extends SocketHandlerAdapter {
                         
                     }catch (SocketException ex) {
                         App.logger.log(Level.FINER, 
-                        Server.class.getName(),ex);
+                        "Possibly remote socket closed",ex);
 
                     }catch (IOException ex) {
                         App.logger.log(Level.SEVERE, 
-                        Server.class.getName(),ex);
+                        "Error while managing Server",ex);
                             
                     }finally{
                         //this.stop();//server stop
@@ -135,7 +134,7 @@ public class Server extends SocketHandlerAdapter {
             
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        Server.class.getName(),ex);
+                        "handshake phase failed",ex);
             System.exit(ex.hashCode());
         }
         
@@ -148,14 +147,14 @@ public class Server extends SocketHandlerAdapter {
     public void stop(){
         
         this.executorService.shutdownNow();
-        System.out.println("server stop invoke");
+
         try {
             this.server.close();
             this.executorService.shutdownNow();
 
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        Server.class.getName(),ex);
+                        "Error while stopping server socket",ex);
         }
     }
 }

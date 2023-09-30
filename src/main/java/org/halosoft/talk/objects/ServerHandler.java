@@ -57,7 +57,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             
             } catch (IOException | URISyntaxException ex) {
                 App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName(),ex);
+                        "Wrong URI given to Paths.get() method while "
+                                + "initializing file",ex);
             }
         }
 
@@ -83,7 +84,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName(),ex);
+                        "Error while closing client socket",ex);
         }
     }
     
@@ -112,7 +113,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     
                 }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName(),ex);
+                        "Error while initializing FileWriter for "
+                                + "incoming messages",ex);
                 }
                 
             }
@@ -132,17 +134,14 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     } catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName()
-                                +" ClientInputWriter",ex);
+                        "Error while writing incoming messages to file",ex);
                         
                         try {
                             writer.flush();
                             writer.close();
                         } catch (IOException ex1) {
                             App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName()
-                                    +" ClientInputWriter: "
-                                    + "Another exception occured while"
+                        "Another exception occured while"
                                     + " closing FileWriter",ex);
                         }
                         Thread.currentThread().interrupt();
@@ -175,8 +174,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     
                 }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName()
-                            +" ClientOutputSender",ex);
+                        "Error while initializing FileReader of outgoing messages",ex);
                 }
                 
             }
@@ -196,19 +194,15 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     } catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName()
-                                +" ClientOutputSender",ex); 
+                        "Error while sending messages from OUT file to socket",ex); 
                         
                     }finally{
                         try {
                             this.dataSender.close();
                         } catch (IOException ex) {
                             App.logger.log(Level.SEVERE, 
-                        ServerHandler.class.getName()
-                                    +" ClientOutputSender: "
-                                    + "Another exception occured while"
-                                    + " closing BufferedReader"
-                                    + "of serverHandler",ex);
+                        "Another exception occured while"
+                                    + " closing BufferedReader of OUT file",ex);
                         }
                         Thread.currentThread().interrupt();
                         break;

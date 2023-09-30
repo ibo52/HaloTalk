@@ -41,8 +41,7 @@ public class CommunicationObject extends SocketHandlerAdapter{
                 } catch( EOFException ex ){
 
                     App.logger.log(Level.SEVERE, 
-                        CommunicationObject.class.getName()
-                            +"Receiver EOF reached:"
+                              "Receiver EOF reached:"
                             + "Possiby remote end closed the connection:\n"
                             + "\tclient will be closed\n"
                             + "\treceiver/sender thraeds will be interrupted"
@@ -51,7 +50,7 @@ public class CommunicationObject extends SocketHandlerAdapter{
 
                 }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
-                        CommunicationObject.class.getName(),ex);
+                        "Error while managing Receiver",ex);
 
                 }
             
@@ -83,12 +82,12 @@ public class CommunicationObject extends SocketHandlerAdapter{
             
             } catch (InterruptedException ex) {
                 App.logger.log(Level.FINEST, 
-                        CommunicationObject.class.getName(),ex);
+                        "Sender interrupted",ex);
                 break;
                 
             }catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
-                        CommunicationObject.class.getName(),ex);
+                        "Error while managing Sender",ex);
             }
         }
             
@@ -112,12 +111,10 @@ public class CommunicationObject extends SocketHandlerAdapter{
             
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        CommunicationObject.class.getName(),ex);
+                        "Error while stopping client socket",ex);
         }
         catch (NullPointerException ex) {
-            App.logger.log(Level.FINEST, 
-                        CommunicationObject.class.getName()
-                    +": Socket is already null",ex);
+            App.logger.log(Level.FINEST,"Socket is already null",ex);
         }
 
         Thread.currentThread().interrupt();

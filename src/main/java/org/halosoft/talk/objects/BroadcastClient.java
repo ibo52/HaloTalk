@@ -13,7 +13,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import org.halosoft.talk.App;
-import org.halosoft.talk.controllers.ImageDetailsController;
 
 /**
  *
@@ -49,7 +48,7 @@ public class BroadcastClient {
             address=InetAddress.getByName(ip);
         } catch (UnknownHostException ex) {
             App.logger.log(Level.SEVERE, 
-                        BroadcastClient.class.getName(),ex);
+                        "unknown ip parameter for InetAddress",ex);
         }
         
         try {
@@ -57,7 +56,7 @@ public class BroadcastClient {
         
         }catch (SocketException ex) {
                 App.logger.log(Level.SEVERE, 
-                        BroadcastClient.class.getName(),ex);
+                        "Error while initializing Datagram Socket",ex);
         }
         
         buffer = new byte[1024];
@@ -98,7 +97,7 @@ public class BroadcastClient {
         
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        BroadcastClient.class.getName(),ex);
+                        "Error while managing broadcast server",ex);
         }
 
     }

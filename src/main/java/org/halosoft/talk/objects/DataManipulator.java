@@ -110,7 +110,7 @@ public class DataManipulator {
                 (new byte[]{ Byte.valueOf(s, 16).byteValue() }, "UTF-8")  );
             } catch (UnsupportedEncodingException ex) {
                 App.logger.log(Level.SEVERE, 
-                        DataManipulator.class.getName(),ex);
+                        "Encoding not supported",ex);
             }
         }
         return decode.toString();

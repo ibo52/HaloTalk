@@ -82,7 +82,7 @@ public class NetworkDeviceManager {
             
         } catch (SocketException ex) {
             App.logger.log(Level.SEVERE, 
-                        NetworkDeviceManager.class.getName(),ex);
+                        "Error while parsing interfaces by their types",ex);
         }
     }
     
@@ -124,7 +124,7 @@ public class NetworkDeviceManager {
             local = InetAddress.getLocalHost();
         } catch (UnknownHostException ex) {
             App.logger.log(Level.SEVERE, 
-                        NetworkDeviceManager.class.getName(),ex);
+                        "Unknown ip for InetAddress",ex);
         }
         int subnetMask=-1;
 
@@ -171,7 +171,7 @@ public class NetworkDeviceManager {
             
         } catch (SocketException ex) {
             App.logger.log(Level.WARNING, 
-                        NetworkDeviceManager.class.getName(),ex);
+                        "Error while getting network interface as Collection",ex);
             return false;
         }
     }

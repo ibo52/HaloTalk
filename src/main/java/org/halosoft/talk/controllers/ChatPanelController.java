@@ -121,7 +121,7 @@ public class ChatPanelController extends userObject implements Initializable,
             } catch (IOException ex) {
 
                 App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while managing View creation of user contact",ex);
             }
         });
         
@@ -164,11 +164,11 @@ public class ChatPanelController extends userObject implements Initializable,
                 
             } catch (IOException ex1) {
                 App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex1);
+                        "Error while creating HIST file",ex1);
             }
         } catch (IOException ex) {
-            App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+            App.logger.log(Level.FINEST, 
+                        "No HIST file found. Will create one",ex);
         }
     }
     
@@ -196,8 +196,7 @@ public class ChatPanelController extends userObject implements Initializable,
         
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName()
-                                +": Error while reading chat history",ex);
+                        "Error while reading HIST file",ex);
         }
     }
     /**
@@ -215,7 +214,8 @@ public class ChatPanelController extends userObject implements Initializable,
             
         } catch (IOException ex) { 
             App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while closing communication mediums"
+                                + " of chatPanel View",ex);
         }
     }
     @Override
@@ -233,7 +233,7 @@ public class ChatPanelController extends userObject implements Initializable,
             Files.createDirectories(userBuffersPath.toPath());
             } catch (URISyntaxException ex) {
                 App.logger.log(Level.WARNING, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while making directories of user buffer",ex);
             }
             
             this.initMessages();//if there is communication history, load to screen
@@ -244,7 +244,7 @@ public class ChatPanelController extends userObject implements Initializable,
             this.userImageView.setImage(this.getImage());
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while setting user contents and variables",ex);
         }
     }
     
@@ -266,7 +266,7 @@ public class ChatPanelController extends userObject implements Initializable,
                 
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while adding View of message box to chat panel",ex);
         }   
     }
     
@@ -282,7 +282,7 @@ public class ChatPanelController extends userObject implements Initializable,
             this.chatHistory.flush();
         }catch(IOException ex){
             App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while saving chat history to file",ex);
         }
     }
     /**
@@ -306,7 +306,7 @@ public class ChatPanelController extends userObject implements Initializable,
                         Thread.sleep(300);
                     } catch (InterruptedException ex1) {
                         App.logger.log(Level.FINEST, 
-                        ChatPanelController.class.getName(),ex);
+                        "file reader of IN interrupted",ex);
                     }
                 }
             }
@@ -326,21 +326,21 @@ public class ChatPanelController extends userObject implements Initializable,
                     
                 } catch ( SocketException ex) {
                     App.logger.log(Level.FINEST, 
-                        ChatPanelController.class.getName(),ex);
+                        "Possibly socket closed",ex);
                     
                     this.remoteClient=null;
                     break;
                     
                 }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while reading buffer file of IN",ex);
                     
                     this.remoteClient=null;
                     break;
                     
                 } catch (InterruptedException ex) {
                     App.logger.log(Level.FINEST, 
-                        ChatPanelController.class.getName(),ex);
+                        "file reader of IN interrupted",ex);
                     
                     this.remoteClient=null;
                     break;
@@ -356,8 +356,8 @@ public class ChatPanelController extends userObject implements Initializable,
     private void sendButtonMouseClicked(MouseEvent event) {
         
         String message=this.messageTextField.getText();
-        
-        if ( !message.equals(new String("") )) {
+        message=message.trim();
+        if ( !message.isBlank() ) {
             
             this.addMessage(message, Pos.TOP_RIGHT);
             //save message history to file
@@ -369,12 +369,11 @@ public class ChatPanelController extends userObject implements Initializable,
             } catch(NullPointerException ex){
 
                 App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName()
-                        +"messsage could not send through client object",ex);
+                        "Messsage could not send through client object",ex);
                 
             }catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
-                        ChatPanelController.class.getName(),ex);
+                        "Error while sending message to remote end",ex);
             }
             
             

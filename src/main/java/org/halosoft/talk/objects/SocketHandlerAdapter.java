@@ -62,7 +62,7 @@ public class SocketHandlerAdapter implements Connectible {
             this.client.close();
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        SocketHandlerAdapter.class.getName(),ex);
+                        "Error while closingv client socket",ex);
         }
     }
 
