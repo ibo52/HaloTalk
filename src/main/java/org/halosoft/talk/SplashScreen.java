@@ -41,7 +41,7 @@ public class SplashScreen {
         Properties appProperties=new Properties();
         try {
             appProperties.load(App.class.getResourceAsStream(
-                    "settings/bapplication.properties"));
+                    "settings/application.properties"));
         } catch (NullPointerException ex) {
             
             appProperties.setProperty("SPLASH_LOGO", "/images/logo-circle-512x512.png");

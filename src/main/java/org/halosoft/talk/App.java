@@ -31,13 +31,13 @@ public class App extends Application {
         Properties appProperties=new Properties();
         try{
             appProperties.load(App.class.getResourceAsStream(
-                        "settings/wapplication.properties"));
+                        "settings/application.properties"));
         } catch(NullPointerException ex){
             App.logger.log(Level.CONFIG, "Could not found properties file for application."
                             + " Default values will be used for Application.");
             
             appProperties.setProperty("LOGO", "/images/app-logo.png");
-            appProperties.setProperty("NAME", "HaloTalk - sİMPLE LAN MESSENGER");
+            appProperties.setProperty("NAME", "HaloTalk - simple LAN messenger");
             appProperties.setProperty("STYLESHEET", "stylesheet/default-style.css");
         }
         
