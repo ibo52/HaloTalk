@@ -44,6 +44,19 @@ public class ObservableUser extends userObject {
         this.initProperties();      
     }
     
+    public ObservableUser(String hostName, String name, String surname, int status,
+            String StatusMessage, String ipAddress){
+        
+        super(hostName, name, surname, status, StatusMessage, ipAddress);
+        
+        this.nameProperty = new SimpleStringProperty(this.name);
+        this.surnameProperty = new SimpleStringProperty(this.surname);
+        this.hostnameProperty = new SimpleStringProperty(this.hostName);
+        this.statusProperty = new SimpleStringProperty(String.valueOf(this.status));
+        this.statusMessageProperty = new SimpleStringProperty(this.statusMessage);
+        this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
+    }
+    
     private final void initProperties(){
         this.props=new Properties();
         try {
@@ -125,6 +138,30 @@ public class ObservableUser extends userObject {
         props.setProperty("STATUS_MESSAGE",status);
         this.savePropertiesToFile();
     }
+    
+    public SimpleStringProperty getNameProperty(){
+        return this.nameProperty;
+    }
+    
+    public SimpleStringProperty getSurNameProperty(){
+        return this.surnameProperty;
+    }
+    
+    public SimpleStringProperty getHostNameProperty(){
+        return this.hostnameProperty;
+    }
+    
+    public SimpleStringProperty getIDProperty(){
+        return this.ipAddressProperty;
+    }
+    
+    public SimpleStringProperty getStatusMessageProperty(){
+        return this.statusMessageProperty;
+    }
+    
+    public SimpleStringProperty getStatusProperty(){
+        return this.statusProperty;
+    }
 
     @Override
     public void setContents(userObject userData) {
@@ -166,6 +203,10 @@ public class ObservableUser extends userObject {
     }
 
     private final void savePropertiesToFile() {
+        
+        if (this.props==null) {
+            return;
+        }
         try {
                 File fosPath=new File( Paths.get(App.class.
                         getResource("settings").toURI()).toString()
