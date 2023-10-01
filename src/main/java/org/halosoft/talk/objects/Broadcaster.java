@@ -4,28 +4,22 @@
  */
 package org.halosoft.talk.objects;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javafx.scene.image.Image;
+import java.util.logging.Level;
 import org.halosoft.talk.App;
 
 /**
  *
  * @author ibrahim
  */
-public class Broadcaster extends userObject {
+public class Broadcaster extends ObservableUser {
     
     private DatagramSocket server;
     private final int port;
@@ -38,7 +32,6 @@ public class Broadcaster extends userObject {
      */
     public Broadcaster(String ipAddr){
         this.port=50002;
-        this.initProperties();
         
         executorService=Executors.newSingleThreadExecutor();
 
@@ -49,53 +42,9 @@ public class Broadcaster extends userObject {
 
         } catch (SocketException ex) {
             
-            System.out.println(this.getClass()+":"+ex.getMessage());
+            App.logger.log(Level.SEVERE, 
+                    "Could not initialize socket",ex);
         }        
-    }
-    
-    private void initProperties(){
-        Properties p=new Properties();
-        try {
-            p.load(App.class.getResourceAsStream(
-                    "settings/broadcaster.properties"));
-            
-            this.setContents(this.hostName, 
-                    p.getProperty("NAME"), p.getProperty("SURNAME"),
-                    Integer.parseInt(p.getProperty("STATUS")),
-                    p.getProperty("STATUS_MESSAGE"),
-                    this.ipAddress, new Image( App.class
-                            .getResourceAsStream(
-          p.getProperty("IMAGE", "/images/icons/person.png")) )
-            );
-
-        } catch(NullPointerException ex){
-            //if not exists, generate properties file for broadcaster
-            try {
-                p.put("NAME", this.getName());
-                p.put("SURNAME", this.getSurName());
-                p.put("STATUS", String.valueOf(this.getStatus()) );
-                p.put("STATUS_MESSAGE", this.getStatusMessage());
-                //p.put("IMAGE", this.image.getUrl());
-                 File fosPath=new File( Paths.get(App.class.
-                                getResource("").toURI()).toString()
-                                ,"broadcaster.properties" );
-                 
-                 Files.createFile(fosPath.toPath());
-                 OutputStream fos=Files.newOutputStream(fosPath.toPath());
-                 
-                p.store(fos, "Properties file of user"
-                        + " for Broadcaster.java");
-                fos.flush();
-
-            }catch (URISyntaxException ex1) {
-                ex1.printStackTrace();
-            } catch (IOException ex1) {
-                ex1.printStackTrace();
-            }
-            
-        }catch (IOException ex) {
-            ex.printStackTrace();
-        }
     }
     
     public Broadcaster(){
@@ -180,7 +129,7 @@ public class Broadcaster extends userObject {
                 Thread.sleep(300);
             }
         } catch (InterruptedException ex) {
-            System.out.println(this.getClass().getName()+" join():"+ex.getMessage());
+            App.logger.log(Level.FINEST,"join Interrupted",ex);
         }
     }
     
