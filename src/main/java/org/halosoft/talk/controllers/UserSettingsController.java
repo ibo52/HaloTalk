@@ -42,7 +42,7 @@ public class UserSettingsController implements Initializable {
         this.addSetting("Account", "User data, preferences",
                 new Image(App.class.getResource
         ("/images/icons/manage_accounts.png").toString()));
-        
+        /*
         this.addSetting("Preferences", "chat preferences, themes",
                 new Image(App.class.getResource
         ("/images/icons/chat.png").toString()));
@@ -50,6 +50,7 @@ public class UserSettingsController implements Initializable {
         this.addSetting("Notifications", "message, call sounds",
                 new Image(App.class.getResource
         ("/images/icons/notification.png").toString()));
+        */
     }   
     
     private void addSetting(String name, String contents, Image img){
@@ -62,6 +63,9 @@ public class UserSettingsController implements Initializable {
                 ctrlr.setSettingName(name);
                 ctrlr.setSettingContents(contents);
                 ctrlr.setSettingImage(img);
+                
+                ctrlr.setViewToForward("view/setting/"+name.toLowerCase());
+                ctrlr.setParentContainerOfViewToForward(this.rootPane);
                 
                 this.settingsBox.getChildren().add(p);
 
