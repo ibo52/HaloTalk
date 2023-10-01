@@ -188,12 +188,10 @@ public class UserInfoBoxController extends userObject implements Initializable,
             imageDetailsController.setContents(this);
             
             //remove all components on stackpane except first
-            while ( leftStackPane.getChildren().size()>1 ) {
-                //node to be removed
-                Node n=leftStackPane.getChildren().get(1);
-
-                leftStackPane.getChildren().remove(n);
-            }
+            Node n=leftStackPane.getChildren().get(0);
+            leftStackPane.getChildren().clear();
+            leftStackPane.getChildren().add(n);
+            
             imageDetailsController.setParentController(parentController);
             leftStackPane.getChildren().add(imageDetails);
             
