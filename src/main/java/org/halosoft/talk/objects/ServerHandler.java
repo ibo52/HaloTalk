@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import org.halosoft.talk.adapters.SocketHandlerAdapter;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.DataInputStream;

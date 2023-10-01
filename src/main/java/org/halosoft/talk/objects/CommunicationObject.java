@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import org.halosoft.talk.adapters.SocketHandlerAdapter;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.logging.Level;
