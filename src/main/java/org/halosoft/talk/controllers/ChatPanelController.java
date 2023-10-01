@@ -107,10 +107,8 @@ public class ChatPanelController extends userObject implements Initializable,
         this.statusBar.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
 
             Pane uContact;
-            while( this.stackPane.getChildren().size()>1){
-                Node n=this.stackPane.getChildren().get(1);
-                this.stackPane.getChildren().remove(n);
-            }
+            this.stackPane.getChildren().clear();
+            
             try {
                 uContact = (Pane) App.loadFXML("view/userContact");
                 UserContactController ctrlr=(UserContactController) uContact.getUserData();
