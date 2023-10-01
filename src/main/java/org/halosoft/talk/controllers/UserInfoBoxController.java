@@ -20,7 +20,6 @@ import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -32,16 +31,17 @@ import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.BroadcastClient;
-import org.halosoft.talk.objects.userObject;
+import org.halosoft.talk.objects.ObservableUser;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class UserInfoBoxController extends userObject implements Initializable,
-        Animateable, Controllable{
+public class UserInfoBoxController implements Controllable,
+        Initializable, Animateable{
 
     private HostSelectorController parentController;
+    private ObservableUser userData;
     
     @FXML
     private ImageView userImage;
@@ -62,7 +62,12 @@ public class UserInfoBoxController extends userObject implements Initializable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        setStatus(this.getStatus());
+        
+        this.userData=new ObservableUser();
+        this.userID.textProperty().bind(this.userData.getHostNameProperty());
+        this.customStatusLabel.textProperty().bind(this.userData.getStatusMessageProperty());
+        
+        setStatus(this.userData.getStatus());
         
         //start animation when width>0
         this.rootPane.setTranslateX(Long.MAX_VALUE);//keep out of screen for start animation
@@ -75,6 +80,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
             }
         });
         // TODO
+        
         this.userUpdater();
     }   
     
@@ -90,7 +96,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
                     @Override
                     protected Void call() throws Exception {
 
-                        BroadcastClient cli=new BroadcastClient(getID());
+                        BroadcastClient cli=new BroadcastClient(userData.getID());
                         cli.start("STAT");
 
                         String status=new String(cli.getBuffer(), 0, 
@@ -114,25 +120,8 @@ public class UserInfoBoxController extends userObject implements Initializable,
         checkRemoteStatusService.start();
     }
     
-    @Override
-    public void setContents(userObject userData){
-        super.setContents(userData);
-        
-        this.userID.setText(this.getHostName());
-        this.userImage.setImage(this.getImage());
-        this.customStatusLabel.setText(this.getStatusMessage());
-        this.setStatus(this.getStatus());
-        
-    }
-    @Override
-    public void setName(String name){
-        super.setName(name);
-        this.userID.setText(name);
-    }
-    
-    @Override
     public void setStatus(int status){
-        super.setStatus(status);
+        this.userData.setStatus(status);
         
         String statusStyle="-fx-background-color: %s; -fx-background-radius: 30% 30%;";
         
@@ -154,23 +143,19 @@ public class UserInfoBoxController extends userObject implements Initializable,
                 ttip.setText("Online");
                 break;
         }
-        ttip.setText(ttip.getText()+":"+this.getName()+" "+this.getSurName());
+        ttip.setText(ttip.getText()+":"+this.userData.getName()
+                +" "+this.userData.getSurName());
         Tooltip.install(this.rootPane, ttip);
         //Tooltip.install(this.userImageBox, ttip);
         
         
     }
     
-    @Override
-    public void setStatusMessage(String status){
-        super.setStatusMessage(status);
-        customStatusLabel.setText(status);
+    public void setUserData(ObservableUser data){
+        this.userData.setContents(data);
     }
-
-    @Override
-    public void setImage(Image img){
-        super.setImage(img);
-        this.userImage.setImage(img);
+    public ObservableUser getUserData(){
+        return this.userData;
     }
     
     private void showUserInfoDetails(){
@@ -185,7 +170,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
             //set max size of child at parent
             imageDetailsController.initRootProperty(leftStackPane.widthProperty().multiply(0.8));
             
-            imageDetailsController.setContents(this);
+            imageDetailsController.setUserData(this.userData);
             
             //remove all components on stackpane except first
             Node n=leftStackPane.getChildren().get(0);
@@ -204,7 +189,7 @@ public class UserInfoBoxController extends userObject implements Initializable,
     private void rootPaneMouseClicked(MouseEvent event) {
         
         //get hostselector rootpane and its controller
-        parentController.bringChatScreen( this );
+        parentController.bringChatScreen( this.userData );
     }
 
     @FXML

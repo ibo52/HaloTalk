@@ -27,7 +27,8 @@ public interface Controllable {
     
     /**
      * General method to remove Controller's
-     * root node from its Parent
+     * root node from its Parent, which means its de-referenced
+     * and not in Scene anymore
      */
     public void remove();
     

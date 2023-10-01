@@ -25,12 +25,14 @@ import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
+import org.halosoft.talk.interfaces.Controllable;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class GeneralSettingController implements Initializable, Animateable {
+public class GeneralSettingController implements Initializable, Animateable,
+        Controllable{
     
     private String viewToForward;
     private Pane parentContainerOfViewToForward;
@@ -43,6 +45,7 @@ public class GeneralSettingController implements Initializable, Animateable {
     private Label settingName;
     @FXML
     private HBox rootPane;
+    private Object parentController;
     /**
      * Initializes the controller class.
      */
@@ -116,10 +119,25 @@ public class GeneralSettingController implements Initializable, Animateable {
         tt.setToX(this.rootPane.getWidth());
         
         tt.setOnFinished((ActionEvent t) -> {
-            ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+            remove();
         });
 
         tt.play();
+    }
+
+    @Override
+    public void setParentController(Object controller) {
+        this.parentController=controller;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
 
 }

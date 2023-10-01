@@ -19,7 +19,6 @@ import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -29,16 +28,17 @@ import javafx.util.Duration;
 import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
-import org.halosoft.talk.objects.userObject;
+import org.halosoft.talk.objects.ObservableUser;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class ImageDetailsController extends userObject implements Initializable,
-        Animateable, Controllable{
-
+public class ImageDetailsController implements Controllable,
+        Initializable, Animateable{
+    
     private HostSelectorController parentController;
+    private ObservableUser userData;
     
     @FXML
     private ImageView userImage;
@@ -61,7 +61,7 @@ public class ImageDetailsController extends userObject implements Initializable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+
         //this.rootPane.maxWidthProperty().bind();
         
         this.userImage.fitWidthProperty().bind(this.userImageBox.widthProperty());
@@ -71,15 +71,9 @@ public class ImageDetailsController extends userObject implements Initializable,
         
         this.rootPane.setVisible(false);
         this.startAnimation();
-    }
-    
-    @Override
-    public void setContents(userObject userData){
-        super.setContents(userData);
         
-        this.userID.setText(this.getID());
-        this.userImage.setImage(this.getImage());
-        this.setStatus(this.getStatus());
+        userData=new ObservableUser();
+        this.userID.textProperty().bind(this.userData.getIDProperty());
     }
     
     /**
@@ -101,23 +95,12 @@ public class ImageDetailsController extends userObject implements Initializable,
         this.rootPane.prefWidthProperty().bind(width);
         this.rootPane.prefHeightProperty().bind(width);
     }
-    
-    public void setUserImage(Image img){
-        super.setImage(img);
-        this.userImage.setImage(img);
-    }
-
-    @Override
-    public void setID(String userID) {
-        super.setID(userID);
-        this.userID.setText( userID );
-    }
 
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
         
         //get host selector rootpane and its controller
-        parentController.bringChatScreen(this);
+        parentController.bringChatScreen(this.userData);
         
         this.stopAnimation();
     }
@@ -132,7 +115,7 @@ public class ImageDetailsController extends userObject implements Initializable,
             
             uContact.setMaxSize(Long.MAX_VALUE, Long.MAX_VALUE);
             //set contents of contact
-            ctrlr.setContents(this);
+            ctrlr.setUserData(this.userData);
             ctrlr.setParentController(this.parentController);
             
             //get host selector rootpane and its controller
@@ -144,6 +127,14 @@ public class ImageDetailsController extends userObject implements Initializable,
             App.logger.log(Level.SEVERE, 
                         ex.getMessage(),ex);
         }
+    }
+    
+    public void setUserData(ObservableUser userData){
+        this.userData.setContents(userData);
+    }
+    
+    public ObservableUser getUserData(){
+        return this.userData;
     }
 
     @Override
@@ -181,10 +172,16 @@ public class ImageDetailsController extends userObject implements Initializable,
         
         st.play();
     }
+
+    @FXML
+    private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
+        this.remove();
+    }
     
     @Override
-    public void setParentController(Object ctrlr){
-        this.parentController=(HostSelectorController) ctrlr;
+    public void setParentController(Object controller) {
+        this.parentController=(HostSelectorController) controller;
     }
 
     @Override
@@ -195,11 +192,5 @@ public class ImageDetailsController extends userObject implements Initializable,
     @Override
     public void remove() {
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
-    }
-
-    @FXML
-    private void undoButtonMouseClicked(MouseEvent event) {
-        this.undoButton.setDisable(true);
-        this.remove();
     }
 }

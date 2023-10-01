@@ -26,7 +26,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 
@@ -44,16 +43,19 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.halosoft.talk.App;
-import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.userObject;
+import org.halosoft.talk.interfaces.Controllable;
+import org.halosoft.talk.objects.ObservableUser;
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class ChatPanelController extends userObject implements Initializable,
-        Controllable{
+public class ChatPanelController implements Controllable,
+        Initializable{
+    
+    private ObservableUser userData;
     
     private HostSelectorController parentController;
     
@@ -112,7 +114,7 @@ public class ChatPanelController extends userObject implements Initializable,
             try {
                 uContact = (Pane) App.loadFXML("view/userContact");
                 UserContactController ctrlr=(UserContactController) uContact.getUserData();
-                ctrlr.setContents(this);
+                ctrlr.setUserData(this.userData);
                 
                 ctrlr.setParentController(this.parentController);
                 uContact.setPrefWidth(240);
@@ -150,6 +152,8 @@ public class ChatPanelController extends userObject implements Initializable,
                 this.bottomMessageBorder.maxHeightProperty());
         
         executorService=Executors.newCachedThreadPool();
+        this.userData=new ObservableUser();
+        this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
     }
     
     private void initChatHistoryWriter(){
@@ -227,13 +231,13 @@ public class ChatPanelController extends userObject implements Initializable,
                                 + " of chatPanel View",ex);
         }
     }
-    @Override
+    
     public void setContents(userObject userData){
         try {
-            super.setContents(userData);
+            this.userData.setContents(userData);
             
             //connect to desired remote end according to userData
-            remoteClient=new Client( this.getID() );
+            remoteClient=new Client( this.userData.getID() );
             try {
                 userBuffersPath=new File(Paths.get(App.class.
                         getResource("userBuffers").toURI()).toString(),
@@ -249,8 +253,7 @@ public class ChatPanelController extends userObject implements Initializable,
             this.initChatHistoryWriter();
             this.listenMessage();
             
-            this.userNameLabel.setText( this.getName()+" "+this.getSurName() );
-            this.userImageView.setImage(this.getImage());
+            this.userImageView.setImage(this.userData.getImage());
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
                         "Error while setting user contents and variables",ex);
@@ -389,9 +392,13 @@ public class ChatPanelController extends userObject implements Initializable,
         }
     }
     
+    public userObject getUserData(){
+        return this.userData;
+    }
+    
     @Override
-    public void setParentController(Object ctrlr){
-        this.parentController=(HostSelectorController) ctrlr;
+    public void setParentController(Object controller) {
+        this.parentController=(HostSelectorController) controller;
     }
 
     @Override
@@ -402,8 +409,6 @@ public class ChatPanelController extends userObject implements Initializable,
     @Override
     public void remove() {
         this.close();//close files and sockets
-        
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
     }
-    
 }

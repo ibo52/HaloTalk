@@ -38,6 +38,7 @@ import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
 import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.NetworkDeviceManager;
+import org.halosoft.talk.objects.ObservableUser;
 import org.halosoft.talk.objects.Server;
 import org.halosoft.talk.objects.userObject;
 
@@ -93,7 +94,7 @@ public class HostSelectorController implements Initializable {
         
         LANBrowser();
         
-        this.appendUser(new userObject("testing@127.0.0.1","test","user",2,
+        this.appendUser(new ObservableUser("testing@127.0.0.1","test","user",2,
                 "This is a loopback address for Testing purposes",
         "127.0.0.1"));
         
@@ -108,7 +109,7 @@ public class HostSelectorController implements Initializable {
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
-                if (ctrlr_userData.getID().equals( oldCtrlr.getID() )) {
+                if (ctrlr_userData.getID().equals( oldCtrlr.getUserData().getID() )) {
                     return;
                 }else{
                     oldCtrlr.remove();
@@ -196,7 +197,7 @@ public class HostSelectorController implements Initializable {
                                 if ( !idt[0].equals("NO_RESPONSE") &
                                         !idt[0].equals(LANBroadcaster.getHostName()) ) {
                                     
-                                    userObject userData=new userObject(idt[0], idt[3],
+                                    ObservableUser userData=new ObservableUser(idt[0], idt[3],
                                             idt[4],Integer.parseInt(idt[1]),
                                             idt[2],host);
                                     Iterator iter=usersBox.getChildren().iterator();
@@ -208,7 +209,7 @@ public class HostSelectorController implements Initializable {
                                         
                                         UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
                                         
-                                        if (host.equals(ctrlr.getID()) ) {
+                                        if (host.equals(ctrlr.getUserData().getID()) ) {
                                             appendFlag=false;
                                             updateUser(userData, v);
                                             break;
@@ -244,12 +245,12 @@ public class HostSelectorController implements Initializable {
      * @param userInfo new information data of user
      * @param Box Node contains information of that user
      */
-    private void updateUser(userObject userInfo, Parent Box){
+    private void updateUser(ObservableUser userInfo, Parent Box){
         
         Platform.runLater( () -> {
             UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
             
-            ctrlr.setContents(userInfo);
+            ctrlr.setUserData(userInfo);
             
             FadeTransition ft=new FadeTransition();
             ft.setNode(Box);
@@ -266,7 +267,7 @@ public class HostSelectorController implements Initializable {
      * Creates a node with user information, appends it to screen
      * @param userInfo information data of user
      */
-    private void appendUser(userObject userData){
+    private void appendUser(ObservableUser userData){
         
         Platform.runLater( () -> {
             try {
@@ -274,7 +275,7 @@ public class HostSelectorController implements Initializable {
 
                 UserInfoBoxController ctrlr=(UserInfoBoxController) Box.getUserData();
                 
-                ctrlr.setContents(userData);
+                ctrlr.setUserData(userData);
                 ctrlr.setParentController(this);
                 
                 usersBox.getChildren().add(Box);

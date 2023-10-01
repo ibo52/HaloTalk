@@ -19,7 +19,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -30,17 +29,18 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
-import org.halosoft.talk.objects.userObject;
+import org.halosoft.talk.objects.ObservableUser;
 
 /**
  * FXML Controller class
  *
  * @author ibrahim
  */
-public class UserContactController extends userObject implements Initializable,
-        Animateable, Controllable{
+public class UserContactController implements Controllable,
+        Initializable, Animateable{
     
     HostSelectorController parentController;
+    private ObservableUser userData;
     
     @FXML
     private BorderPane rootPane;
@@ -65,6 +65,7 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
+        
         this.rootPane.setTranslateY(Long.MAX_VALUE);//keep out of screen for start animation
         this.rootPane.heightProperty().addListener(new ChangeListener<Number>() {
             @Override
@@ -85,11 +86,16 @@ public class UserContactController extends userObject implements Initializable,
                 }
             }
         });
+        
+        userData=new ObservableUser();
+        this.userID.textProperty().bind(this.userData.getNameProperty()
+                .concat(" ").concat(this.userData.getSurNameProperty()));
+        this.userHostName.textProperty().bind(this.userData.getHostNameProperty());
+        this.userStatusText.textProperty().bind(this.userData.getStatusMessageProperty());
     }
     
-    @Override
     public void setStatus(int status){
-        super.setStatus(status);
+        this.userData.setStatus(status);
         
         String statusStyle="-fx-background-color: %s; -fx-background-radius: 30% 30%;";
         
@@ -114,40 +120,20 @@ public class UserContactController extends userObject implements Initializable,
         Tooltip.install(this.userImageBox, ttip);
    
     }
-    @Override
-    public void setContents(userObject userData){
-        super.setContents(userData);
 
-        this.userID.setText(this.getName());
-        
-        if ( !this.getSurName().equals("*") ) {
-            
-            this.userID.setText(this.userID.getText()+" "+this.getSurName());
-        }
-        
-        this.userHostName.setText(this.getHostName());
-        this.userImage.setImage(this.getImage());
-        this.userStatusText.setText(this.getStatusMessage());
-        this.setStatus(this.getStatus());
+    public void setUserData(ObservableUser userData){
+        this.userData.setContents(userData);
     }
-  
-    @Override
-    public void setImage(Image img){
-        super.setImage(img);
-        this.userImage.setImage(img);
-    }
-    @Override
-    public void setStatusMessage(String status){
-        super.setStatusMessage(status);
-        this.userStatusText.setText(status);
+    
+    public ObservableUser getUserData(){
+        return this.userData;
     }
     
     @FXML
     private void sendMessageButtonMouseClicked(MouseEvent event) {
         
         //get host selector rootpane and its controller
-        System.out.println("->"+this.parentController);
-        parentController.bringChatScreen(this);
+        parentController.bringChatScreen(this.userData);
         
         ScaleTransition st=new ScaleTransition();
         st.setDuration(Duration.millis(300));
@@ -212,10 +198,16 @@ public class UserContactController extends userObject implements Initializable,
         });
         pt.play();
     }
+
+    @FXML
+    private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
+        this.stopAnimation();
+    }
     
     @Override
-    public void setParentController(Object ctrlr){
-        this.parentController=(HostSelectorController) ctrlr;
+    public void setParentController(Object controller) {
+        this.parentController=(HostSelectorController) controller;
     }
 
     @Override
@@ -226,11 +218,5 @@ public class UserContactController extends userObject implements Initializable,
     @Override
     public void remove() {
         ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
-    }
-
-    @FXML
-    private void undoButtonMouseClicked(MouseEvent event) {
-        this.undoButton.setDisable(true);
-        this.stopAnimation();
     }
 }
