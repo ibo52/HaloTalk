@@ -304,10 +304,9 @@ public class HostSelectorController implements Initializable {
         try {
             Parent uSettings=App.loadFXML("view/userSettings");
             
-            while( this.leftStackPane.getChildren().size()>1 ){
-                Parent n=(Parent) this.leftStackPane.getChildren().get(1);
-                this.leftStackPane.getChildren().remove(n);
-            }
+            Node n=this.leftStackPane.getChildren().get(0);
+            this.leftStackPane.getChildren().clear();
+            this.leftStackPane.getChildren().add(n);
             
             this.leftStackPane.getChildren().add(uSettings);
         } catch (IOException ex) {
