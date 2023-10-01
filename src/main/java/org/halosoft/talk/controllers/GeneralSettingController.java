@@ -4,14 +4,17 @@
  */
 package org.halosoft.talk.controllers;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -20,6 +23,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
+import org.halosoft.talk.App;
 import org.halosoft.talk.interfaces.Animateable;
 /**
  * FXML Controller class
@@ -27,8 +31,10 @@ import org.halosoft.talk.interfaces.Animateable;
  * @author ibrahim
  */
 public class GeneralSettingController implements Initializable, Animateable {
-
-
+    
+    private String viewToForward;
+    private Pane parentContainerOfViewToForward;
+    
     @FXML
     private Label settingContents;
     @FXML
@@ -53,10 +59,18 @@ public class GeneralSettingController implements Initializable, Animateable {
                         .removeListener(this);
             }
         });
-    }    
+        viewToForward="";
+    }
     
     @FXML
     private void settingPaneMouseClicked(MouseEvent event) {
+        try {
+            Parent view=App.loadFXML(viewToForward);
+            parentContainerOfViewToForward.getChildren().add(view);
+            
+        } catch (IOException ex) {
+            App.logger.log(Level.SEVERE, "Error while loading View", ex);
+        }
     }
     
     public void setSettingName(String setttingName){
@@ -69,6 +83,14 @@ public class GeneralSettingController implements Initializable, Animateable {
     
     public void setSettingImage(Image settingImage){
         this.settingImage.setImage(settingImage);
+    }
+    
+    public void setParentContainerOfViewToForward(Pane parentContainer){
+        parentContainerOfViewToForward=parentContainer;
+    }
+    
+    public void setViewToForward(String FxmlPathOfView){
+        this.viewToForward=FxmlPathOfView;
     }
 
     @Override
