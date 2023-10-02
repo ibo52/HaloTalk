@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 import java.util.logging.Level;
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.image.Image;
 import org.halosoft.talk.App;
@@ -33,15 +34,16 @@ public class ObservableUser extends userObject {
     protected Properties props;
 
     public ObservableUser() {
-
+        
         this.nameProperty = new SimpleStringProperty(this.name);
         this.surnameProperty = new SimpleStringProperty(this.surname);
-        this.hostnameProperty = new SimpleStringProperty(this.hostName);
         this.statusProperty = new SimpleStringProperty(String.valueOf(this.status));
         this.statusMessageProperty = new SimpleStringProperty(this.statusMessage);
+        this.hostnameProperty = new SimpleStringProperty(this.hostName);
         this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
         
-        this.initProperties();      
+        this.initProperties();
+        initListeners();
     }
     
     public ObservableUser(String hostName, String name, String surname, int status,
@@ -55,6 +57,35 @@ public class ObservableUser extends userObject {
         this.statusProperty = new SimpleStringProperty(String.valueOf(this.status));
         this.statusMessageProperty = new SimpleStringProperty(this.statusMessage);
         this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
+        
+        initListeners();
+    }
+    
+    private final void initListeners(){
+        
+        this.nameProperty.addListener((Observable il)->{
+            this.name=this.nameProperty.get();
+        });
+        
+        this.surnameProperty.addListener((Observable il)->{
+            this.surname=this.surnameProperty.get();
+        });
+        
+        this.hostnameProperty.addListener((Observable il)->{
+            this.hostName=this.hostnameProperty.get();
+        });
+        
+        this.statusProperty.addListener((Observable il)->{
+            this.status=Integer.parseInt(this.statusProperty.get());
+        });
+        
+        this.statusMessageProperty.addListener((Observable il)->{
+            this.statusMessage=this.statusMessageProperty.get();
+        });
+        
+        this.ipAddressProperty.addListener((Observable il)->{
+            this.ipAddress=this.ipAddressProperty.get();
+        });
     }
     
     private final void initProperties(){
@@ -63,22 +94,17 @@ public class ObservableUser extends userObject {
             this.props.load(App.class.getResourceAsStream(
                     "settings/broadcaster.properties"));
             
-            this.name=props.getProperty("NAME");
-            this.surname=props.getProperty("SURNAME");
-            this.status=Integer.parseInt(props.getProperty("STATUS"));
-            this.statusMessage=props.getProperty("STATUS_MESSAGE");
-            
-            this.nameProperty.set(name);
-            this.surnameProperty.set(surname);
-            this.statusProperty.set(String.valueOf(status));
-            this.statusMessageProperty.set(statusMessage);
+            this.nameProperty.set(props.getProperty("NAME"));
+            this.surnameProperty.set(props.getProperty("SURNAME"));
+            this.statusProperty.set(props.getProperty("STATUS"));
+            this.statusMessageProperty.set(props.getProperty("STATUS_MESSAGE"));
             
         } catch(NullPointerException ex){
             
-            props.put("NAME", this.getName());
-            props.put("SURNAME", this.getSurName());
-            props.put("STATUS", String.valueOf(this.getStatus()) );
-            props.put("STATUS_MESSAGE", this.getStatusMessage());
+            props.put("NAME", this.nameProperty.get());
+            props.put("SURNAME", this.surnameProperty.get());
+            props.put("STATUS", this.statusProperty.get() );
+            props.put("STATUS_MESSAGE", this.statusMessageProperty.get());
             props.put("IMAGE", "/images/icons/person.png");
             //props.put("HOSTNAME", this.getHostName());
             
@@ -92,13 +118,11 @@ public class ObservableUser extends userObject {
 
     @Override
     public void setID(String ip) {
-        super.setID(ip);
         this.ipAddressProperty.set(ip);
     }
     
     @Override
     public void setName(String name) {
-        super.setName(name);
         this.nameProperty.set(name);
         
         props.setProperty("NAME", name);
@@ -107,7 +131,6 @@ public class ObservableUser extends userObject {
 
     @Override
     public void setSurname(String surname) {
-        super.setSurname(surname);
         this.surnameProperty.set(surname);
 
         props.setProperty("SURNAME", surname);
@@ -117,13 +140,11 @@ public class ObservableUser extends userObject {
 
     @Override
     public void setHostName(String name) {
-        super.setHostName(name);
         this.hostnameProperty.set(name);
     }
 
     @Override
     public void setStatus(int status) {
-        super.setStatus(status);
         this.statusProperty.set(String.valueOf(status));
 
         props.setProperty("STATUS", String.valueOf(status) );
@@ -132,7 +153,6 @@ public class ObservableUser extends userObject {
 
     @Override
     public void setStatusMessage(String status) {
-        super.setStatusMessage(status);
         this.statusMessageProperty.set(status);
 
         props.setProperty("STATUS_MESSAGE",status);
@@ -165,26 +185,26 @@ public class ObservableUser extends userObject {
 
     @Override
     public void setContents(userObject userData) {
-        super.setContents(userData); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        //super.setContents(userData); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
         
-        this.nameProperty.set(name);
-        this.surnameProperty.set(surname);
-        this.hostnameProperty.set(hostName);
-        this.ipAddressProperty.set(ipAddress);
-        this.statusMessageProperty.set(statusMessage);
-        this.statusProperty.set(String.valueOf(status));
+        this.nameProperty.set(userData.getName());
+        this.surnameProperty.set(userData.getSurName());
+        this.hostnameProperty.set(userData.getHostName());
+        this.ipAddressProperty.set(userData.getID());
+        this.statusMessageProperty.set(userData.getStatusMessage());
+        this.statusProperty.set(String.valueOf(userData.getStatus()));
         
-        props.setProperty("NAME", this.getName());
-        props.setProperty("SURNAME", this.getSurName());
-        props.setProperty("STATUS", String.valueOf(this.getStatus()) );
-        props.setProperty("STATUS_MESSAGE", this.getStatusMessage());
+        props.setProperty("NAME", userData.getName());
+        props.setProperty("SURNAME", userData.getSurName());
+        props.setProperty("STATUS", String.valueOf(userData.getStatus()) );
+        props.setProperty("STATUS_MESSAGE", userData.getStatusMessage());
         
         this.savePropertiesToFile();
     }
     
     @Override
     public void setContents(String hostName, String name, String surname, int status, String StatusMessage, String ipAddress, Image img) {
-        super.setContents(hostName, name, surname, status, StatusMessage, ipAddress, img); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        //super.setContents(hostName, name, surname, status, StatusMessage, ipAddress, img); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
         
         this.nameProperty.set(name);
         this.surnameProperty.set(surname);
@@ -193,10 +213,10 @@ public class ObservableUser extends userObject {
         this.statusMessageProperty.set(StatusMessage);
         this.statusProperty.set(String.valueOf(status));
         
-        props.setProperty("NAME", this.getName());
-        props.setProperty("SURNAME", this.getSurName());
-        props.setProperty("STATUS", String.valueOf(this.getStatus()) );
-        props.setProperty("STATUS_MESSAGE", this.getStatusMessage());
+        props.setProperty("NAME", name);
+        props.setProperty("SURNAME", surname);
+        props.setProperty("STATUS", String.valueOf(status) );
+        props.setProperty("STATUS_MESSAGE", StatusMessage);
         
         this.savePropertiesToFile();
         
