@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.image.Image;
@@ -31,19 +32,13 @@ public class ObservableUser extends userObject {
     protected SimpleStringProperty statusMessageProperty;
     protected SimpleStringProperty ipAddressProperty;
     
-    protected Properties props;
+    protected final Properties props;
 
     public ObservableUser() {
         
-        this.nameProperty = new SimpleStringProperty(this.name);
-        this.surnameProperty = new SimpleStringProperty(this.surname);
-        this.statusProperty = new SimpleStringProperty(String.valueOf(this.status));
-        this.statusMessageProperty = new SimpleStringProperty(this.statusMessage);
-        this.hostnameProperty = new SimpleStringProperty(this.hostName);
-        this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
-        
-        this.initProperties();
-        initListeners();
+        this("unknown@empty" ,"name","surname",2,
+                "Heyyo! I am using HaloTalk",
+                "127.0.0.1");
     }
     
     public ObservableUser(String hostName, String name, String surname, int status,
@@ -58,6 +53,8 @@ public class ObservableUser extends userObject {
         this.statusMessageProperty = new SimpleStringProperty(this.statusMessage);
         this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
         
+        this.props=new Properties();
+        initProperties();
         initListeners();
     }
     
@@ -65,22 +62,28 @@ public class ObservableUser extends userObject {
         
         this.nameProperty.addListener((Observable il)->{
             this.name=this.nameProperty.get();
+            props.setProperty("NAME", name);
         });
         
         this.surnameProperty.addListener((Observable il)->{
             this.surname=this.surnameProperty.get();
+            props.setProperty("SURNAME", surname);
         });
         
         this.hostnameProperty.addListener((Observable il)->{
             this.hostName=this.hostnameProperty.get();
+            
         });
         
         this.statusProperty.addListener((Observable il)->{
             this.status=Integer.parseInt(this.statusProperty.get());
+            props.setProperty("STATUS", String.valueOf(status) );
+
         });
         
         this.statusMessageProperty.addListener((Observable il)->{
             this.statusMessage=this.statusMessageProperty.get();
+            props.setProperty("STATUS_MESSAGE", statusMessage);
         });
         
         this.ipAddressProperty.addListener((Observable il)->{
@@ -89,31 +92,13 @@ public class ObservableUser extends userObject {
     }
     
     private final void initProperties(){
-        this.props=new Properties();
-        try {
-            this.props.load(App.class.getResourceAsStream(
-                    "settings/broadcaster.properties"));
             
-            this.nameProperty.set(props.getProperty("NAME"));
-            this.surnameProperty.set(props.getProperty("SURNAME"));
-            this.statusProperty.set(props.getProperty("STATUS"));
-            this.statusMessageProperty.set(props.getProperty("STATUS_MESSAGE"));
-            
-        } catch(NullPointerException ex){
-            
-            props.put("NAME", this.nameProperty.get());
-            props.put("SURNAME", this.surnameProperty.get());
-            props.put("STATUS", this.statusProperty.get() );
-            props.put("STATUS_MESSAGE", this.statusMessageProperty.get());
-            props.put("IMAGE", "/images/icons/person.png");
-            //props.put("HOSTNAME", this.getHostName());
-            
-            this.savePropertiesToFile();
-            
-        }catch (IOException ex) {
-            App.logger.log(Level.WARNING, "Error intializing"
-                    + " properties file",ex);
-        }
+        props.put("NAME", this.nameProperty.get());
+        props.put("SURNAME", this.surnameProperty.get());
+        props.put("STATUS", this.statusProperty.get() );
+        props.put("STATUS_MESSAGE", this.statusMessageProperty.get());
+        props.put("IMAGE", "/images/icons/person.png");
+        //props.put("HOSTNAME", this.getHostName());
     }
 
     @Override
@@ -124,18 +109,11 @@ public class ObservableUser extends userObject {
     @Override
     public void setName(String name) {
         this.nameProperty.set(name);
-        
-        props.setProperty("NAME", name);
-        this.savePropertiesToFile();
     }
 
     @Override
     public void setSurname(String surname) {
         this.surnameProperty.set(surname);
-
-        props.setProperty("SURNAME", surname);
-        this.savePropertiesToFile();
-
     }
 
     @Override
@@ -146,17 +124,11 @@ public class ObservableUser extends userObject {
     @Override
     public void setStatus(int status) {
         this.statusProperty.set(String.valueOf(status));
-
-        props.setProperty("STATUS", String.valueOf(status) );
-        this.savePropertiesToFile();
     }
 
     @Override
     public void setStatusMessage(String status) {
         this.statusMessageProperty.set(status);
-
-        props.setProperty("STATUS_MESSAGE",status);
-        this.savePropertiesToFile();
     }
     
     public SimpleStringProperty getNameProperty(){
@@ -193,13 +165,6 @@ public class ObservableUser extends userObject {
         this.ipAddressProperty.set(userData.getID());
         this.statusMessageProperty.set(userData.getStatusMessage());
         this.statusProperty.set(String.valueOf(userData.getStatus()));
-        
-        props.setProperty("NAME", userData.getName());
-        props.setProperty("SURNAME", userData.getSurName());
-        props.setProperty("STATUS", String.valueOf(userData.getStatus()) );
-        props.setProperty("STATUS_MESSAGE", userData.getStatusMessage());
-        
-        this.savePropertiesToFile();
     }
     
     @Override
@@ -212,39 +177,67 @@ public class ObservableUser extends userObject {
         this.ipAddressProperty.set(ipAddress);
         this.statusMessageProperty.set(StatusMessage);
         this.statusProperty.set(String.valueOf(status));
-        
-        props.setProperty("NAME", name);
-        props.setProperty("SURNAME", surname);
-        props.setProperty("STATUS", String.valueOf(status) );
-        props.setProperty("STATUS_MESSAGE", StatusMessage);
-        
-        this.savePropertiesToFile();
-        
     }
-
-    private final void savePropertiesToFile() {
+    
+    public Properties getProperties(){
+        return this.props;
+    }
+    
+    public static void savePropertiesToFile(Properties props
+            ,String PackageRelativePath,String fileName) {
         
-        if (this.props==null) {
+        if (props==null) {
             return;
         }
+        if (fileName==null) {
+            fileName="broadcaster";
+        }
+        if (PackageRelativePath==null) {
+            PackageRelativePath="settings";
+        }
+        
         try {
                 File fosPath=new File( Paths.get(App.class.
-                        getResource("settings").toURI()).toString()
-                        ,"broadcaster.properties" );
+                        getResource(PackageRelativePath).toURI()).toString()
+                        ,fileName.trim()+".properties" );
                 
                 BufferedWriter fos=Files.newBufferedWriter(fosPath.toPath(), 
                         StandardOpenOption.CREATE, StandardOpenOption.WRITE,
                         StandardOpenOption.TRUNCATE_EXISTING);
-                this.props.store(
+                props.store(
                 fos
                 ,"#Auto generated properties for broadcaster by ObservableUser");
                 fos.flush();
             } catch (URISyntaxException ex1) {
                 App.logger.log(Level.WARNING, "URI parameter"
-                    + " for path is wrong",ex1);
+                    + " for Path is wrong",ex1);
+                
             } catch (IOException ex1) {
                 App.logger.log(Level.WARNING, "Error when creating "
                     + "BufferedWriter with Files",ex1);
             }
+    }
+    
+    public static ObservableUser readFromProperties(String packageRelativePath){
+        Properties props=new Properties();
+        ObservableUser user;
+        
+        try {
+            props.load(App.class
+                    .getResourceAsStream(packageRelativePath));
+            
+            user=new ObservableUser( "empty@loadfromstatic",
+                    props.getProperty("NAME")
+                    , props.getProperty("SURNAME"),
+                    Integer.parseInt(props.getProperty("STATUS")),
+            props.getProperty("STATUS_MESSAGE"),
+                    "0.0.0.0");
+            return user;
+            
+        } catch (IOException ex) {
+            App.logger.log(Level.FINEST, "Error while loading properties"
+                    + " file for given path:"+packageRelativePath,ex);
+            return null;
+        }
     }
 }

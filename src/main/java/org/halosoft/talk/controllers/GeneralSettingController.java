@@ -4,26 +4,22 @@
  */
 package org.halosoft.talk.controllers;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import javafx.animation.TranslateTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
-import org.halosoft.talk.App;
+import org.halosoft.talk.adapters.SettingsPaneAdapter;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
 /**
@@ -34,8 +30,7 @@ import org.halosoft.talk.interfaces.Controllable;
 public class GeneralSettingController implements Initializable, Animateable,
         Controllable{
     
-    private String viewToForward;
-    private Pane parentContainerOfViewToForward;
+    private SettingsPaneAdapter parentController;
     
     @FXML
     private Label settingContents;
@@ -45,7 +40,7 @@ public class GeneralSettingController implements Initializable, Animateable,
     private Label settingName;
     @FXML
     private HBox rootPane;
-    private Object parentController;
+    
     /**
      * Initializes the controller class.
      */
@@ -62,18 +57,6 @@ public class GeneralSettingController implements Initializable, Animateable,
                         .removeListener(this);
             }
         });
-        viewToForward="";
-    }
-    
-    @FXML
-    private void settingPaneMouseClicked(MouseEvent event) {
-        try {
-            Parent view=App.loadFXML(viewToForward);
-            parentContainerOfViewToForward.getChildren().add(view);
-            
-        } catch (IOException ex) {
-            App.logger.log(Level.SEVERE, "Error while loading View", ex);
-        }
     }
     
     public void setSettingName(String setttingName){
@@ -86,14 +69,6 @@ public class GeneralSettingController implements Initializable, Animateable,
     
     public void setSettingImage(Image settingImage){
         this.settingImage.setImage(settingImage);
-    }
-    
-    public void setParentContainerOfViewToForward(Pane parentContainer){
-        parentContainerOfViewToForward=parentContainer;
-    }
-    
-    public void setViewToForward(String FxmlPathOfView){
-        this.viewToForward=FxmlPathOfView;
     }
 
     @Override
@@ -127,7 +102,7 @@ public class GeneralSettingController implements Initializable, Animateable,
 
     @Override
     public void setParentController(Object controller) {
-        this.parentController=controller;
+        this.parentController= (SettingsPaneAdapter)controller;
     }
 
     @Override

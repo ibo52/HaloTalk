@@ -75,7 +75,7 @@ public class UserInfoBoxController implements Controllable,
             @Override  
             public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
                 UserInfoBoxController.this.startAnimation();
-                UserInfoBoxController.this.rootPane.heightProperty()
+                UserInfoBoxController.this.rootPane.widthProperty()
                         .removeListener(this);
             }
         });

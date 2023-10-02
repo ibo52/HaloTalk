@@ -24,7 +24,7 @@ public class App extends Application {
     private static Scene scene;
     
     public static final Logger logger=Logger.getLogger(App.class.getName());
-    
+
     @Override
     public void start(Stage stage) throws IOException, URISyntaxException {
         
@@ -46,6 +46,7 @@ public class App extends Application {
         Task loadTask=new Task<Void>(){
             @Override
             protected Void call() throws Exception {
+                
                 try {
                     this.updateProgress(20, 100);
                     stage.getIcons().add(new Image(App.class.getResource(
