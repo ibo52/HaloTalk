@@ -6,11 +6,19 @@ package org.halosoft.talk.controllers.setting;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import static javafx.collections.FXCollections.observableArrayList;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -20,6 +28,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import org.halosoft.talk.controllers.UserInfoBoxController;
+import org.halosoft.talk.interfaces.Animateable;
+import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.ObservableUser;
 
 /**
@@ -27,7 +39,11 @@ import org.halosoft.talk.objects.ObservableUser;
  *
  * @author ibrahim
  */
-public class AccountController extends ObservableUser implements Initializable {
+public class AccountController implements Initializable, Controllable,
+        Animateable{
+    
+    private final ObservableUser userData;
+    private Object parentController;
     
     @FXML
     private StackPane rootPane;
@@ -54,7 +70,7 @@ public class AccountController extends ObservableUser implements Initializable {
     @FXML
     private ImageView settingImage11;
     @FXML
-    private Label userStatus;
+    private ComboBox<String> userStatus;
     @FXML
     private Label userAbout;
     @FXML
@@ -65,6 +81,11 @@ public class AccountController extends ObservableUser implements Initializable {
     private Button editButton;
     @FXML
     private ScrollPane accountSettingsPane;
+
+    public AccountController() {
+        this.userData =ObservableUser
+            .readFromProperties("settings/broadcaster.properties");
+    }
     
     /**
      * Initializes the controller class.
@@ -78,10 +99,35 @@ public class AccountController extends ObservableUser implements Initializable {
         this.editFieldBox.prefHeightProperty().bind(
                 this.editField.heightProperty().add(10));
         
-        this.userAbout.textProperty().bind(statusMessageProperty);
-        this.userName.textProperty().bind(nameProperty);
-        this.userStatus.textProperty().bind(this.statusProperty);
+        this.userAbout.textProperty().bind(this.userData.getStatusMessageProperty());
+        this.userName.textProperty().bind(this.userData.getNameProperty()
+        .concat(" ").concat(this.userData.getSurNameProperty()));
+
+        this.userStatus.setItems(observableArrayList("Seen as Offline"
+                ,"Busy","Online"));
         
+        this.userData.getStatusProperty().bind( this.userStatus
+                        .getSelectionModel().selectedIndexProperty().asString());
+        
+        this.userStatus.getSelectionModel().selectedIndexProperty()
+                .addListener((il)->{
+                    
+                    //save to file when status changed
+                    ObservableUser.savePropertiesToFile(
+                        this.userData.getProperties(), 
+                        null, null);
+                });
+        
+        //start animation when width>0
+        this.rootPane.setTranslateX(Long.MAX_VALUE);//keep out of screen for start animation
+        this.rootPane.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override  
+            public void changed(ObservableValue<? extends Number> ov, Number t, Number t1) {
+                AccountController.this.startAnimation();
+                AccountController.this.rootPane.widthProperty()
+                        .removeListener(this);
+            }
+        });
     }
     
     private void bringNodeToFrontOfStack(Node n){
@@ -102,13 +148,11 @@ public class AccountController extends ObservableUser implements Initializable {
         this.editButton.setOnMouseClicked(buttonApplyEvent);
         
         this.bringNodeToFrontOfStack(this.editFieldBox);
-            
-        
     }
     
     @FXML
     private void undoButtonMouseClicked(MouseEvent event) {
-        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+        this.stopAnimation();
     }
 
     @FXML
@@ -119,20 +163,11 @@ public class AccountController extends ObservableUser implements Initializable {
             String text=this.editField.getText().trim();
             if ( !text.isBlank() ) {
                 
-                this.setName(text);
-            }
-            
-        });
-    }
-    
-    @FXML
-    private void statusEditBoxMouseClicked(MouseEvent event) {
-        this.editField.setText("");
-        this.setEditableField("Select a status", (eh)->{
-            
-            String text=this.editField.getText().trim();
-            if ( !text.isBlank() ) {
-
+                this.userData.setName(text);
+                
+                ObservableUser.savePropertiesToFile(
+                        this.userData.getProperties(), 
+                        null, null);
             }
             
         });
@@ -146,10 +181,82 @@ public class AccountController extends ObservableUser implements Initializable {
             String text=this.editField.getText().trim();
             if ( !text.isBlank() ) {
                 
-                this.setStatusMessage(text);
+                this.userData.setStatusMessage(text);
+                
+                ObservableUser.savePropertiesToFile(
+                        this.userData.getProperties(), 
+                        null, null);
             }
             
         });
     }
     
+    public void setUserData(ObservableUser data){
+        this.userData.setContents(data);
+    }
+
+    @Override
+    public void setParentController(Object controller) {
+        this.parentController=controller;
+    }
+
+    @Override
+    public Object getParentController() {
+        return this.parentController;
+    }
+
+    @Override
+    public void remove() {
+        ((Pane)this.rootPane.getParent()).getChildren().remove(this.rootPane);
+    }
+    
+    @Override
+    public void startAnimation() {
+        
+        final Duration duration=Duration.millis(300);
+        //---Translate effect
+        TranslateTransition tt=new TranslateTransition();
+        tt.setDuration(duration);
+
+        double width=this.rootPane.getWidth();
+        
+        tt.setFromX(width);
+        tt.setToX(0);
+        //---Fade effect
+        FadeTransition ft=new FadeTransition();
+        ft.setDuration(duration);
+        ft.setFromValue(0);
+        ft.setToValue(1);
+
+        ParallelTransition pt=new ParallelTransition(this.rootPane,
+                tt,ft);
+        pt.play();
+    }
+
+    @Override
+    public void stopAnimation() {
+        
+        final Duration duration=Duration.millis(300);
+        //---Translate effect
+        TranslateTransition tt=new TranslateTransition();
+        tt.setDuration(duration);
+
+        double width=this.rootPane.getWidth();
+        
+        tt.setFromX(0);
+        tt.setToX(width);
+        //---Fade effect
+        FadeTransition ft=new FadeTransition();
+        ft.setDuration(duration);
+        ft.setFromValue(1);
+        ft.setToValue(0);
+
+        ParallelTransition pt=new ParallelTransition(this.rootPane,
+                tt,ft);
+
+        pt.setOnFinished((ActionEvent t) -> {
+        remove();
+        });
+        pt.play();
+    }
 }
