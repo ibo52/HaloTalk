@@ -45,7 +45,13 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 Files.createDirectories(clientFile.toPath());//create path for specific user
                 
                 //create input and output files of socket streams
-                Files.createFile(Paths.get(clientFile.getPath(),"IN"));
+                if ( !Files.exists(Paths.get(clientFile.getPath()
+                            ,"IN")) ) {
+                    
+                    Files.createFile(Paths.get(clientFile.getPath()
+                            ,"IN"));
+                }
+                
                 //Files.createFile(Paths.get(clientFile.toString(),"OUT"));
                 this.client = socket;
             
@@ -57,8 +63,12 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 setSocketOutputStream(new DataOutputStream(
                         this.client.getOutputStream()));
             
-            } catch (IOException | URISyntaxException ex) {
+            } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
+                        "Error while initializing files and client "
+                                + "of ServerHandler",ex);
+            } catch(URISyntaxException ex){
+                App.logger.log(Level.WARNING, 
                         "Wrong URI given to Paths.get() method while "
                                 + "initializing file",ex);
             }
@@ -113,12 +123,11 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                             pathFile, "IN"),
                             true);
                     
-                }catch (IOException ex) {
+                } catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
                         "Error while initializing FileWriter for "
                                 + "incoming messages",ex);
                 }
-                
             }
             
             @Override
@@ -133,7 +142,12 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         writer.write("\n");
                         writer.flush();
                         
-                    }catch(EOFException ex){
+                    } catch(NullPointerException ex){
+                        App.logger.log(Level.FINE, "FileWriter became null. "+
+                            "Possibly IN file closed by other class",ex);
+                        break;
+                    
+                    } catch(EOFException ex){
                         App.logger.log(Level.FINE, 
                         "EOF reached. Possibly IN file closed by this or other class",ex);
                         break;
