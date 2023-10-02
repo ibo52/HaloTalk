@@ -49,12 +49,12 @@ import org.halosoft.talk.objects.userObject;
  */
 public class HostSelectorController implements Initializable {
     
-    private ScheduledExecutorService executorService;    //executor to run runnables on thread
+    private final ScheduledExecutorService executorService;    //executor to run runnables on thread
     
-    private Server server;              //to let others conect to you
+    private final Server server;              //to let others conect to you
     
     private Client connectorClient;     //to request connection from others
-    private Broadcaster LANBroadcaster; //to browse for local devices that use this program
+    protected final Broadcaster LANBroadcaster; //to browse for local devices that use this program
     
     @FXML
     private VBox usersBox;
@@ -78,13 +78,8 @@ public class HostSelectorController implements Initializable {
     private TextField searchField;
     @FXML
     private ImageView searchPaneUndoButton;
-    /**
-     * Initializes the controller class.
-     */
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        
-        executorService=Executors.newScheduledThreadPool(1);
+
+    public HostSelectorController() {
         
         server=new Server();
         server.start();
@@ -92,8 +87,16 @@ public class HostSelectorController implements Initializable {
         LANBroadcaster=new Broadcaster("0.0.0.0");
         LANBroadcaster.start();
         
-        LANBrowser();
+        executorService=Executors.newScheduledThreadPool(1);
+    }
+    /**
+     * Initializes the controller class.
+     */
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
         
+        LANBrowser();
+
         this.appendUser(new ObservableUser("testing@127.0.0.1","test","user",2,
                 "This is a loopback address for Testing purposes",
         "127.0.0.1"));
@@ -233,7 +236,7 @@ public class HostSelectorController implements Initializable {
     }
     
     private void LANBrowser(){
-        
+
         executorService.scheduleAtFixedRate(new LANBrowser(),
                 0, 5, TimeUnit.SECONDS);
         
@@ -303,9 +306,10 @@ public class HostSelectorController implements Initializable {
     @FXML
     private void setttingsButtonMouseClicked(MouseEvent event) {
         try {
-            Parent uSettings=App.loadFXML("view/userSettings");
+            Parent uSettings=App.loadFXML("view/setting/userSettings");
             
             Node n=this.leftStackPane.getChildren().get(0);
+
             this.leftStackPane.getChildren().clear();
             this.leftStackPane.getChildren().add(n);
             
