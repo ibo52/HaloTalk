@@ -4,8 +4,15 @@
  */
 package org.halosoft.talk.controllers.setting;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
@@ -33,6 +40,7 @@ import org.halosoft.talk.adapters.SettingsPaneAdapter;
 import org.halosoft.talk.controllers.HostSelectorController;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
+import org.halosoft.talk.objects.PropertiesManager;
 /**
  * FXML Controller class
  *
@@ -42,6 +50,8 @@ public class PreferencesController extends SettingsPaneAdapter
         implements Initializable, Controllable, Animateable {
 
     private ObservableMap<String,String> themeMap;
+    
+    private Properties styleProperties;
     
     @FXML
     private StackPane rootPane;
@@ -65,7 +75,10 @@ public class PreferencesController extends SettingsPaneAdapter
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         // TODO
-        Node theme=this.addSetting("Theme", "White, Dark mode",new Image(App.class
+        styleProperties=new Properties();
+        
+        Node theme=this.addSetting("Theme", "Default style for interface."
+                + " White, Dark mode",new Image(App.class
                 .getResource("/images/icons/manage_accounts.png").toString()));
         
         themeMap=observableHashMap();
@@ -77,12 +90,19 @@ public class PreferencesController extends SettingsPaneAdapter
         this.themeEditComboBox.setItems(observableArrayList(themeMap.keySet()));
         
         this.themeEditApplyButton.setOnMouseClicked((eh)->{
-            var e=this.themeEditComboBox.getSelectionModel().getSelectedItem();
+            String e=this.themeEditComboBox.getSelectionModel().getSelectedItem();
             
             String style=App.class.getResource( this.themeMap.get(e) ).toString();
-            
+
             this.rootPane.getScene().getStylesheets().clear();
             this.rootPane.getScene().getStylesheets().add(style);
+            
+            styleProperties.setProperty("DEFAULT_STYLESHEET", 
+                this.themeMap.get(e));
+            
+            PropertiesManager.savePropertiesToFile(styleProperties
+                    , "settings/application");
+            
             this.bringNodeToFrontOfStack(this.settingsBox);
         });
         
