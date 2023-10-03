@@ -232,7 +232,7 @@ public class ChatPanelController implements Controllable,
         }
     }
     
-    public void setContents(userObject userData){
+    public void setContents(ObservableUser userData){
         try {
             this.userData.setContents(userData);
             
@@ -392,7 +392,7 @@ public class ChatPanelController implements Controllable,
         }
     }
     
-    public userObject getUserData(){
+    public ObservableUser getUserData(){
         return this.userData;
     }
     

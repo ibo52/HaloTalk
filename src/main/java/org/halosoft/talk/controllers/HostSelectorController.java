@@ -5,11 +5,9 @@
 package org.halosoft.talk.controllers;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
@@ -17,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -42,7 +39,6 @@ import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.NetworkDeviceManager;
 import org.halosoft.talk.objects.ObservableUser;
 import org.halosoft.talk.objects.Server;
-import org.halosoft.talk.objects.userObject;
 
 /**
  * FXML Controller class
@@ -110,7 +106,7 @@ public class HostSelectorController implements Initializable {
      * Places chat panel of specific user to screen
      * @param ctrlr_userData information about remote user
      */
-    public void bringChatScreen(userObject ctrlr_userData){
+    public void bringChatScreen(ObservableUser ctrlr_userData){
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
