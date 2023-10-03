@@ -13,7 +13,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.image.Image;

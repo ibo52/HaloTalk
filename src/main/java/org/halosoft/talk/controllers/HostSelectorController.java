@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -159,11 +161,23 @@ public class HostSelectorController implements Initializable {
                         NetworkDeviceManager
                                 .ConnectionType.WIRELESS).get(0);
                 
+                try { //if ni is loopback, pass scan
+                    if (ni.isLoopback()) {
+                        App.logger.log(Level.FINEST,"pass LAN scan since"
+                            + " network interface is loopback");
+                        return;
+                    }
+                } catch (SocketException ex) {
+                    App.logger.log(Level.FINER,"Could not check if"
+                            + " network interface is loopback",ex);
+                }
+                
                 String hostIdentity=NetworkDeviceManager
                         .calculateNetworkIdentity(ni);
                 
-                System.out.println("selected ni:"+ni.getName()+" network ID:"+hostIdentity);
-
+                App.logger.log(Level.INFO,"Selected network interface:"
+                        +ni.getName()+" in Default Gateway:"+hostIdentity);
+                
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
                 
@@ -182,52 +196,45 @@ public class HostSelectorController implements Initializable {
                         
                         host+=+executorArgument;
                         
-                        try {
-                            //check if there is proper network device with this ip address
-                            if ( !InetAddress.getByName(host)
-                                    .isLoopbackAddress() ) {
+                        //check if host address is not of this Broadcaster'(and not loopback)
+                        if ( !NetworkDeviceManager.getIpV4Address(ni)
+                                .equals(host) ) {
+
+                            //check if host has this application
+                            BroadcastClient LANdiscover =new BroadcastClient(host);
+                            
+                            LANdiscover.start();
+                            
+                            //parse incoming user data
+                            String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
+                            
+                            //check if remote did respond
+                            if ( !idt[0].equals("NO_RESPONSE") ) {
                                 
-                                //check if host has this application
-                                BroadcastClient LANdiscover =new BroadcastClient(host);
+                                ObservableUser userData=new ObservableUser(idt[0], idt[3],
+                                        idt[4],Integer.parseInt(idt[1]),
+                                        idt[2],host);
+                                Iterator iter=usersBox.getChildren().iterator();
+                                boolean appendFlag=true;
                                 
-                                LANdiscover.start();
-                                
-                                //parse incoming user data
-                                String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
-                                
-                                //if LANbrowser finds own broadcaster(itself)
-                                //on LAN, dont add to userInfoPanel
-                                if ( !idt[0].equals("NO_RESPONSE") &
-                                        !idt[0].equals(LANBroadcaster.getHostName()) ) {
+                                while( iter.hasNext() ){
                                     
-                                    ObservableUser userData=new ObservableUser(idt[0], idt[3],
-                                            idt[4],Integer.parseInt(idt[1]),
-                                            idt[2],host);
-                                    Iterator iter=usersBox.getChildren().iterator();
-                                    boolean appendFlag=true;
+                                    Parent v=(Parent)iter.next();
                                     
-                                    while( iter.hasNext() ){
-                                        
-                                        Parent v=(Parent)iter.next();
-                                        
-                                        UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-                                        
-                                        if (host.equals(ctrlr.getUserData().getID()) ) {
-                                            appendFlag=false;
-                                            updateUser(userData, v);
-                                            break;
-                                        }
+                                    UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
+                                    
+                                    if (host.equals(ctrlr.getUserData().getID()) ) {
+                                        appendFlag=false;
+                                        updateUser(userData, v);
+                                        break;
                                     }
-                                    if (appendFlag) {
-                                        appendUser(userData);
-                                    }
-                                    
                                 }
+                                if (appendFlag) {
+                                    appendUser(userData);
+                                }
+                                
                             }
-                        } catch (UnknownHostException ex) {
-                            App.logger.log(Level.INFO,ex.getMessage(),ex);
-                        }
-                        
+                        } 
                     });
                 }
                 executorService.shutdown();
