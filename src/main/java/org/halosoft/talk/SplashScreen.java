@@ -38,15 +38,18 @@ public class SplashScreen {
     final int SCENE_HEIGHT=480;
     
     public SplashScreen(){
+        
         Properties appProperties=new Properties();
+        appProperties.setProperty("SPLASH_LOGO", "/images/logo-circle-512x512.png");
+        appProperties.setProperty("SPLASH_LABEL", "HaloSoft Inc.    github.com/ibo52");
+        appProperties.setProperty("DEFAULT_STYLESHEET", "stylesheet/default-style.css");
+
         try {
             appProperties.load(App.class.getResourceAsStream(
                     "settings/application.properties"));
-        } catch (NullPointerException ex) {
             
-            appProperties.setProperty("SPLASH_LOGO", "/images/logo-circle-512x512.png");
-            appProperties.setProperty("SPLASH_LABEL", "HaloSoft Inc.    github.com/ibo52");
-            appProperties.setProperty("STYLESHEET", "stylesheet/default-style.css");
+        } catch (NullPointerException ex) {
+        
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, ex.getMessage(),ex);
         }
@@ -85,7 +88,7 @@ public class SplashScreen {
             this.scene=new Scene(rootPane,SCENE_WIDTH,SCENE_HEIGHT);
             scene.getStylesheets().add(App.class.
                         getResource(appProperties.
-                                getProperty("STYLESHEET")
+                                getProperty("DEFAULT_STYLESHEET")
                         ).toExternalForm());
             
             stage=new Stage();

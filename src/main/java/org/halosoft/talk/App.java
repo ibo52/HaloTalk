@@ -29,16 +29,15 @@ public class App extends Application {
     public void start(Stage stage) throws IOException, URISyntaxException {
         
         Properties appProperties=new Properties();
+        appProperties.setProperty("LOGO", "/images/app-logo.png");
+        appProperties.setProperty("NAME", "HaloTalk - simple LAN messenger");
+        appProperties.setProperty("DEFAULT_STYLESHEET", "stylesheet/default-style.css");
         try{
             appProperties.load(App.class.getResourceAsStream(
                         "settings/application.properties"));
         } catch(NullPointerException ex){
             App.logger.log(Level.CONFIG, "Could not found properties file for application."
                             + " Default values will be used for Application.");
-            
-            appProperties.setProperty("LOGO", "/images/app-logo.png");
-            appProperties.setProperty("NAME", "HaloTalk - simple LAN messenger");
-            appProperties.setProperty("STYLESHEET", "stylesheet/default-style.css");
         }
         
         SplashScreen splashScreen=new SplashScreen();
@@ -60,7 +59,7 @@ public class App extends Application {
 
                     scene.getStylesheets().add(App.class.
                             getResource(appProperties
-                                    .getProperty("STYLESHEET")).toExternalForm());
+                                    .getProperty("DEFAULT_STYLESHEET")).toExternalForm());
 
                     Platform.runLater(()->{
                         stage.setScene(scene);
