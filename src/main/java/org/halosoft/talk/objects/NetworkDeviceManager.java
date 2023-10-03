@@ -4,6 +4,8 @@
  */
 package org.halosoft.talk.objects;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
@@ -12,6 +14,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.logging.Level;
 import org.halosoft.talk.App;
@@ -174,5 +177,47 @@ public class NetworkDeviceManager {
                         "Error while getting network interface as Collection",ex);
             return false;
         }
+    }
+    
+    /**
+     * finds the first occurence of ip address which is instance of Inet4Address
+     * @param ni desired network interface to get ip
+     * @return ip address string as ipv4, if not found returns ""(empty string)
+     */
+    public static String getIpV4Address(NetworkInterface ni){
+        String addr="";
+        
+        Enumeration<InetAddress> addresses=ni.getInetAddresses();
+        
+        while(addresses.hasMoreElements()){
+            InetAddress a=addresses.nextElement();
+            
+            if (a instanceof Inet4Address) {
+                addr=a.getHostAddress();
+                break;
+            }
+        }
+        return addr;
+    }
+    
+    /**
+     * finds the first occurence of ip address which is instance of Inet6Address
+     * @param ni desired network interface to get ip
+     * @return ip address string as ipv6, if not found returns ""(empty string)
+     */
+    public static String getIpV6Address(NetworkInterface ni){
+        String addr="";
+        
+        Enumeration<InetAddress> addresses=ni.getInetAddresses();
+        
+        while(addresses.hasMoreElements()){
+            InetAddress a=addresses.nextElement();
+            
+            if (a instanceof Inet6Address) {
+                addr=a.getHostAddress();
+                break;
+            }
+        }
+        return addr;
     }
 }
