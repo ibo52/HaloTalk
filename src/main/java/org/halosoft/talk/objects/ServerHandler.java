@@ -6,18 +6,16 @@ package org.halosoft.talk.objects;
 
 import org.halosoft.talk.adapters.SocketHandlerAdapter;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import org.halosoft.talk.App;
 
@@ -36,8 +34,10 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         
         public ServerHandler(Socket socket, long[] remoteKey){
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
-            
+             
             try {
+                Server.clients.put(remoteIp, new LinkedBlockingQueue[2]);
+                
                 clientFile=new File(Paths.get(App.class
                         .getResource("userBuffers").toURI()).toString(),
                         this.remoteIp );
@@ -112,59 +112,41 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         private static class ClientInputWriter implements Runnable{
             private String ip;
             private DataInputStream in;
-            private FileWriter writer;
             
             public ClientInputWriter(File pathFile, DataInputStream sockIn
             ,String socketIp){
                 this.in=sockIn;
                 this.ip=socketIp;
-                try {
-                    writer=new FileWriter(new File(
-                            pathFile, "IN"),
-                            true);
-                    
-                } catch (IOException ex) {
-                    App.logger.log(Level.SEVERE, 
-                        "Error while initializing FileWriter for "
-                                + "incoming messages",ex);
-                }
             }
             
             @Override
             public void run() {
 
+                var incomingsQueue=
+                        (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
+
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {
-                        String incomingData=this.in.readUTF();
-
-                        writer.write(incomingData);
-                        writer.write("\n");
-                        writer.flush();
                         
+                        String incomingData=this.in.readUTF();
+                        incomingsQueue.add(incomingData);
+                        
+
                     } catch(NullPointerException ex){
-                        App.logger.log(Level.FINE, "FileWriter became null. "+
-                            "Possibly IN file closed by other class",ex);
+                        App.logger.log(Level.FINE,"possibly socket "
+                                + "InStream is null",ex);
                         break;
                     
                     } catch(EOFException ex){
                         App.logger.log(Level.FINE, 
-                        "EOF reached. Possibly IN file closed by this or other class",ex);
+                        "EOF reached. Possibly socket In Stream is null",ex);
                         break;
                     }
                     catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
                         "Error while writing incoming messages to file",ex);
-                        
-                        try {
-                            writer.flush();
-                            writer.close();
-                        } catch (IOException ex1) {
-                            App.logger.log(Level.SEVERE, 
-                        "Another exception occured while"
-                                    + " closing FileWriter",ex);
-                        }
                         Thread.currentThread().interrupt();
                         break;
                     }
@@ -181,51 +163,36 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         private static class ClientOutputSender implements Runnable{
             private String ip;
             private DataOutputStream out;
-            private BufferedReader dataSender;
             
             public ClientOutputSender(File pathFile, DataOutputStream sockOut
             ,String socketIp){
                 this.out=sockOut;
                 this.ip=socketIp;
-                try {
-                    dataSender=new BufferedReader(
-                            new FileReader(new File(
-                                    pathFile, "OUT")
-                            ));
-                    
-                }catch (IOException ex) {
-                    App.logger.log(Level.SEVERE, 
-                        "Error while initializing FileReader of outgoing messages",ex);
-                }
-                
             }
             
             @Override
             public void run() {
+                
+                var outgoingsQueue=
+                        (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
 
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {//wait until some class write data to file
-                        while( !dataSender.ready() ){
-                            Thread.sleep(300);
-                        }
+
+                        this.out.writeUTF( outgoingsQueue.take() );
                         
-                        this.out.writeUTF( this.dataSender.readLine() );
                         
                     } catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
                         "Error while sending messages from OUT file to socket",ex); 
+                        break;
                         
-                    }finally{
-                        try {
-                            this.dataSender.close();
-                        } catch (IOException ex) {
-                            App.logger.log(Level.SEVERE, 
-                        "Another exception occured while"
-                                    + " closing BufferedReader of OUT file",ex);
-                        }
-                        Thread.currentThread().interrupt();
+                    } catch (InterruptedException ex) {
+                        App.logger.log(Level.WARNING, 
+                        "interrupted while waiting to get message"
+                                + "from outgoingsQueue",ex);
                         break;
                     }
                 }
