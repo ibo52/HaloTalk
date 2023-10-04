@@ -14,7 +14,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import org.halosoft.talk.App;
@@ -24,6 +26,9 @@ import org.halosoft.talk.App;
  * @author ibrahim
  */
 public class Server extends SocketHandlerAdapter {
+    
+    public static final HashMap<String,
+            LinkedBlockingQueue<String>[]> clients=new HashMap<>();//ipc instead of write to file
     
     private ServerSocket server;
     
@@ -35,6 +40,8 @@ public class Server extends SocketHandlerAdapter {
         super(ipAddr, port);
 
         this.rsa=new RSA();
+        
+        //indexes of LinkedBlockingQueue: 0 for IN , 1 for OUT messages
     }
     
     public Server(String ipAddr){
@@ -114,8 +121,9 @@ public class Server extends SocketHandlerAdapter {
             });
             
         } else {
-            System.err.println("Server start :server already started @"
-                    +this.getRemoteIp()+":"+this.getRemotePort());
+            App.logger.log(Level.INFO, 
+                        "Server already started @"
+                                + this.getRemoteIp()+":"+this.getRemotePort());
         }
         
     }
