@@ -13,7 +13,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import org.halosoft.talk.controllers.MessageBoxPanelController;
 import java.io.IOException;
-import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -21,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -44,9 +44,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.halosoft.talk.App;
 import org.halosoft.talk.objects.Client;
-import org.halosoft.talk.objects.userObject;
 import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.ObservableUser;
+import org.halosoft.talk.objects.Server;
 /**
  * FXML Controller class
  *
@@ -59,8 +59,8 @@ public class ChatPanelController implements Controllable,
     
     private HostSelectorController parentController;
     
-    private File userBuffersPath;
-    private BufferedReader remoteIn;
+    private File HISTPath;
+
     private FileWriter chatHistory;
     
     private ExecutorService executorService;
@@ -159,15 +159,15 @@ public class ChatPanelController implements Controllable,
     private void initChatHistoryWriter(){
         try {
             this.chatHistory=new FileWriter(new File( 
-                  userBuffersPath, "HIST" ), true);
+                  HISTPath, "HIST" ), true);
             
         } catch (FileNotFoundException ex) {
             try {
                 
-                Files.createFile(new File(userBuffersPath, "HIST").toPath());
+                Files.createFile(new File(HISTPath, "HIST").toPath());
                 
                 this.chatHistory=new FileWriter(new File( 
-                  userBuffersPath, "HIST" ), true);
+                  HISTPath, "HIST" ), true);
                 
             } catch (IOException ex1) {
                 App.logger.log(Level.SEVERE, 
@@ -182,7 +182,7 @@ public class ChatPanelController implements Controllable,
     private void initMessages(){
         try {
             BufferedReader reader=new BufferedReader(new FileReader(
-                    Paths.get(userBuffersPath.toString(),
+                    Paths.get(HISTPath.toString(),
                             "HIST" ).toFile()));
             
             String line;
@@ -214,16 +214,11 @@ public class ChatPanelController implements Controllable,
             this.executorService.shutdownNow();
             
             this.remoteClient.stop();
-            this.remoteIn.close();
             this.chatHistory.close();
             
-            //delete remote end's socket IN file on close requested
-            Files.delete(
-            Paths.get(userBuffersPath.toString(),"IN" ));
-            
         } catch(NullPointerException ex){
-            App.logger.log(Level.FINE,"Socket or its files are null."
-                    + " Pass closing them",ex);
+            App.logger.log(Level.FINE,"Socket is possibly null."
+                    + " Pass closing",ex);
             
         } catch (IOException ex) { 
             App.logger.log(Level.SEVERE, 
@@ -239,11 +234,11 @@ public class ChatPanelController implements Controllable,
             //connect to desired remote end according to userData
             remoteClient=new Client( this.userData.getID() );
             try {
-                userBuffersPath=new File(Paths.get(App.class.
+                HISTPath=new File(Paths.get(App.class.
                         getResource("userBuffers").toURI()).toString(),
                         this.remoteClient.getRemoteIp());
             
-            Files.createDirectories(userBuffersPath.toPath());
+            Files.createDirectories(HISTPath.toPath());
             } catch (URISyntaxException ex) {
                 App.logger.log(Level.WARNING, 
                         "Error while making directories of user buffer",ex);
@@ -292,6 +287,7 @@ public class ChatPanelController implements Controllable,
             }
             this.chatHistory.write("\n");
             this.chatHistory.flush();
+            
         }catch(IOException ex){
             App.logger.log(Level.SEVERE, 
                         "Error while saving chat history to file",ex);
@@ -304,33 +300,27 @@ public class ChatPanelController implements Controllable,
         
         executorService.execute(() -> {
             
-            
-            while( !Thread.currentThread().isInterrupted() ){
-                try {//access server socketIn file for that remote end
-                    FileReader clientInFile=new FileReader( new File(
-                            userBuffersPath.toString(),"IN" ) );
-                    this.remoteIn=new BufferedReader(clientInFile);
+            LinkedBlockingQueue<String> incomingsQueue;
+            //wait for ServerHandler to initialize message queue
+            while (  (incomingsQueue=Server.clients
+                    .get(this.userData.getID())[0])  ==  null  ){
+                try {
+                    Thread.sleep(1000);
+                    
+                } catch (InterruptedException ex) {
+                    App.logger.log(Level.SEVERE, 
+                        "interrupted while setting variable"
+                                + " 'incomingsQueue'",ex);
                     break;
-
-                } catch (FileNotFoundException ex) {
-                    //wait until there is IN file for socket does exists
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException ex1) {
-                        App.logger.log(Level.FINEST, 
-                        "file reader of IN interrupted",ex);
-                        break;
-                    }
                 }
             }
 
             while ( !Thread.currentThread().isInterrupted() ){
                 
                 try {
-                     while (!this.remoteIn.ready() ){
-                        Thread.sleep(300);
-                    }
-                    String message=this.remoteIn.readLine();
+                    
+                    String message=incomingsQueue.take();
+                    
                     Platform.runLater( ()->{
                         addMessage(message, Pos.TOP_LEFT);
                     });
@@ -338,24 +328,14 @@ public class ChatPanelController implements Controllable,
                     this.saveToFile(message, Pos.TOP_LEFT);
                     
                 } catch(NullPointerException ex){
-                    App.logger.log(Level.FINER, 
-                        "Possibly IN file closed by this or other class",ex);
-                    break;
-                } catch ( SocketException ex) {
-                    App.logger.log(Level.FINEST, 
-                        "Possibly socket closed",ex);
-                    
-                    break;
-                    
-                }catch (IOException ex) {
                     App.logger.log(Level.SEVERE, 
-                        "Error while reading buffer file of IN",ex);
-                    
+                        "incomingsQueue is possibly null",ex);
                     break;
                     
                 } catch (InterruptedException ex) {
                     App.logger.log(Level.FINEST, 
-                        "file reader of IN interrupted",ex);
+                        "interrupted while getting messages from "
+                                + "incomingsQueue",ex);
                     
                     break;
                 }
