@@ -300,10 +300,9 @@ public class ChatPanelController implements Controllable,
         
         executorService.execute(() -> {
             
-            LinkedBlockingQueue<String> incomingsQueue;
-            //wait for ServerHandler to initialize message queue
-            while (  (incomingsQueue=Server.clients
-                    .get(this.userData.getID())[0])  ==  null  ){
+            //wait for ServerHandler to initialize message queue,
+            //which means: check if remote end connected to us(sended any message)
+            while (  Server.clients.get(this.userData.getID())  ==  null  ){
                 try {
                     Thread.sleep(1000);
                     
@@ -314,6 +313,8 @@ public class ChatPanelController implements Controllable,
                     break;
                 }
             }
+            LinkedBlockingQueue<String> incomingsQueue=
+                    Server.clients.get(this.userData.getID())[0];
 
             while ( !Thread.currentThread().isInterrupted() ){
                 
