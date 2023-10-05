@@ -7,13 +7,19 @@ package org.halosoft.talk.objects;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import org.halosoft.talk.App;
 
@@ -25,7 +31,6 @@ public class Client extends CommunicationObject{
     private RSA rsa;
     
     private long[] REMOTE_KEY;
-    
 
     @Override
     public void initialize(){
@@ -48,7 +53,31 @@ public class Client extends CommunicationObject{
             REMOTE_KEY=CLI_KEY;
             
         }catch( SocketTimeoutException ex ){
-            System.err.println("Server does not respond:"+ex.getMessage());
+            try {
+                App.logger.log(Level.FINEST,"Server does not respond."
+                        + " Socket Output will be forward to OUT file",ex);
+                
+                //forward output to userBuffers file of OUT if no connection established
+                File userBufferPath=new File(App.class.
+                        getResource("userBuffers").toURI().toString(),
+                        this.getRemoteIp());
+                //create directories
+                Files.createDirectories(userBufferPath.toPath());
+                //create file and set socket output to that file
+                this.setSocketOutputStream(new DataOutputStream(
+                        new FileOutputStream(Paths.get(
+                                userBufferPath.toString(),"OUT").toFile(),true )));
+                
+            } catch (IOException ex1) {
+                App.logger.log(Level.FINEST,"Error while redirecting Socket"
+                        + "outPut to a file",ex1);
+                System.exit(ex1.hashCode());
+                
+            } catch (URISyntaxException ex1) {
+                App.logger.log(Level.FINEST,"Error while redirecting Socket"
+                        + "outPut to a file: Wrong URI given to path",ex1);
+                System.exit(ex1.hashCode());
+            }
             
         }catch (ConnectException ex) {
             System.err.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
@@ -58,7 +87,7 @@ public class Client extends CommunicationObject{
             
         } catch (IOException ex) {
             System.err.println(this.getClass().getName()+" initialize:"+ex.getMessage());
-            Platform.exit();
+
             System.exit(ex.hashCode());
         }
     }
