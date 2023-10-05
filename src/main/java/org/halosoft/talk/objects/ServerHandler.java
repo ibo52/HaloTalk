@@ -6,17 +6,25 @@ package org.halosoft.talk.objects;
 
 import org.halosoft.talk.adapters.SocketHandlerAdapter;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.halosoft.talk.App;
 
 /**
@@ -43,14 +51,6 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         this.remoteIp );
 
                 Files.createDirectories(clientFile.toPath());//create path for specific user
-                
-                //create input and output files of socket streams
-                if ( !Files.exists(Paths.get(clientFile.getPath()
-                            ,"IN")) ) {
-                    
-                    Files.createFile(Paths.get(clientFile.getPath()
-                            ,"IN"));
-                }
                 
                 //Files.createFile(Paths.get(clientFile.toString(),"OUT"));
                 this.client = socket;
@@ -110,13 +110,40 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
          * The file is accessible by other classes to read incoming data
          */
         private static class ClientInputWriter implements Runnable{
-            private String ip;
-            private DataInputStream in;
+            private final String ip;
+            private final DataInputStream in;
+            private final File userBufferPath;
+            private Scanner unreadIN;
             
             public ClientInputWriter(File pathFile, DataInputStream sockIn
             ,String socketIp){
                 this.in=sockIn;
                 this.ip=socketIp;
+                this.userBufferPath=pathFile;
+                
+            }
+            
+            private final void loadUnreadMessages(LinkedBlockingQueue queue){
+                
+                try {
+                    this.unreadIN=new Scanner(Paths.get(
+                            userBufferPath.toString(),"IN"));
+                    
+                    while(this.unreadIN.hasNext()){
+                        queue.add(this.unreadIN.nextLine());
+                    }
+                    this.unreadIN.close();
+                    
+                    Files.delete(Paths.get(
+                            userBufferPath.toString(),"IN"));
+                    
+                }catch (FileNotFoundException ex){
+                    App.logger.log(Level.FINEST,"No unread messages"
+                                + " of IN for "+this.ip+". Pass to load",ex);
+                } catch (IOException ex) {
+                    App.logger.log(Level.FINE,"Error while trying to access "
+                                + "IN file of "+this.ip +". Pass to load unread messages",ex);
+                }
             }
             
             @Override
@@ -124,6 +151,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
 
                 var incomingsQueue=
                         (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
+                
+                this.loadUnreadMessages(incomingsQueue);
 
                 while( !Thread.currentThread().isInterrupted() ){
 
@@ -156,18 +185,71 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         }
         
         /**
-         * Waits for data to be written to file, then sends the data through
+         * Waits for data to be written to queue, then sends the data through
          * socket Output Stream.
-         * The file is accessible by other classes to write data to send.
+         * The queue is static on Server class, and accessible by other classes 
+         * to write data to send.
          */
         private static class ClientOutputSender implements Runnable{
             private String ip;
             private DataOutputStream out;
+            private final File userBufferPath;
+            private BufferedReader unreadOUT;
             
             public ClientOutputSender(File pathFile, DataOutputStream sockOut
             ,String socketIp){
                 this.out=sockOut;
                 this.ip=socketIp;
+                this.userBufferPath=pathFile;
+            }
+            
+            private final void loadUnsendMessages(LinkedBlockingQueue queue){
+                
+                ExecutorService service=Executors.newSingleThreadExecutor();
+                
+                service.execute(()->{
+                    try {
+                        this.unreadOUT=Files.newBufferedReader(Paths.get(
+                                this.userBufferPath.toString(),"OUT"));
+                    } catch (FileNotFoundException ex){
+                        App.logger.log(Level.FINEST,"No unsend messages"
+                                    + " of OUT for "+this.ip+". Pass to load",ex);
+                        return;
+                    }catch (IOException ex) {
+                        App.logger.log(Level.SEVERE,"Error while processing "
+                        + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
+                        return;
+                    }
+
+                    while( !Thread.currentThread().isInterrupted() ){
+                        try{
+
+                            while( !this.unreadOUT.ready() ){
+                                Thread.sleep(12000);
+                            }
+                            queue.add(this.unreadOUT.readLine());
+
+                        } catch (IOException ex) {
+                            App.logger.log(Level.SEVERE,"Error while processing "
+                                        + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
+                            break;
+                        } catch (InterruptedException ex) {
+                            App.logger.log(Level.FINE,"interrupted: "
+                                        + "OUT file processing of "+this.ip ,ex);
+                            break;
+                        }
+
+                    }
+
+                    try {
+                        Files.delete(Paths.get(
+                                userBufferPath.toString(),"OUT"));
+
+                    } catch (IOException ex) {
+                        App.logger.log(Level.SEVERE,"Error while deleting "
+                                        + "OUT file of "+this.ip ,ex);
+                    }
+                });
             }
             
             @Override
@@ -175,13 +257,14 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 
                 var outgoingsQueue=
                         (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
-
+                
+                this.loadUnsendMessages(outgoingsQueue);
+                
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {//wait until some class write data to file
-
+                            
                         this.out.writeUTF( outgoingsQueue.take() );
-                        
                         
                     } catch ( IOException ex) {
                         
