@@ -159,6 +159,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     try {
                         
                         String incomingData=this.in.readUTF();
+                        if (incomingData.equals("SHUTDOWN")) {
+                            break;
+                        }
                         incomingsQueue.add(incomingData);
                         
 
