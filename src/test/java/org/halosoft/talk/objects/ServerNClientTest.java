@@ -5,6 +5,9 @@
 package org.halosoft.talk.objects;
 
 import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +48,27 @@ public class ServerNClientTest {
     @Test
     public void serverNClient(){
         System.out.println("\tServer And Client communication test");
+        String expected="hello from client";
+        
         Server s=new Server("0.0.0.0");
         s.start();
         
-        Client c=new Client("0.0.0.0");
+        Client c=new Client("127.0.0.1");
         c.start();
         
         try {
-            c.getSocketOutputStream().writeUTF("hello from client");
+            c.getSocketOutputStream().writeUTF(expected);
+            
+            while( Server.clients.get("127.0.0.1") ==null){
+                Thread.sleep(100);
+            }
+            String received=Server.clients.get("127.0.0.1")[0].take();
+            
+            assertEquals(expected,received);
+            
         } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
         
