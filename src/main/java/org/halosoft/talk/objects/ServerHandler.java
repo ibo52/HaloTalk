@@ -12,11 +12,10 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
@@ -24,7 +23,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.halosoft.talk.App;
 
 /**
@@ -44,7 +42,10 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
              
             try {
-                Server.clients.put(remoteIp, new LinkedBlockingQueue[2]);
+                LinkedBlockingQueue[] messageQueues=
+                {new LinkedBlockingQueue<String>(), new LinkedBlockingQueue<String>()};
+                
+                Server.clients.put(remoteIp, messageQueues);
                 
                 clientFile=new File(Paths.get(App.class
                         .getResource("userBuffers").toURI()).toString(),
@@ -80,9 +81,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         new ClientInputWriter(this.clientFile, this.socketIn,
                 this.remoteIp));
         
-                /*this.executorService.execute(
+                this.executorService.execute(
         new ClientOutputSender(this.clientFile, this.socketOut,
-                this.remoteIp));*/
+                this.remoteIp));
     
         this.executorService.shutdown();
     }
@@ -149,11 +150,10 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             @Override
             public void run() {
 
-                var incomingsQueue=
-                        (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
+                var incomingsQueue=Server.clients.get(ip)[0];
                 
                 this.loadUnreadMessages(incomingsQueue);
-
+                
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {
@@ -185,8 +185,8 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         }
         
         /**
-         * Waits for data to be written to queue, then sends the data through
-         * socket Output Stream.
+         * Waits for data to be written to file, then forwards the data to
+         * queue to send through socket Output Stream.
          * The queue is static on Server class, and accessible by other classes 
          * to write data to send.
          */
@@ -208,22 +208,30 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 ExecutorService service=Executors.newSingleThreadExecutor();
                 
                 service.execute(()->{
-                    try {
+                    
+                    try {//create if do not exists
+                        Files.createFile(Paths.get(
+                                userBufferPath.toString(),"OUT"));
+                    } catch(FileAlreadyExistsException ex){
+                    
+                    } catch (IOException ex) {
+                        App.logger.log(Level.SEVERE,"Error while creating "
+                        + "OUT file of "+this.ip +". return;",ex);
+                        return;
+                    }
+                    
+                    try {//open bind to BufferedReader in case of other classes may write data
                         this.unreadOUT=Files.newBufferedReader(Paths.get(
                                 this.userBufferPath.toString(),"OUT"));
-                    } catch (FileNotFoundException ex){
-                        App.logger.log(Level.FINEST,"No unsend messages"
-                                    + " of OUT for "+this.ip+". Pass to load",ex);
-                        return;
-                    }catch (IOException ex) {
+                    } catch (IOException ex) {
                         App.logger.log(Level.SEVERE,"Error while processing "
                         + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
                         return;
                     }
-
+                    //Check for if other classes wrote something
                     while( !Thread.currentThread().isInterrupted() ){
                         try{
-
+                            
                             while( !this.unreadOUT.ready() ){
                                 Thread.sleep(12000);
                             }
@@ -255,10 +263,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             @Override
             public void run() {
                 
-                var outgoingsQueue=
-                        (Server.clients.get(ip)[0]=new LinkedBlockingQueue());
+                var outgoingsQueue=Server.clients.get(ip)[1];
                 
-                this.loadUnsendMessages(outgoingsQueue);
+                this.loadUnsendMessages(outgoingsQueue);//runs in thread
                 
                 while( !Thread.currentThread().isInterrupted() ){
 
