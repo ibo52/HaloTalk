@@ -95,10 +95,13 @@ public class HostSelectorController implements Initializable {
         
         LANBrowser();
 
-        this.appendUser(new ObservableUser("testing@127.0.0.1","test","user",2,
+        this.appendUser(new ObservableUser("testing@127.0.0.1","loopback","user",2,
                 "This is a loopback address for Testing purposes",
         "127.0.0.1"));
         
+        this.appendUser(new ObservableUser("testing@unreachable","unreachable","user",2,
+                "This is a sample No use address for Testing purposes",
+        "192.0.192.0"));
         // TODO
     }
     
@@ -310,11 +313,9 @@ public class HostSelectorController implements Initializable {
     private void setttingsButtonMouseClicked(MouseEvent event) {
         try {
             Parent uSettings=App.loadFXML("view/setting/userSettings");
-            
-            Node n=this.leftStackPane.getChildren().get(0);
-
-            this.leftStackPane.getChildren().clear();
-            this.leftStackPane.getChildren().add(n);
+            //remove all components on stackpane except first
+            this.leftStackPane.getChildren().remove
+                        (1, this.leftStackPane.getChildren().size());
             
             this.leftStackPane.getChildren().add(uSettings);
         } catch (IOException ex) {
