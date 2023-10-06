@@ -15,7 +15,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
@@ -173,9 +172,8 @@ public class UserInfoBoxController implements Controllable,
             imageDetailsController.setUserData(this.userData);
             
             //remove all components on stackpane except first
-            Node n=leftStackPane.getChildren().get(0);
-            leftStackPane.getChildren().clear();
-            leftStackPane.getChildren().add(n);
+            leftStackPane.getChildren().remove
+                                (1, leftStackPane.getChildren().size());
             
             imageDetailsController.setParentController(parentController);
             leftStackPane.getChildren().add(imageDetails);

@@ -19,8 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import javafx.application.Platform;
 import org.halosoft.talk.App;
 
 /**
@@ -53,13 +51,14 @@ public class Client extends CommunicationObject{
             REMOTE_KEY=CLI_KEY;
             
         }catch( SocketTimeoutException ex ){
+            
             try {
-                App.logger.log(Level.FINEST,"Server does not respond."
-                        + " Socket Output will be forward to OUT file",ex);
-                
+                App.logger.log(Level.INFO,"Server does not respond."
+                        + " Socket Output will be redirect to OUT file");
+
                 //forward output to userBuffers file of OUT if no connection established
-                File userBufferPath=new File(App.class.
-                        getResource("userBuffers").toURI().toString(),
+                File userBufferPath=new File(Paths.get(App.class.
+                        getResource("userBuffers").toURI()).toString(),
                         this.getRemoteIp());
                 //create directories
                 Files.createDirectories(userBufferPath.toPath());
@@ -69,25 +68,27 @@ public class Client extends CommunicationObject{
                                 userBufferPath.toString(),"OUT").toFile(),true )));
                 
             } catch (IOException ex1) {
-                App.logger.log(Level.FINEST,"Error while redirecting Socket"
-                        + "outPut to a file",ex1);
+                App.logger.log(Level.SEVERE,"Error while redirecting Socket"
+                        + "output to a file",ex1);
                 System.exit(ex1.hashCode());
                 
             } catch (URISyntaxException ex1) {
-                App.logger.log(Level.FINEST,"Error while redirecting Socket"
-                        + "outPut to a file: Wrong URI given to path",ex1);
+                App.logger.log(Level.SEVERE,"Error while redirecting Socket"
+                        + "output to a file: Wrong URI given to path",ex1);
                 System.exit(ex1.hashCode());
             }
             
         }catch (ConnectException ex) {
-            System.err.println("Client could not connect to Address:"+this.getRemoteIp()+".\n"
-                    + "Possibly server is down or not accessible due to firewall.\n"
-                    + "Returned error is:"+ex.getMessage());
+            App.logger.log(Level.SEVERE,"Client could not connect to "
+                    + "Address:"+this.getRemoteIp()+".\n"
+                    + "Possibly server is down or not accessible "
+                            + "due to firewall configurations.\n",ex);
+
             System.exit(ex.hashCode());
             
         } catch (IOException ex) {
-            System.err.println(this.getClass().getName()+" initialize:"+ex.getMessage());
-
+            App.logger.log(Level.SEVERE,"Error while"
+                    + " initializing socket",ex);
             System.exit(ex.hashCode());
         }
     }
@@ -137,9 +138,7 @@ public class Client extends CommunicationObject{
     }
     
     public void stop(){
-        this.executorService.shutdownNow();
         super.stopCommunicationThreads();
-        
-        //overrided for later possible implements
+        this.executorService.shutdownNow();
     }
 }

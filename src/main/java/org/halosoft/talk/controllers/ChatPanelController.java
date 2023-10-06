@@ -7,6 +7,7 @@ package org.halosoft.talk.controllers;
 
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -59,9 +60,9 @@ public class ChatPanelController implements Controllable,
     
     private HostSelectorController parentController;
     
-    private File HISTPath;
+    private File userBufferPath; //path to HIST, OUT files
 
-    private FileWriter chatHistory;
+    private BufferedWriter chatHistory;//file to keep chat history
     
     private ExecutorService executorService;
     
@@ -109,7 +110,8 @@ public class ChatPanelController implements Controllable,
         this.statusBar.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
 
             Pane uContact;
-            this.stackPane.getChildren().clear();
+            ////remove all components on stackpane except first
+            this.stackPane.getChildren().remove(1, this.stackPane.getChildren().size());
             
             try {
                 uContact = (Pane) App.loadFXML("view/userContact");
@@ -158,31 +160,19 @@ public class ChatPanelController implements Controllable,
     
     private void initChatHistoryWriter(){
         try {
-            this.chatHistory=new FileWriter(new File( 
-                  HISTPath, "HIST" ), true);
+            this.chatHistory=new BufferedWriter(new FileWriter(new File( 
+                  userBufferPath, "HIST" ), true));
             
-        } catch (FileNotFoundException ex) {
-            try {
-                
-                Files.createFile(new File(HISTPath, "HIST").toPath());
-                
-                this.chatHistory=new FileWriter(new File( 
-                  HISTPath, "HIST" ), true);
-                
-            } catch (IOException ex1) {
-                App.logger.log(Level.SEVERE, 
-                        "Error while creating HIST file",ex1);
-            }
         } catch (IOException ex) {
-            App.logger.log(Level.FINEST, 
-                        "No HIST file found. Will create one",ex);
+            App.logger.log(Level.SEVERE, 
+                        "Error while opening HIST file",ex);
         }
     }
     
     private void initMessages(){
         try {
             BufferedReader reader=new BufferedReader(new FileReader(
-                    Paths.get(HISTPath.toString(),
+                    Paths.get(userBufferPath.toString(),
                             "HIST" ).toFile()));
             
             String line;
@@ -234,11 +224,11 @@ public class ChatPanelController implements Controllable,
             //connect to desired remote end according to userData
             remoteClient=new Client( this.userData.getID() );
             try {
-                HISTPath=new File(Paths.get(App.class.
+                userBufferPath=new File(Paths.get(App.class.
                         getResource("userBuffers").toURI()).toString(),
                         this.remoteClient.getRemoteIp());
             
-            Files.createDirectories(HISTPath.toPath());
+            Files.createDirectories(userBufferPath.toPath());
             } catch (URISyntaxException ex) {
                 App.logger.log(Level.WARNING, 
                         "Error while making directories of user buffer",ex);
@@ -285,8 +275,7 @@ public class ChatPanelController implements Controllable,
             }else{
                 this.chatHistory.write("you:"+message);
             }
-            this.chatHistory.write("\n");
-            this.chatHistory.flush();
+            this.chatHistory.write(System.lineSeparator());
             
         }catch(IOException ex){
             App.logger.log(Level.SEVERE, 
@@ -301,16 +290,17 @@ public class ChatPanelController implements Controllable,
         executorService.execute(() -> {
             
             //wait for ServerHandler to initialize message queue,
-            //which means: check if remote end connected to us(sended any message)
-            while (  Server.clients.get(this.userData.getID())  ==  null  ){
+            //which means: check if remote end connected to us(or sended any message)
+            while (  Server.clients.get(this.userData.getID())  ==  null
+                    || Server.clients.get(this.userData.getID())[0]  ==  null){
                 try {
                     Thread.sleep(1000);
                     
                 } catch (InterruptedException ex) {
-                    App.logger.log(Level.SEVERE, 
+                    App.logger.log(Level.FINEST, 
                         "interrupted while setting variable"
                                 + " 'incomingsQueue'",ex);
-                    break;
+                    return;
                 }
             }
             LinkedBlockingQueue<String> incomingsQueue=
