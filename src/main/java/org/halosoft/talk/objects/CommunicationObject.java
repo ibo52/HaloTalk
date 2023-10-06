@@ -7,7 +7,6 @@ package org.halosoft.talk.objects;
 import org.halosoft.talk.adapters.SocketHandlerAdapter;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.logging.Level;
 import org.halosoft.talk.App;
 
@@ -106,6 +105,8 @@ public class CommunicationObject extends SocketHandlerAdapter{
         executorService.shutdownNow();
         
         try {
+            this.socketOut.writeUTF("SHUTDOWN");//send close signal
+            
             this.client.close();
             
             socketOut.close();
