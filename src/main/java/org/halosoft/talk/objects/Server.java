@@ -36,6 +36,17 @@ public class Server extends SocketHandlerAdapter {
     public static final HashMap<String,
             LinkedBlockingQueue<String>[]> clients=new HashMap<>();//ipc instead of write to file
     
+    public static enum Queue{IN(0),OUT(1);
+        private final int numeric;
+
+        private Queue(int val){
+            this.numeric=val;
+        }
+        public int getValue(){
+            return this.numeric;
+        }   
+    };
+    
     private ServerSocket server;
     
     private RSA rsa;
@@ -106,7 +117,7 @@ public class Server extends SocketHandlerAdapter {
                         
                         long[] CLI_KEY=handshake();
                         REMOTE_KEY=CLI_KEY;
-                        
+
                         ServerHandler serverHandler=new ServerHandler
                                                   (client1,CLI_KEY);
                         
@@ -244,5 +255,28 @@ public class Server extends SocketHandlerAdapter {
             }
         }
             
+    }
+    
+    /**
+     * initialize Desired queue of remote user in HashMap. If HashMap for 
+     * the user is not initialized, it will be also initialized before queue.
+     * @param ip user id of where queue to be mapped
+     * @param which which queue of user to initialize
+     */
+    public static synchronized void initializeQueue(String ip,Queue which){
+        
+        if (Server.clients.get(ip)==null ) {
+            Server.clients.put(ip, new LinkedBlockingQueue[2]);
+        }
+        if ( Server.clients.get(ip)[which.getValue()]==null ) {
+            Server.clients.get(ip)[which.getValue()]=
+                new LinkedBlockingQueue<String>();
+        }
+    }
+    
+    public static synchronized LinkedBlockingQueue<String>
+                                    getQueue(String ip,Queue which){
+                                        
+        return Server.clients.get(ip)[which.getValue()];
     }
 }
