@@ -28,7 +28,7 @@ public class CommunicationObject extends SocketHandlerAdapter{
         this(ipAddr,50001);
     }
     
-    private class Receiver implements Runnable{
+    protected class Receiver implements Runnable{
         
         @Override
         public void run(){
@@ -37,6 +37,10 @@ public class CommunicationObject extends SocketHandlerAdapter{
             
                 try {
                     String message=socketIn.readUTF();
+                    if (message.equals("SHUTDOWN")) {
+                        stopCommunicationThreads();
+                        break;
+                    }
                     System.out.printf("<%s:%d> :%s\n",client.getInetAddress().getHostAddress(), client.getPort(),message );
 
                 } catch( EOFException ex ){
@@ -59,7 +63,7 @@ public class CommunicationObject extends SocketHandlerAdapter{
         }
     }
     
-    private class Sender implements Runnable{
+    protected class Sender implements Runnable{
         
         @Override
         public void run(){
