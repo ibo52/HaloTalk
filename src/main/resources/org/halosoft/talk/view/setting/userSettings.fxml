@@ -7,7 +7,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="rootPane" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.UserSettingsController">
+<StackPane fx:id="rootPane" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.setting.UserSettingsController">
    <children>
       <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
          <content>

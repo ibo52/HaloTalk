@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox fx:id="rootPane" alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="60.0" spacing="10.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.GeneralSettingController">
+<HBox fx:id="rootPane" alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="60.0" spacing="10.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.setting.GeneralSettingController">
    <children>
       <ImageView fx:id="settingImage" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
          <image>

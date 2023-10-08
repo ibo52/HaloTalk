@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
  */
-package org.halosoft.talk.controllers;
+package org.halosoft.talk.controllers.setting;
 
 import java.io.IOException;
 import java.net.URL;
@@ -20,6 +20,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
 import org.halosoft.talk.adapters.SettingsPaneAdapter;
+import org.halosoft.talk.controllers.HostSelectorController;
 import org.halosoft.talk.interfaces.Controllable;
 /**
  * FXML Controller class

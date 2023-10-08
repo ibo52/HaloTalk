@@ -15,7 +15,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
-import org.halosoft.talk.controllers.GeneralSettingController;
+import org.halosoft.talk.controllers.setting.GeneralSettingController;
 import org.halosoft.talk.interfaces.Controllable;
 
 /**
