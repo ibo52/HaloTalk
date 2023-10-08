@@ -184,7 +184,7 @@ public class Server extends SocketHandlerAdapter {
         }
     }
     
-    public static void saveQueuesToFile(){
+    public static synchronized void saveQueuesToFile(){
         ExecutorService saveService=Executors.newFixedThreadPool(2);
         
         Server.clients.forEach((String key, LinkedBlockingQueue<String>[] value) -> {
@@ -205,6 +205,24 @@ public class Server extends SocketHandlerAdapter {
                         + "path. Data will lost since it could not save",ex);
             }
         });
+    }
+    public static synchronized void saveQueueToFile(String keyId, Queue which){
+        ExecutorService saveService=Executors.newSingleThreadExecutor();
+
+            try {
+                File savePath=Paths.get(App.class
+                        .getResource("userBuffers/"+keyId).toURI()).toFile();
+                
+                String fileName=which.getValue()==0? "IN":"OUT";
+                saveService.execute(
+                        new QueueSaver(savePath, fileName, 
+                                Server.getQueue(keyId, which)));
+                
+                
+            } catch (URISyntaxException ex) {
+                App.logger.log(Level.INFO, "Wrong URI given to "
+                        + "path. Data could not be saved",ex);
+            }
     }
     
     private static class QueueSaver implements Runnable{
