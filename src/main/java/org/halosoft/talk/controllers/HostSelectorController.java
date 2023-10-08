@@ -102,6 +102,10 @@ public class HostSelectorController implements Initializable {
         this.appendUser(new ObservableUser("testing@unreachable","unreachable","user",2,
                 "This is a sample No use address for Testing purposes",
         "192.0.192.0"));
+        
+        this.appendUser(new ObservableUser("testing@virtualbox","vbox","user",2,
+                "This is a sample vbox address for Testing purposes",
+        "192.168.1.95"));
         // TODO
     }
     
@@ -109,7 +113,7 @@ public class HostSelectorController implements Initializable {
      * Places chat panel of specific user to screen
      * @param ctrlr_userData information about remote user
      */
-    public void bringChatScreen(ObservableUser ctrlr_userData){
+    public synchronized void bringChatScreen(ObservableUser ctrlr_userData){
         try {
             if (this.chatPanelLayout.getCenter()!=null ) {
                 ChatPanelController oldCtrlr=(ChatPanelController) this.chatPanelLayout.getCenter().getUserData();
@@ -131,7 +135,7 @@ public class HostSelectorController implements Initializable {
                         
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
-                        HostSelectorController.class.getName(),ex);
+                        "Error occured while loading chat screen",ex);
         }
     }
     
@@ -174,8 +178,8 @@ public class HostSelectorController implements Initializable {
                 String hostIdentity=NetworkDeviceManager
                         .calculateNetworkIdentity(ni);
                 
-                App.logger.log(Level.INFO,"Selected network interface:"
-                        +ni.getName()+" in Default Gateway:"+hostIdentity);
+                System.out.println("Selected network interface:"
+                        +ni.getName()+" in network Identity:"+hostIdentity);
                 
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);

@@ -153,7 +153,7 @@ public class ObservableUser extends userObject {
     public SimpleStringProperty getStatusProperty(){
         return this.statusProperty;
     }
-
+    
     @Override
     public void setContents(userObject userData) {
         //super.setContents(userData); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody

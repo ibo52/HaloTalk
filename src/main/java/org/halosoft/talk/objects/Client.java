@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.halosoft.talk.App;
 
 /**
@@ -199,7 +198,7 @@ public class Client extends CommunicationObject{
      */
     public void send(String message){
         try {
-            this.socketOut.writeUTF(message);
+            this.socketOut.writeUTF(message+System.lineSeparator());
         
         } catch(NullPointerException ex){
             App.logger.log(Level.INFO,"possibly socket "
