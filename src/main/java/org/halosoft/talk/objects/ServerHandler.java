@@ -13,7 +13,9 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -41,11 +43,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         public ServerHandler(Socket socket, long[] remoteKey){
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
              
-            try {
-                LinkedBlockingQueue[] messageQueues=
-                {new LinkedBlockingQueue<String>(), new LinkedBlockingQueue<String>()};
-                
-                Server.clients.put(remoteIp, messageQueues);
+            try {//create queues of remote if not mapped before  
+                Server.initializeQueue(remoteIp, Server.Queue.IN);
+                Server.initializeQueue(remoteIp, Server.Queue.OUT);
                 
                 clientFile=new File(Paths.get(App.class
                         .getResource("userBuffers").toURI()).toString(),
@@ -150,7 +150,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             @Override
             public void run() {
 
-                var incomingsQueue=Server.clients.get(ip)[0];
+                var incomingsQueue=Server.getQueue(ip, Server.Queue.IN);
                 
                 this.loadUnreadMessages(incomingsQueue);
                 
@@ -174,12 +174,16 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         App.logger.log(Level.FINE, 
                         "EOF reached. Possibly socket In Stream is null",ex);
                         break;
+                        
+                    }catch(SocketException ex){
+                        App.logger.log(Level.FINE, 
+                        "Unexpected close of remote socket occured",ex);
+                        break;
                     }
                     catch ( IOException ex) {
                         
                         App.logger.log(Level.SEVERE, 
                         "Error while writing incoming messages to file",ex);
-                        Thread.currentThread().interrupt();
                         break;
                     }
                 }
@@ -206,7 +210,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 this.userBufferPath=pathFile;
             }
             
-            private final void loadUnsendMessages(LinkedBlockingQueue queue){
+            private final ExecutorService loadUnsendMessages(LinkedBlockingQueue queue){
                 
                 ExecutorService service=Executors.newSingleThreadExecutor();
                 
@@ -222,10 +226,11 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         + "OUT file of "+this.ip +". return;",ex);
                         return;
                     }
-                    
+
                     try {//open bind to BufferedReader in case of other classes may write data
-                        this.unreadOUT=Files.newBufferedReader(Paths.get(
-                                this.userBufferPath.toString(),"OUT"));
+                        this.unreadOUT=new BufferedReader(new InputStreamReader(
+                                Files.newInputStream(Paths.get(
+                                this.userBufferPath.toString(),"OUT"))));
                     } catch (IOException ex) {
                         App.logger.log(Level.SEVERE,"Error while processing "
                         + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
@@ -238,7 +243,12 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                             while( !this.unreadOUT.ready() ){
                                 Thread.sleep(12000);
                             }
-                            queue.add(this.unreadOUT.readLine());
+                            
+                            String m=this.unreadOUT.readLine().trim();
+                            if ( !m.isBlank() ) {
+                                
+                                queue.add(m);
+                            }
 
                         } catch (IOException ex) {
                             App.logger.log(Level.SEVERE,"Error while processing "
@@ -257,41 +267,49 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                                 userBufferPath.toString(),"OUT"));
 
                     } catch (IOException ex) {
-                        App.logger.log(Level.SEVERE,"Error while deleting "
+                        App.logger.log(Level.SEVERE,"Error while closing "
                                         + "OUT file of "+this.ip ,ex);
                     }
                 });
+                return service;
             }
             
             @Override
             public void run() {
                 
-                var outgoingsQueue=Server.clients.get(ip)[1];
+                var outgoingsQueue=Server.getQueue(ip, Server.Queue.OUT);
                 
-                this.loadUnsendMessages(outgoingsQueue);//runs in thread
+                ExecutorService loadUnsendMessagesTask=
+                        this.loadUnsendMessages(outgoingsQueue);//runs in thread
                 
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {//wait until some class write data to file
+                        
+                        String message=outgoingsQueue.take();
+                        
+                        try{//try to send message through socket
+                            this.out.writeUTF( message );
                             
-                        this.out.writeUTF( outgoingsQueue.take() );
+                        } catch ( IOException ex) {
+                        //in case of an error, return message back to queue
+                            App.logger.log(Level.SEVERE, 
+                            "Error while sending messages from OUT file to socket",ex); 
+                            outgoingsQueue.add(message);
+                            loadUnsendMessagesTask.shutdownNow();
+                            break;
                         
-                    } catch ( IOException ex) {
-                        
-                        App.logger.log(Level.SEVERE, 
-                        "Error while sending messages from OUT file to socket",ex); 
-                        break;
+                        }
                         
                     } catch (InterruptedException ex) {
                         App.logger.log(Level.WARNING, 
                         "interrupted while waiting to get message"
                                 + "from outgoingsQueue",ex);
+                        loadUnsendMessagesTask.shutdownNow();
                         break;
                     }
                 }
             }
 
         }
-
-        
 }
