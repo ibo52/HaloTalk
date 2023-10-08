@@ -8,6 +8,7 @@ package org.halosoft.talk.controllers;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -44,8 +45,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import org.halosoft.talk.App;
-import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.interfaces.Controllable;
+import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.ObservableUser;
 import org.halosoft.talk.objects.Server;
 /**
@@ -65,8 +66,8 @@ public class ChatPanelController implements Controllable,
     private BufferedWriter chatHistory;//file to keep chat history
     
     private ExecutorService executorService;
-    
-    private Client remoteClient;
+    private Client remoteCli;
+    private DataOutputStream Out;//instead of client, we use Server's  queue
     
     @FXML
     private BorderPane rootPane;
@@ -103,7 +104,7 @@ public class ChatPanelController implements Controllable,
                 sendButton.fireEvent(new MouseEvent(MouseEvent.MOUSE_CLICKED,
                         0, 0, 0, 0,MouseButton.PRIMARY, 1, true, true, true, true,
                         true, true, true, true, true, true, null));
-            }  
+            }
         });
         
         //when user image clicked, open contact
@@ -154,8 +155,6 @@ public class ChatPanelController implements Controllable,
                 this.bottomMessageBorder.maxHeightProperty());
         
         executorService=Executors.newCachedThreadPool();
-        this.userData=new ObservableUser();
-        this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
     }
     
     private void initChatHistoryWriter(){
@@ -203,7 +202,7 @@ public class ChatPanelController implements Controllable,
         try {
             this.executorService.shutdownNow();
             
-            this.remoteClient.stop();
+            this.remoteCli.stop();
             this.chatHistory.close();
             
         } catch(NullPointerException ex){
@@ -219,14 +218,19 @@ public class ChatPanelController implements Controllable,
     
     public void setContents(ObservableUser userData){
         try {
-            this.userData.setContents(userData);
+            this.userData=userData;
+            this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
             
-            //connect to desired remote end according to userData
-            remoteClient=new Client( this.userData.getID() );
+            this.remoteCli=new Client(this.userData.getID());
+            
+            //initialize OUT queue to send messages through it
+            Server.initializeQueue(this.userData.getID(), Server.Queue.OUT);
+            //Server.getQueue(this.userData.getID(), Server.Queue.OUT);
+            
             try {
                 userBufferPath=new File(Paths.get(App.class.
                         getResource("userBuffers").toURI()).toString(),
-                        this.remoteClient.getRemoteIp());
+                        this.userData.getID());
             
             Files.createDirectories(userBufferPath.toPath());
             } catch (URISyntaxException ex) {
@@ -287,12 +291,32 @@ public class ChatPanelController implements Controllable,
      */
     private void listenMessage(){
         
+        executorService.execute(()->{
+            //also listen for client socketIn
+            
+            while( !Thread.currentThread().isInterrupted() ){
+                String message=this.remoteCli.receive();
+                
+                if (message==null  || message.equals("SHUTDOWN")) {
+                    break;
+                }
+
+                System.out.println("received from server to cli:"+message);
+                Platform.runLater( ()->{
+                    addMessage(message.trim(), Pos.TOP_LEFT);
+                });
+                //save message history to file
+                this.saveToFile(message.trim(), Pos.TOP_LEFT);
+                
+            }
+        });
+        
         executorService.execute(() -> {
             
             //wait for ServerHandler to initialize message queue,
             //which means: check if remote end connected to us(or sended any message)
-            while (  Server.clients.get(this.userData.getID())  ==  null
-                    || Server.clients.get(this.userData.getID())[0]  ==  null){
+            
+            while ( Server.getQueue(this.userData.getID(),Server.Queue.IN)  ==  null){
                 try {
                     Thread.sleep(1000);
                     
@@ -304,31 +328,22 @@ public class ChatPanelController implements Controllable,
                 }
             }
             LinkedBlockingQueue<String> incomingsQueue=
-                    Server.clients.get(this.userData.getID())[0];
-
+                    Server.getQueue(this.userData.getID(), Server.Queue.IN);
+            
+            
             while ( !Thread.currentThread().isInterrupted() ){
-                
+
                 try {
-                    
-                    String message=incomingsQueue.take();
-                    
-                    Platform.runLater( ()->{
-                        addMessage(message, Pos.TOP_LEFT);
-                    });
-                    //save message history to file
-                    this.saveToFile(message, Pos.TOP_LEFT);
-                    
-                } catch(NullPointerException ex){
-                    App.logger.log(Level.SEVERE, 
-                        "incomingsQueue is possibly null",ex);
-                    break;
-                    
+                   String message = incomingsQueue.take(); //this.remoteCli.receive();
+
+                Platform.runLater( ()->{
+                    addMessage(message, Pos.TOP_LEFT);
+                });
+                //save message history to file
+                this.saveToFile(message, Pos.TOP_LEFT);
+                
                 } catch (InterruptedException ex) {
-                    App.logger.log(Level.FINEST, 
-                        "interrupted while getting messages from "
-                                + "incomingsQueue",ex);
-                    
-                    break;
+                    App.logger.log(Level.INFO,"IN queue listener interrupted",ex);
                 }
             }
         });
@@ -345,20 +360,9 @@ public class ChatPanelController implements Controllable,
             //save message history to file
             this.saveToFile(message, Pos.TOP_RIGHT);
             
-            try {
-                //send message to remote end
-                this.remoteClient.getSocketOutputStream().writeUTF(message);
-            } catch(NullPointerException ex){
+            //send message to remote end
+            this.remoteCli.send(message);
 
-                App.logger.log(Level.SEVERE, 
-                        "Messsage could not send through client object",ex);
-                
-            }catch (IOException ex) {
-                App.logger.log(Level.SEVERE, 
-                        "Error while sending message to remote end",ex);
-            }
-            
-            
             this.messageTextField.setText("");
         }
     }
