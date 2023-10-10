@@ -33,12 +33,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
+import org.halosoft.talk.controllers.setting.UserSettingsController;
 import org.halosoft.talk.objects.BroadcastClient;
 import org.halosoft.talk.objects.Broadcaster;
-import org.halosoft.talk.objects.Client;
 import org.halosoft.talk.objects.NetworkDeviceManager;
 import org.halosoft.talk.objects.ObservableUser;
 import org.halosoft.talk.objects.Server;
+import org.halosoft.talk.objects.userObject;
 
 /**
  * FXML Controller class
@@ -47,12 +48,11 @@ import org.halosoft.talk.objects.Server;
  */
 public class HostSelectorController implements Initializable {
     
-    private final ScheduledExecutorService executorService;    //executor to run runnables on thread
+    private final ScheduledExecutorService LANBrowserService;    //executor to run runnables on thread
     
     private final Server server;              //to let others conect to you
     
-    private Client connectorClient;     //to request connection from others
-    protected final Broadcaster LANBroadcaster; //to browse for local devices that use this program
+    protected final Broadcaster statusBroadcaster; //to emit info about your existence for LAN devices that use this program
     
     @FXML
     private VBox usersBox;
@@ -82,10 +82,10 @@ public class HostSelectorController implements Initializable {
         server=new Server();
         server.start();
         
-        LANBroadcaster=new Broadcaster("0.0.0.0");
-        LANBroadcaster.start();
+        statusBroadcaster=new Broadcaster("0.0.0.0");
+        statusBroadcaster.start();
         
-        executorService=Executors.newScheduledThreadPool(1);
+        LANBrowserService=Executors.newScheduledThreadPool(1);
     }
     /**
      * Initializes the controller class.
@@ -247,7 +247,7 @@ public class HostSelectorController implements Initializable {
     
     private void LANBrowser(){
 
-        executorService.scheduleAtFixedRate(new LANBrowser(),
+        LANBrowserService.scheduleAtFixedRate(new LANBrowser(),
                 0, 5, TimeUnit.SECONDS);
         
         //executorService.shutdown();
@@ -301,6 +301,15 @@ public class HostSelectorController implements Initializable {
         
     }
     
+    /**
+     * update the broadcaster variables that contains personal 
+     * information of current user
+     * @param userData personal information to update with old
+     */
+    public void updateBroadcasterData(userObject userData){
+        this.statusBroadcaster.setContents(userData);
+    }
+    
     @FXML
     private void searchPaneUndoButtonMouseClicked(MouseEvent event) {
         this.searchButton.fireEvent(event);
@@ -317,6 +326,8 @@ public class HostSelectorController implements Initializable {
     private void setttingsButtonMouseClicked(MouseEvent event) {
         try {
             Parent uSettings=App.loadFXML("view/setting/userSettings");
+            UserSettingsController ctrlr=(UserSettingsController) uSettings.getUserData();
+            ctrlr.setParentController(this);
             //remove all components on stackpane except first
             this.leftStackPane.getChildren().remove
                         (1, this.leftStackPane.getChildren().size());
