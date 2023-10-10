@@ -29,7 +29,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import org.halosoft.talk.controllers.UserInfoBoxController;
+import org.halosoft.talk.controllers.HostSelectorController;
 import org.halosoft.talk.interfaces.Animateable;
 import org.halosoft.talk.interfaces.Controllable;
 import org.halosoft.talk.objects.ObservableUser;
@@ -43,7 +43,7 @@ public class AccountController implements Initializable, Controllable,
         Animateable{
     
     private final ObservableUser userData;
-    private Object parentController;
+    private HostSelectorController parentController;
     
     @FXML
     private StackPane rootPane;
@@ -112,6 +112,7 @@ public class AccountController implements Initializable, Controllable,
         this.userStatus.getSelectionModel().selectedIndexProperty()
                 .addListener((il)->{
                     
+                    this.parentController.updateBroadcasterData(userData);
                     //save to file when status changed
                     ObservableUser.savePropertiesToFile(
                         this.userData.getProperties(), 
@@ -152,6 +153,7 @@ public class AccountController implements Initializable, Controllable,
     
     @FXML
     private void undoButtonMouseClicked(MouseEvent event) {
+        this.undoButton.setDisable(true);
         this.stopAnimation();
     }
 
@@ -163,7 +165,18 @@ public class AccountController implements Initializable, Controllable,
             String text=this.editField.getText().trim();
             if ( !text.isBlank() ) {
                 
-                this.userData.setName(text);
+                int surnameIdx=text.lastIndexOf(" ");
+                if (surnameIdx>0) {
+                    this.userData.setName(
+                      text.substring(0,surnameIdx));
+                    this.userData.setSurname(
+                    text.substring(surnameIdx,text.length()));
+                }else{
+                    this.userData.setName(text);
+                    this.userData.setSurname("*");
+                }
+                
+                this.parentController.updateBroadcasterData(userData);
                 
                 ObservableUser.savePropertiesToFile(
                         this.userData.getProperties(), 
@@ -183,6 +196,8 @@ public class AccountController implements Initializable, Controllable,
                 
                 this.userData.setStatusMessage(text);
                 
+                this.parentController.updateBroadcasterData(userData);
+                
                 ObservableUser.savePropertiesToFile(
                         this.userData.getProperties(), 
                         null, null);
@@ -197,7 +212,7 @@ public class AccountController implements Initializable, Controllable,
 
     @Override
     public void setParentController(Object controller) {
-        this.parentController=controller;
+        this.parentController=(HostSelectorController)controller;
     }
 
     @Override
