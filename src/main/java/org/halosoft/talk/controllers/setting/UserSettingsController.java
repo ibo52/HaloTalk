@@ -52,7 +52,10 @@ public class UserSettingsController extends SettingsPaneAdapter
         account.setOnMouseClicked((eh)->{
             try {
                 Parent view=App.loadFXML("view/setting/account");
-
+                AccountController ctrlr=(AccountController) view.getUserData();
+                
+                ctrlr.setParentController(this.parentController);
+                
                 this.rootPane.getChildren().add(view);
             
             } catch (IOException ex) {
@@ -61,16 +64,16 @@ public class UserSettingsController extends SettingsPaneAdapter
             }
         });
         
-            Node prefs=this.addSetting("Preferences", "chat preferences, themes",
-                new Image(App.class.getResource
-        ("/images/icons/chat.png").toString()));
+        Node prefs=this.addSetting("Preferences", "chat preferences, themes",
+            new Image(App.class.getResource
+                ("/images/icons/chat.png").toString()));
             
-            prefs.setOnMouseClicked((eh)->{
+        prefs.setOnMouseClicked((eh)->{
             try {
                 Parent view=App.loadFXML("view/setting/preferences");
 
                 this.rootPane.getChildren().add(view);
-            
+
             } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, "Error while loading View: preferences"
                         , ex);
