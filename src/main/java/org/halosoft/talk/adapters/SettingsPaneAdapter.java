@@ -49,8 +49,6 @@ public abstract class SettingsPaneAdapter implements Initializable, Controllable
                 ctrlr.setSettingContents(contents);
                 ctrlr.setSettingImage(img);
                 
-                ctrlr.setParentController(this);
-                
                 this.settingsBox.getChildren().add(p);
 
                 return p;
