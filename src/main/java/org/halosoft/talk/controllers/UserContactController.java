@@ -19,12 +19,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.halosoft.talk.interfaces.Animateable;
@@ -47,7 +47,7 @@ public class UserContactController implements Controllable,
     @FXML
     private VBox userImageBox;
     @FXML
-    private ImageView userImage;
+    private Region userImage;
     @FXML
     private Label userID;
     @FXML
@@ -57,7 +57,7 @@ public class UserContactController implements Controllable,
     @FXML
     private Label userHostName;
     @FXML
-    private ImageView undoButton;
+    private Button undoButton;
 
     /**
      * Initializes the controller class.

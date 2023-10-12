@@ -19,10 +19,10 @@ import javafx.scene.Parent;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -43,7 +43,7 @@ public class UserInfoBoxController implements Controllable,
     private ObservableUser userData;
     
     @FXML
-    private ImageView userImage;
+    private Region userImage;
     @FXML
     private Label userID;
     @FXML

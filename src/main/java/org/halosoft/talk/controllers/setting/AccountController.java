@@ -26,6 +26,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -52,23 +53,17 @@ public class AccountController implements Initializable, Controllable,
     @FXML
     private ImageView userImage;
     @FXML
-    private ImageView userImageEditButton;
+    private Region userImageEditButton;
     @FXML
-    private ImageView undoButton;
+    private Region undoButton;
     @FXML
     private HBox nameEditBox;
-    @FXML
-    private ImageView settingImage;
     @FXML
     private Label userName;
     @FXML
     private HBox statusEditBox;
     @FXML
-    private ImageView settingImage1;
-    @FXML
     private HBox aboutEditBox;
-    @FXML
-    private ImageView settingImage11;
     @FXML
     private ComboBox<String> userStatus;
     @FXML

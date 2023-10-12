@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -114,7 +115,6 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             private final String ip;
             private final DataInputStream in;
             private final File userBufferPath;
-            private Scanner unreadIN;
             
             public ClientInputWriter(File pathFile, DataInputStream sockIn
             ,String socketIp){
@@ -126,17 +126,14 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             
             private final void loadUnreadMessages(LinkedBlockingQueue queue){
                 
-                try {
-                    this.unreadIN=new Scanner(Paths.get(
-                            userBufferPath.toString(),"IN"));
-                    
-                    while(this.unreadIN.hasNext()){
-                        queue.add(this.unreadIN.nextLine());
-                    }
-                    this.unreadIN.close();
-                    
+                try {//load unread messages
+                    List<String> unreadIN=Files.readAllLines( Paths.get(
+                            userBufferPath.toString(),"IN") );
+                    //add to queue
+                    queue.addAll(unreadIN);
+                    //delete file
                     Files.delete(Paths.get(
-                            userBufferPath.toString(),"IN"));
+                        userBufferPath.toString(),"IN"));
                     
                 }catch (FileNotFoundException ex){
                     App.logger.log(Level.FINEST,"No unread messages"

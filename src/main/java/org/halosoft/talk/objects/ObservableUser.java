@@ -7,6 +7,7 @@ package org.halosoft.talk.objects;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,9 +36,27 @@ public class ObservableUser extends userObject {
 
     public ObservableUser() {
         
-        this("unknown@empty" ,"name","surname",2,
-                "Heyyo! I am using HaloTalk",
-                "127.0.0.1");
+        this.props=new Properties();
+        this.initProperties();
+        
+        try {
+            props.load(App.class.getResourceAsStream("settings/"
+                    + "broadcaster.properties"));
+        } catch (IOException ex) {
+            App.logger.log(Level.FINEST,"User Data could not load "
+                                    + "from disk. Pass",ex);
+        }
+        
+        this.nameProperty = new SimpleStringProperty(props.getProperty("NAME"));
+        this.surnameProperty = new SimpleStringProperty(props.getProperty("SURNAME"));
+        this.hostnameProperty = new SimpleStringProperty(this.hostName);
+        this.statusProperty = new SimpleStringProperty(props.getProperty("STATUS"));
+        this.statusMessageProperty = new SimpleStringProperty(props.getProperty("STATUS_MESSAGE"));
+        this.ipAddressProperty = new SimpleStringProperty(this.ipAddress);
+        
+        initListeners();
+        
+ 
     }
     
     public ObservableUser(String hostName, String name, String surname, int status,
@@ -92,12 +111,13 @@ public class ObservableUser extends userObject {
     
     private final void initProperties(){
             
-        props.put("NAME", this.nameProperty.get());
-        props.put("SURNAME", this.surnameProperty.get());
-        props.put("STATUS", this.statusProperty.get() );
-        props.put("STATUS_MESSAGE", this.statusMessageProperty.get());
+        props.put("NAME", this.name);
+        props.put("SURNAME", this.surname);
+        props.put("STATUS", this.status );
+        props.put("STATUS_MESSAGE", this.statusMessage);
         props.put("IMAGE", "/images/icons/person.png");
         //props.put("HOSTNAME", this.getHostName());
+        
     }
 
     @Override
@@ -225,8 +245,11 @@ public class ObservableUser extends userObject {
             props.load(App.class
                     .getResourceAsStream(packageRelativePath));
             
-            user=new ObservableUser( "empty@loadfromstatic",
-                    props.getProperty("NAME")
+            String name=props.getProperty("NAME");
+            String hostname=name+"@"+InetAddress.getLocalHost().getHostName();
+            
+            user=new ObservableUser( hostname,
+                    name
                     , props.getProperty("SURNAME"),
                     Integer.parseInt(props.getProperty("STATUS")),
             props.getProperty("STATUS_MESSAGE"),

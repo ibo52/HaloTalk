@@ -51,7 +51,7 @@ public class Client extends CommunicationObject{
             setSocketOutputStream( new DataOutputStream( client.getOutputStream() ) );
             
             long[] CLI_KEY=handshake();
-            REMOTE_KEY=CLI_KEY;System.out.println("CONNECt");
+            REMOTE_KEY=CLI_KEY;
             
         }catch( SocketTimeoutException ex ){
             App.logger.log(Level.INFO,"Server does not respond."
@@ -237,19 +237,23 @@ public class Client extends CommunicationObject{
             } catch(NullPointerException ex){
                 App.logger.log(Level.FINE,"possibly socket "
                         + "InStream is null",ex);
+                this.connected=false;
 
             } catch(EOFException ex){
                 App.logger.log(Level.FINE, 
                 "EOF reached. Possibly socket In Stream is closed and null",ex);
-
+                this.connected=false;
+                
             }catch(SocketException ex){
                 App.logger.log(Level.FINE, 
                 "Unexpected close of remote socket occured",ex);
+                this.connected=false;
             }
             catch ( IOException ex) {
 
                 App.logger.log(Level.SEVERE, 
                 "Error while writing incoming messages to file",ex);
+                this.connected=false;
                 Thread.currentThread().interrupt();
             }
         

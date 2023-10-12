@@ -20,6 +20,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
         -fx-mid-text-color   60%
     );
     -fx-background-color: -fx-background;
+    svg-image-fill-color:white; /* to fill svg backgrounds with*/
 }
 
 /*to make textArea corners rounded*/

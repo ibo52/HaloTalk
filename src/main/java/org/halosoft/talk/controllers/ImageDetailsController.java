@@ -18,11 +18,10 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import org.halosoft.talk.App;
@@ -41,33 +40,27 @@ public class ImageDetailsController implements Controllable,
     private ObservableUser userData;
     
     @FXML
-    private ImageView userImage;
-    @FXML
     private Label userID;
     @FXML
     private BorderPane rootPane;
     @FXML
     private StackPane stackPane;
     @FXML
-    private ScrollPane userImageBox;
+    private Pane userImageBox;
     @FXML
     private Button sendMessageButton;
     @FXML
     private Button showDetailsButton;
     @FXML
-    private ImageView undoButton;
+    private Region undoButton;
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
 
-        //this.rootPane.maxWidthProperty().bind();
-        
-        this.userImage.fitWidthProperty().bind(this.userImageBox.widthProperty());
-        this.userImage.fitHeightProperty().bind(this.userImageBox .heightProperty());
-        this.userImageBox.prefWidthProperty().bind(this.rootPane.widthProperty());
-        this.userImageBox.prefHeightProperty().bind(this.rootPane.heightProperty().multiply(0.92));
+        this.stackPane.prefWidthProperty().bind(this.rootPane.widthProperty());
+        this.stackPane.prefHeightProperty().bind(this.rootPane.heightProperty());
         
         this.rootPane.setVisible(false);
         this.startAnimation();
