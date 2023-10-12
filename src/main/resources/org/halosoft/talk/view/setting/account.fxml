@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -44,21 +45,14 @@
                               </VBox>
                            </content>
                         </ScrollPane>
-                        <ImageView fx:id="userImageEditButton" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true" StackPane.alignment="BOTTOM_RIGHT">
-                           <image>
-                              <Image url="@../../../../../images/icons/edit.png" />
-                           </image>
+                        <Region fx:id="userImageEditButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="32.0" prefWidth="32.0" styleClass="editButton" StackPane.alignment="BOTTOM_RIGHT">
                            <StackPane.margin>
                               <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                            </StackPane.margin>
-                        </ImageView>
+                        </Region>
                         <HBox alignment="TOP_RIGHT">
                            <children>
-                              <ImageView fx:id="undoButton" fitHeight="32.0" fitWidth="32.0" onMouseClicked="#undoButtonMouseClicked" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/undo.png" />
-                                 </image>
-                              </ImageView>
+                              <Region fx:id="undoButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#undoButtonMouseClicked" prefHeight="32.0" prefWidth="32.0" styleClass="undoButton" />
                            </children>
                         </HBox>
                      </children>
@@ -69,11 +63,11 @@
                      <children>
                         <HBox fx:id="nameEditBox" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" onMouseClicked="#nameEditBoxMouseClicked" spacing="10.0">
                            <children>
-                              <ImageView fx:id="settingImage" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/person.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="36.0" prefWidth="36.0" styleClass="userImage">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Region>
                               <VBox HBox.hgrow="ALWAYS">
                                  <children>
                                     <Label text="Name" wrapText="true">
@@ -99,20 +93,16 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </padding>
                               </VBox>
-                              <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/edit.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="24.0" prefWidth="24.0" styleClass="editButton" />
                            </children>
                         </HBox>
                         <HBox fx:id="statusEditBox" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" spacing="10.0">
                            <children>
-                              <ImageView fx:id="settingImage1" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/psychology_alt.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="36.0" prefWidth="36.0" styleClass="psychologyImage">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Region>
                               <VBox HBox.hgrow="ALWAYS">
                                  <children>
                                     <Label text="Status" wrapText="true">
@@ -134,20 +124,16 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </padding>
                               </VBox>
-                              <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/edit.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="24.0" prefWidth="24.0" styleClass="editButton" />
                            </children>
                         </HBox>
                         <HBox fx:id="aboutEditBox" layoutX="10.0" layoutY="104.0" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" onMouseClicked="#aboutEditBoxMouseClicked" spacing="10.0">
                            <children>
-                              <ImageView fx:id="settingImage11" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/info.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="36.0" prefWidth="36.0" styleClass="infoImage">
+                                 <HBox.margin>
+                                    <Insets left="5.0" top="5.0" />
+                                 </HBox.margin>
+                              </Region>
                               <VBox HBox.hgrow="ALWAYS">
                                  <children>
                                     <Label text="About me" wrapText="true">
@@ -173,11 +159,7 @@
                                     <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                  </padding>
                               </VBox>
-                              <ImageView fitHeight="36.0" fitWidth="36.0" pickOnBounds="true" preserveRatio="true">
-                                 <image>
-                                    <Image url="@../../../../../images/icons/edit.png" />
-                                 </image>
-                              </ImageView>
+                              <Region maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="24.0" prefWidth="24.0" styleClass="editButton" />
                            </children>
                         </HBox>
                      </children>
