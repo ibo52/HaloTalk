@@ -5,10 +5,9 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.ToolBar?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -21,22 +20,14 @@
                <content>
                   <VBox fx:id="userImageBox" alignment="CENTER" style="-fx-background-color: yellow; -fx-background-radius: 30% 30%;">
                      <children>
-                        <ImageView fx:id="userImage" fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../../../../images/icons/person.png" />
-                           </image>
-                        </ImageView>
+                        <Region fx:id="userImage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" styleClass="userImage" />
                      </children>
                   </VBox>
                </content>
             </ScrollPane>
             <HBox alignment="TOP_RIGHT">
                <children>
-                  <ImageView fx:id="undoButton" fitHeight="32.0" fitWidth="32.0" onMouseClicked="#undoButtonMouseClicked" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@../../../../images/icons/undo.png" />
-                     </image>
-                  </ImageView>
+                  <Button fx:id="undoButton" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#undoButtonMouseClicked" prefHeight="24.0" prefWidth="24.0" styleClass="undoButton" />
                </children>
             </HBox>
          </children>

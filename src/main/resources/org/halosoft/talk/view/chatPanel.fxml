@@ -10,6 +10,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
@@ -20,14 +21,14 @@
          <children>
             <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" HBox.hgrow="ALWAYS">
                <children>
-                  <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="115.0" pickOnBounds="true" preserveRatio="true">
+                  <Pane styleClass="userImage">
                      <HBox.margin>
                         <Insets left="5.0" />
                      </HBox.margin>
-                     <image>
-                        <Image url="@../../../../images/icons/person.png" />
-                     </image>
-                  </ImageView>
+                     <children>
+                        <ImageView fx:id="userImageView" fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true" />
+                     </children>
+                  </Pane>
                   <Label fx:id="userNameLabel" alignment="CENTER" text="User name or IP Address">
                      <HBox.margin>
                         <Insets left="10.0" />
@@ -71,7 +72,7 @@
             <TextArea fx:id="messageTextField" prefHeight="40.0" prefWidth="100.0" promptText="Type a message" wrapText="true" HBox.hgrow="ALWAYS" />
             <HBox alignment="TOP_RIGHT" HBox.hgrow="NEVER">
                <children>
-                  <Button fx:id="sendButton" mnemonicParsing="false" onMouseClicked="#sendButtonMouseClicked">
+                  <Button fx:id="sendButton" maxWidth="70.0" minWidth="50.0" mnemonicParsing="false" onMouseClicked="#sendButtonMouseClicked" prefWidth="60.0">
                      <cursor>
                         <Cursor fx:constant="HAND" />
                      </cursor>
@@ -85,7 +86,7 @@
                   </Button>
                </children>
                <HBox.margin>
-                  <Insets left="10.0" />
+                  <Insets />
                </HBox.margin>
             </HBox>
          </children>

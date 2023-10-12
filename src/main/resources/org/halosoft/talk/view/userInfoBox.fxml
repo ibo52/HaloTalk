@@ -3,9 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -60,11 +59,7 @@
    <left>
       <VBox fx:id="userImageBox" alignment="CENTER" onMouseClicked="#userImageBoxMouseClicked" prefHeight="72.0" prefWidth="72.0" style="-fx-background-color: red; -fx-background-radius: 30% 30%;" BorderPane.alignment="CENTER">
          <children>
-            <ImageView fx:id="userImage" fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true" smooth="false">
-               <image>
-                  <Image url="@../../../../images/icons/person.png" />
-               </image>
-            </ImageView>
+            <Region fx:id="userImage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="48.0" prefWidth="48.0" styleClass="userImage" />
          </children>
          <BorderPane.margin>
             <Insets />

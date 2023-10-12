@@ -9,6 +9,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
@@ -16,7 +17,7 @@
 <?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="480.0" prefWidth="880.0" stylesheets="@../stylesheet/default-style.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.HostSelectorController">
+<BorderPane fx:id="rootPane" prefHeight="480.0" prefWidth="880.0" stylesheets="@../stylesheet/default-style.css" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.HostSelectorController">
    <center>
       <BorderPane fx:id="chatPanelLayout" prefWidth="480.0" BorderPane.alignment="CENTER" />
    </center>
@@ -81,22 +82,13 @@
                         </HBox>
                         <HBox alignment="CENTER_RIGHT" spacing="5.0" HBox.hgrow="ALWAYS">
                            <children>
-                              <Button fx:id="searchButton" mnemonicParsing="false" onMouseClicked="#searchButtonMouseClicked">
+                              <Button fx:id="searchButton" mnemonicParsing="false" onMouseClicked="#searchButtonMouseClicked" prefHeight="32.0" prefWidth="42.0">
                                  <graphic>
-                                    <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../../../../images/icons/search.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button fx:id="settingsButton" alignment="CENTER_RIGHT" mnemonicParsing="false" onMouseClicked="#setttingsButtonMouseClicked" prefHeight="32.0" prefWidth="32.0">
+                                    <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="searchButton" />
+                                 </graphic></Button>
+                              <Button fx:id="settingsButton" alignment="CENTER_RIGHT" mnemonicParsing="false" onMouseClicked="#setttingsButtonMouseClicked" prefHeight="32.0" prefWidth="42.0">
                                  <graphic>
-                                    <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../../../../images/icons/settings.png" />
-                                       </image>
-                                    </ImageView>
+                                    <Pane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" styleClass="settingsButton" />
                                  </graphic></Button>
                            </children>
                            <HBox.margin>
