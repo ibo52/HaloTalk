@@ -23,35 +23,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     svg-image-fill-color:white; /* to fill svg backgrounds with*/
 }
 
-/*to make textArea corners rounded*/
-.text-area .scroll-pane {
-    -fx-background-color: transparent;
-}
-.text-area .scroll-pane .viewport{
-    -fx-background-color: transparent;
-}
-.text-area .scroll-pane .content{
-    -fx-background-color: transparent;
-}
-.text-area {
-  -fx-border-radius: 20 20 20 20;
-  -fx-background-radius: 20 20 20 20;
-
-  /* top-left, top-right, bottom-right, and bottom-left corners, in that 
-  order. */
-}
-
-/*To make TextField corners rounded*/
-.text-field{
-    -fx-border-radius: 20 20 20 20;
-    -fx-background-radius: 20 20 20 20;
-}
-
 /*HostSelector, ChatPanel statusBar*/
 #statusBar, #searchPane{
-    -fx-background-color: derive(-fx-base, 25%);
+    -fx-background-color: derive(statusbar-color, -40%);
 }
-#logo{
-    -fx-text-fill:linear-gradient(to right, #f01010 20%,#ffff10 30%,
-        #10f010 60%,#f010f0 90%,#404040 100%);
+.undoButton:hover{
+    -fx-background-color: svg-image-fill-color;
+    -fx-effect: dropshadow( gaussian,derive(svg-image-fill-color,25%), 5, 0.0, 0, 1);
 }
