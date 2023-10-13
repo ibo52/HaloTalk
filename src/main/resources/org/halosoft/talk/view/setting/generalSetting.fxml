@@ -2,19 +2,18 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <HBox fx:id="rootPane" alignment="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="60.0" spacing="10.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.talk.controllers.setting.GeneralSettingController">
    <children>
-      <ImageView fx:id="settingImage" fitHeight="48.0" fitWidth="48.0" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="@../../../../../images/icons/settings.png" />
-         </image>
-      </ImageView>
+      <Region fx:id="settingImage" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="42.0" prefWidth="42.0">
+         <HBox.margin>
+            <Insets />
+         </HBox.margin>
+      </Region>
       <VBox HBox.hgrow="ALWAYS">
          <children>
             <Label fx:id="settingName" text="Setting Name" wrapText="true">
@@ -36,4 +35,7 @@
          </padding>
       </VBox>
    </children>
+   <padding>
+      <Insets left="10.0" />
+   </padding>
 </HBox>
