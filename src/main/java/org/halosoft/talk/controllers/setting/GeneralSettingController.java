@@ -14,10 +14,9 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.util.Duration;
 import org.halosoft.talk.adapters.SettingsPaneAdapter;
 import org.halosoft.talk.interfaces.Animateable;
@@ -35,7 +34,7 @@ public class GeneralSettingController implements Initializable, Animateable,
     @FXML
     private Label settingContents;
     @FXML
-    private ImageView settingImage;
+    private Region settingImage;
     @FXML
     private Label settingName;
     @FXML
@@ -67,8 +66,8 @@ public class GeneralSettingController implements Initializable, Animateable,
         this.settingContents.setText(setttingContents);
     }
     
-    public void setSettingImage(Image settingImage){
-        this.settingImage.setImage(settingImage);
+    public void setSettingImage(String settingImage){
+        this.settingImage.getStyleClass().add(settingImage);
     }
 
     @Override

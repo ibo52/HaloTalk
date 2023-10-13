@@ -13,9 +13,9 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
@@ -37,7 +37,7 @@ public class UserSettingsController extends SettingsPaneAdapter
     @FXML
     private VBox settingsBox;
     @FXML
-    private ImageView undoButton;
+    private Region undoButton;
 
     /**
      * Initializes the controller class.
@@ -46,8 +46,7 @@ public class UserSettingsController extends SettingsPaneAdapter
     public void initialize(URL url, ResourceBundle rb) {
         
         Node account=this.addSetting("Account", "User data, preferences",
-                new Image(App.class.getResource
-        ("/images/icons/manage_accounts.png").toString()));
+               "manageAccountImage");
         
         account.setOnMouseClicked((eh)->{
             try {
@@ -65,8 +64,7 @@ public class UserSettingsController extends SettingsPaneAdapter
         });
         
         Node prefs=this.addSetting("Preferences", "chat preferences, themes",
-            new Image(App.class.getResource
-                ("/images/icons/chat.png").toString()));
+               "forumImage");
             
         prefs.setOnMouseClicked((eh)->{
             try {

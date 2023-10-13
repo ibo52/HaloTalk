@@ -4,15 +4,9 @@
  */
 package org.halosoft.talk.controllers.setting;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
@@ -26,12 +20,11 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -58,7 +51,7 @@ public class PreferencesController extends SettingsPaneAdapter
     @FXML
     private VBox settingsBox;
     @FXML
-    private ImageView undoButton;
+    private Region undoButton;
     private Object parentController;
     @FXML
     private HBox themeEditBox;
@@ -78,8 +71,7 @@ public class PreferencesController extends SettingsPaneAdapter
         styleProperties=new Properties();
         
         Node theme=this.addSetting("Theme", "Default style for interface."
-                + " White, Dark mode",new Image(App.class
-                .getResource("/images/icons/manage_accounts.png").toString()));
+                + " White, Dark mode", "manageAccountImage");
         
         themeMap=observableHashMap();
         
@@ -94,9 +86,8 @@ public class PreferencesController extends SettingsPaneAdapter
             
             String style=App.class.getResource( this.themeMap.get(e) ).toString();
 
-            this.rootPane.getScene().getStylesheets().clear();
-            this.rootPane.getScene().getStylesheets().add(style);
-            
+            this.rootPane.getScene().getRoot().getStylesheets().clear();
+            this.rootPane.getScene().getRoot().getStylesheets().add(style);
             styleProperties.setProperty("DEFAULT_STYLESHEET", 
                 this.themeMap.get(e));
             
