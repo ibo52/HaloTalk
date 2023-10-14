@@ -10,8 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.halosoft.talk.App;
@@ -29,7 +28,7 @@ public abstract class SettingsPaneAdapter implements Initializable, Controllable
     @FXML
     protected VBox settingsBox;
     @FXML
-    protected ImageView undoButton;
+    protected Region undoButton;
     
     /**
      * Add setting to View of controllers, which is a container
@@ -38,7 +37,7 @@ public abstract class SettingsPaneAdapter implements Initializable, Controllable
      * @param contents  explanation of context of setting
      * @param img general image that defines this setting
      */
-    protected final Node addSetting(String name, String contents, Image img){
+    protected final Node addSetting(String name, String contents, String CssClassOfSVG){
 
             try {
                 // TODO
@@ -47,7 +46,7 @@ public abstract class SettingsPaneAdapter implements Initializable, Controllable
 
                 ctrlr.setSettingName(name);
                 ctrlr.setSettingContents(contents);
-                ctrlr.setSettingImage(img);
+                ctrlr.setSettingImage(CssClassOfSVG);
                 
                 this.settingsBox.getChildren().add(p);
 
