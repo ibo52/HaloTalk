@@ -40,9 +40,9 @@ public class BroadcastClient {
      * initializes a DatagramSocket to connect remote service
      * @param remoteIpAddress specific port for default remote ip
      */
-    public BroadcastClient(String remoteIpAddress){
+    public BroadcastClient(String remoteIpAddress, int port){
         ip=remoteIpAddress;
-        port=50002;
+        this.port=port;
         
         try {
             address=InetAddress.getByName(ip);
@@ -60,6 +60,10 @@ public class BroadcastClient {
         }
         
         buffer = new byte[1024];
+    }
+    
+    public BroadcastClient(String remoteIpAddress){
+        this(remoteIpAddress, 50002);
     }
     
     
