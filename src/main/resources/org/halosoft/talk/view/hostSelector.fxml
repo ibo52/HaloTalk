@@ -5,11 +5,10 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.paint.Color?>
@@ -39,11 +38,7 @@
                <children>
                   <HBox fx:id="searchPane" alignment="CENTER" spacing="5.0">
                      <children>
-                        <ImageView fx:id="searchPaneUndoButton" fitHeight="24.0" fitWidth="24.0" onMouseClicked="#searchPaneUndoButtonMouseClicked" pickOnBounds="true" preserveRatio="true">
-                           <image>
-                              <Image url="@../../../../images/icons/undo.png" />
-                           </image>
-                        </ImageView>
+                        <Region fx:id="searchPaneUndoButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#searchPaneUndoButtonMouseClicked" prefHeight="24.0" prefWidth="24.0" styleClass="undoButton" />
                         <TextField fx:id="searchField" promptText="Search for User" HBox.hgrow="ALWAYS" />
                      </children>
                      <StackPane.margin>
