@@ -24,10 +24,10 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 import javafx.scene.layout.VBox;
@@ -40,6 +40,7 @@ import org.halosoft.talk.objects.NetworkDeviceManager;
 import org.halosoft.talk.objects.ObservableUser;
 import org.halosoft.talk.objects.Server;
 import org.halosoft.talk.objects.userObject;
+import org.json.JSONObject;
 
 /**
  * FXML Controller class
@@ -75,7 +76,9 @@ public class HostSelectorController implements Initializable {
     @FXML
     private TextField searchField;
     @FXML
-    private ImageView searchPaneUndoButton;
+    private Region searchPaneUndoButton;
+    @FXML
+    private BorderPane rootPane;
 
     public HostSelectorController() {
         
@@ -145,7 +148,7 @@ public class HostSelectorController implements Initializable {
     
     /**
      * browse through the subnet of LAN for users of this program
-     */
+     */ 
     private class LANBrowser implements Runnable{
 
         @Override
@@ -186,7 +189,7 @@ public class HostSelectorController implements Initializable {
                 
                 int i=Integer.parseInt(hostIdentity.substring
                     (hostIdentity.lastIndexOf('.')+1
-                            ,hostIdentity.length())  );
+                            ,hostIdentity.length()) )+1;
                 
                 for (; i < 254; i++) {
                     
@@ -209,14 +212,20 @@ public class HostSelectorController implements Initializable {
                             LANdiscover.start();
                             
                             //parse incoming user data
-                            String[] idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength()).split(";");
+                            String idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength());
                             
                             //check if remote did respond
-                            if ( !idt[0].equals("NO_RESPONSE") ) {
+                            if ( !idt.equals("NO_RESPONSE") ) {
                                 
-                                ObservableUser userData=new ObservableUser(idt[0], idt[3],
-                                        idt[4],Integer.parseInt(idt[1]),
-                                        idt[2],host);
+                                JSONObject data=new JSONObject(idt);
+    
+                                ObservableUser userData=new ObservableUser(
+                                        data.optString("HNAME"),
+                                        data.optString("NAME"),
+                                        data.optString("SURNAME"),
+                                        data.optInt("STAT"),
+                                        data.optString("CSTAT"),
+                                        host);
                                 Iterator iter=usersBox.getChildren().iterator();
                                 boolean appendFlag=true;
                                 
@@ -249,7 +258,7 @@ public class HostSelectorController implements Initializable {
 
         LANBrowserService.scheduleAtFixedRate(new LANBrowser(),
                 0, 5, TimeUnit.SECONDS);
-        
+
         //executorService.shutdown();
     }
     
@@ -282,7 +291,7 @@ public class HostSelectorController implements Initializable {
      */
     private void appendUser(ObservableUser userData){
         
-        Platform.runLater( () -> {
+        
             try {
                 Parent Box= App.loadFXML("view/userInfoBox");
 
@@ -290,14 +299,16 @@ public class HostSelectorController implements Initializable {
                 
                 ctrlr.setUserData(userData);
                 ctrlr.setParentController(this);
-                
-                usersBox.getChildren().add(Box);
+            
+                Platform.runLater( () -> {    
+                    usersBox.getChildren().add(Box);
+                });
                 
             } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
                         ex.getMessage(),ex);
             }
-        });
+        
         
     }
     
