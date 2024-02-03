@@ -4,6 +4,7 @@
  */
 package org.halosoft.talk.objects;
 
+import org.json.JSONObject;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -73,35 +74,35 @@ public class Broadcaster extends ObservableUser {
                     int remotePort=request.getPort();
 
                     //System.out.println("remote request from:"+remoteCli.getHostName());
-                    StringBuilder data=new StringBuilder("");
+                    JSONObject data=new JSONObject();
                     switch( new String(buffer,0, request.getLength()) ){
                         
                         case "HNAME":
-                            data.append( String.valueOf(getHostName()) );
+                            data.append("HNAME",String.valueOf(getHostName()) );
                             break;
                             
                         case "STAT":
-                            data.append(getStatus() );
+                            data.append("STAT",getStatus() );
                             break;
                             
                         case "CSTAT":
-                            data.append( String.valueOf(getStatusMessage()) );
+                            data.append("CSTAT", String.valueOf(getStatusMessage()) );
                             break;
                             
                         case "IMG":
                             int d;
                             while ((d=this.imageInputStream.read() )!=-1) {
-                                data.append(d);
+                                data.append("IMG",d);
                             }
                             break;
                             
                         default:
-                            data.append( getHostName()
-                                    +";"+getStatus()
-                                    +";"+getStatusMessage()
-                                    +";"+getName()
-                                    +";"+getSurName());
-                            //data+=";"+getImage();
+                            
+                            data.putOpt("HNAME",String.valueOf(getHostName()) );
+                            data.putOpt("STAT",getStatus() );
+                            data.putOpt("CSTAT", String.valueOf(getStatusMessage()) );
+                            data.putOpt("NAME", String.valueOf(getName()) );
+                            data.putOpt("SURNAME", String.valueOf(this.getSurName()) );
                             break;
                     }
                     buffer=data.toString().getBytes();
