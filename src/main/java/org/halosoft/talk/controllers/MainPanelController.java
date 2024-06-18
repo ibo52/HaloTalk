@@ -4,18 +4,33 @@
  */
 package org.halosoft.talk.controllers;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.IndexColorModel;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
+import org.halosoft.talk.App;
+import org.halosoft.talk.objects.BroadcastClient;
+import org.halosoft.talk.objects.VideoBroadcaster;
 
 /**
  * FXML Controller class
@@ -23,7 +38,10 @@ import javafx.util.Duration;
  * @author ibrahim
  */
 public class MainPanelController implements Initializable {
-
+    
+    private final BroadcastClient videoClient;
+    private final VideoBroadcaster videoServer;
+    
     @FXML
     private Button endCallButton;
     @FXML
@@ -39,6 +57,12 @@ public class MainPanelController implements Initializable {
     @FXML
     private Button showTabPane;
 
+    public MainPanelController() {
+        this.videoServer=new VideoBroadcaster();
+        videoServer.start();
+        
+        this.videoClient=new BroadcastClient("",50003);
+    }
     /**
      * Initializes the controller class.
      */
@@ -67,6 +91,32 @@ public class MainPanelController implements Initializable {
             }
             slide.play();
         });
-    }    
+    }
+    
+    /**
+     * get image buffer by client, then draw to canvas
+     */
+    private void getImageData(){
+        this.videoClient.start("STREAM");//get video data from remote
+        
+        try {
+            BufferedImage buffImg=ImageIO.read(new ByteArrayInputStream(this.videoClient.getBuffer()));
+            
+            WritableImage wImg=new WritableImage(buffImg.getWidth(), buffImg.getHeight());
+            PixelWriter pw=wImg.getPixelWriter();
+            
+            //write bufferedImage to javafx image
+            for (int w = 0; w < buffImg.getWidth(); w++) {
+                for (int h = 0; h < buffImg.getHeight(); h++) {
+                    pw.setArgb(w, h, buffImg.getRGB(w, h));
+                }
+            }
+            imageBox.setImage(wImg);
+            
+        } catch (IOException ex) {
+            App.logger.log(Level.SEVERE,"Error while getting and "
+                    + "writing image as WritableImage",ex);
+        }
+    }
     
 }

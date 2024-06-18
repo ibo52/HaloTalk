@@ -52,7 +52,7 @@
                         </Region>
                         <HBox alignment="TOP_RIGHT">
                            <children>
-                              <Region fx:id="undoButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#undoButtonMouseClicked" prefHeight="32.0" prefWidth="32.0" styleClass="undoButton" />
+                              <Region fx:id="undoButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" onMouseClicked="#undoButtonMouseClicked" prefHeight="24.0" prefWidth="24.0" styleClass="undoButton" />
                            </children>
                         </HBox>
                      </children>
