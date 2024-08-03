@@ -2,11 +2,11 @@
 
 system | specs | of development|
 --- | --- | --- |
-_Environment_| Ubuntu 22.04| Java 11(OpenJDK)
-GUI|Module| javaFX
+_Environment_| Debian 12| Java 17(OpenJDK)
+GUI|Framework| javaFX
 
 ## compile and run
-### `mvn compile javafx:run`
+### `mvn clean javafx:run`
 
 ## To Do and Features
 Feature|Status| Cross platform support|Platforms tested
