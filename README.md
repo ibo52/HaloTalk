@@ -18,6 +18,6 @@ Text messaging|[ :heavy_check_mark: ]| [ :heavy_check_mark: ]| Linux, Windows
 Video Conference|[ :wavy_dash: ]|[ :heavy_minus_sign: ]|[ :heavy_minus_sign: ]
 
 # Sample outputs of GUI
-![app preview](https://github.com/ibo52/HaloTalk/tree/master/sample%20images/app-preview2.png)
+![app preview](https://github.com/ibo52/HaloTalk/blob/master/sample%20images/app-preview.png)
 
-![app preview2](https://github.com/ibo52/HaloTalk/tree/master/sample%20images/app-preview2.png)
+![app preview2](https://github.com/ibo52/HaloTalk/blob/master/sample%20images/app-preview2.png)
