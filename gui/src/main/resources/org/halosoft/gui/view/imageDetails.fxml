@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane fx:id="rootPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: -fx-background;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.halosoft.gui.controllers.ImageDetailsController">
+   <center>
+      <StackPane fx:id="stackPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" BorderPane.alignment="CENTER">
+         <children>
+            <Pane fx:id="userImageBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="200.0" prefWidth="200.0" styleClass="userImage">
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin></Pane>
+            <Label fx:id="userID" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="24.0" style="-fx-background-color: #10101070;" text="User Name or identifier" textFill="WHITE" StackPane.alignment="TOP_LEFT">
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin>
+               <padding>
+                  <Insets bottom="2.0" left="5.0" right="10.0" top="2.0" />
+               </padding>
+            </Label>
+            <Button fx:id="undoButton" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onMouseClicked="#undoButtonMouseClicked" prefHeight="24.0" prefWidth="24.0" styleClass="undoButton" StackPane.alignment="TOP_RIGHT" />
+         </children>
+      </StackPane>
+   </center>
+   <bottom>
+      <HBox BorderPane.alignment="CENTER">
+         <children>
+          <Button fx:id="sendMessageButton" mnemonicParsing="false" onMouseClicked="#sendMessageButtonMouseClicked" text="Message" />
+            <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+               <children>
+                  <Button fx:id="showDetailsButton" alignment="CENTER" mnemonicParsing="false" onMouseClicked="#showDetailsButtonMouseClicked" text="..." textAlignment="CENTER">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Button>
+               </children>
+            </HBox>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="1.0" left="2.0" right="2.0" top="1.0" />
+         </BorderPane.margin>
+      </HBox>
+   </bottom>
+</BorderPane>
