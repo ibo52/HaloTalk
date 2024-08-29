@@ -5,29 +5,23 @@
 package org.halosoft.gui.objects;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URISyntaxException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 import org.halosoft.gui.App;
 import org.halosoft.gui.adapters.SocketHandlerAdapter;
-
+import org.halosoft.database.QueryResultSet;
+import org.halosoft.database.SQLiteConnector;
+import org.halosoft.database.SQLiteDatabaseManager;
+import org.halosoft.database.TalkDBProperties;
 
 /**
  *
@@ -39,23 +33,23 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         
     private long[] REMOTE_KEY;
     
-        private File clientFile;
+        private SQLiteConnector database;
         
         
         public ServerHandler(Socket socket, long[] remoteKey){
-            super(socket.getInetAddress().getHostAddress(),socket.getPort());
-             
-            try {//create queues of remote if not mapped before  
-                Server.initializeQueue(remoteIp, Server.Queue.IN);
-                Server.initializeQueue(remoteIp, Server.Queue.OUT);
-                
-                clientFile=new File(Paths.get(App.class
-                        .getResource("userBuffers").toURI()).toString(),
-                        this.remoteIp );
 
-                Files.createDirectories(clientFile.toPath());//create path for specific user
+            super(socket.getInetAddress().getHostAddress(),socket.getPort());
+            
+            try {
                 
-                //Files.createFile(Paths.get(clientFile.toString(),"OUT"));
+                //(create new)/(open existing) databse
+                this.database=SQLiteDatabaseManager.databaseExists(
+                    Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH,TalkDBProperties.nameTheDB(remoteIp)))?
+                    SQLiteDatabaseManager.openDatabase(Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp)))
+                    :
+                    SQLiteDatabaseManager.createDatabaseFromFile(
+                        TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp), Paths.get(SQLiteDatabaseManager.class.getResource("/tables.sql").toURI()) );
+
                 this.client = socket;
             
                 this.REMOTE_KEY=remoteKey;
@@ -66,25 +60,21 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 setSocketOutputStream(new DataOutputStream(
                         this.client.getOutputStream()));
             
-            } catch (IOException ex) {
+            } catch (IOException | URISyntaxException ex) {
                 App.logger.log(Level.SEVERE, 
                         "Error while initializing files and client "
                                 + "of ServerHandler",ex);
-            } catch(URISyntaxException ex){
-                App.logger.log(Level.WARNING, 
-                        "Wrong URI given to Paths.get() method while "
-                                + "initializing file",ex);
             }
         }
 
     @Override
     public void start() {
         this.executorService.execute(
-        new ClientInputWriter(this.clientFile, this.socketIn,
+        new SocketReadManager(this.database, this.socketIn,
                 this.remoteIp));
         
                 this.executorService.execute(
-        new ClientOutputSender(this.clientFile, this.socketOut,
+        new SocketWriteManager(this.database, this.socketOut,
                 this.remoteIp));
     
         this.executorService.shutdown();
@@ -109,49 +99,25 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
     }
         
         /**
-         * Listens for socket Input Stream and writes that data to file.
-         * The file is accessible by other classes to read incoming data
+         * Listens for socket Input Stream and writes that data to sqlite database.
          */
-        private static class ClientInputWriter implements Runnable{
+        private static class SocketReadManager implements Runnable{
+
             private final String ip;
             private final DataInputStream in;
-            private final File userBufferPath;
+            private final SQLiteConnector userDatabase;
             
-            public ClientInputWriter(File pathFile, DataInputStream sockIn
+            public SocketReadManager(SQLiteConnector database, DataInputStream sockIn
             ,String socketIp){
+
                 this.in=sockIn;
                 this.ip=socketIp;
-                this.userBufferPath=pathFile;
-                
-            }
-            
-            private final void loadUnreadMessages(LinkedBlockingQueue queue){
-                
-                try {//load unread messages
-                    List<String> unreadIN=Files.readAllLines( Paths.get(
-                            userBufferPath.toString(),"IN") );
-                    //add to queue
-                    queue.addAll(unreadIN);
-                    //delete file
-                    Files.delete(Paths.get(
-                        userBufferPath.toString(),"IN"));
-                    
-                }catch (FileNotFoundException ex){
-                    App.logger.log(Level.FINEST,"No unread messages"
-                                + " of IN for "+this.ip+". Pass to load",ex);
-                } catch (IOException ex) {
-                    App.logger.log(Level.FINE,"Error while trying to access "
-                                + "IN file of "+this.ip +". Pass to load unread messages",ex);
-                }
+                this.userDatabase=database; 
             }
             
             @Override
             public void run() {
 
-                var incomingsQueue=Server.getQueue(ip, Server.Queue.IN);
-                
-                this.loadUnreadMessages(incomingsQueue);
-                
                 while( !Thread.currentThread().isInterrupted() ){
 
                     try {
@@ -160,7 +126,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                         if (incomingData.equals("SHUTDOWN")) {
                             break;
                         }
-                        incomingsQueue.add(incomingData);
+
+                        userDatabase.query(
+                            TalkDBProperties.insertIntoMessageQueue(1, incomingData));
                         
 
                     } catch(NullPointerException ex){
@@ -195,117 +163,53 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
          * The queue is static on Server class, and accessible by other classes 
          * to write data to send.
          */
-        private static class ClientOutputSender implements Runnable{
+        private static class SocketWriteManager implements Runnable{
             private String ip;
             private DataOutputStream out;
-            private final File userBufferPath;
-            private BufferedReader unreadOUT;
+            private final SQLiteConnector userDatabase;
             
-            public ClientOutputSender(File pathFile, DataOutputStream sockOut
+            public SocketWriteManager(SQLiteConnector database, DataOutputStream sockOut
             ,String socketIp){
                 this.out=sockOut;
                 this.ip=socketIp;
-                this.userBufferPath=pathFile;
-            }
-            
-            private final ExecutorService loadUnsendMessages(LinkedBlockingQueue queue){
-                
-                ExecutorService service=Executors.newSingleThreadExecutor();
-                
-                service.execute(()->{
-                    
-                    try {//create if do not exists
-                        Files.createFile(Paths.get(
-                                userBufferPath.toString(),"OUT"));
-                    } catch(FileAlreadyExistsException ex){
-                    
-                    } catch (IOException ex) {
-                        App.logger.log(Level.SEVERE,"Error while creating "
-                        + "OUT file of "+this.ip +". return;",ex);
-                        return;
-                    }
-
-                    try {//open bind to BufferedReader in case of other classes may write data
-                        this.unreadOUT=new BufferedReader(new InputStreamReader(
-                                Files.newInputStream(Paths.get(
-                                this.userBufferPath.toString(),"OUT"))));
-                    } catch (IOException ex) {
-                        App.logger.log(Level.SEVERE,"Error while processing "
-                        + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
-                        return;
-                    }
-                    //Check for if other classes wrote something
-                    while( !Thread.currentThread().isInterrupted() ){
-                        try{
-                            
-                            while( !this.unreadOUT.ready() ){
-                                Thread.sleep(12000);
-                            }
-                            
-                            String m=this.unreadOUT.readLine().trim();
-                            if ( !m.isBlank() ) {
-                                
-                                queue.add(m);
-                            }
-
-                        } catch (IOException ex) {
-                            App.logger.log(Level.SEVERE,"Error while processing "
-                                        + "OUT file of "+this.ip +". Pass to load unsend messages",ex);
-                            break;
-                        } catch (InterruptedException ex) {
-                            App.logger.log(Level.FINE,"interrupted: "
-                                        + "OUT file processing of "+this.ip ,ex);
-                            break;
-                        }
-
-                    }
-
-                    try {
-                        Files.delete(Paths.get(
-                                userBufferPath.toString(),"OUT"));
-
-                    } catch (IOException ex) {
-                        App.logger.log(Level.SEVERE,"Error while closing "
-                                        + "OUT file of "+this.ip ,ex);
-                    }
-                });
-                return service;
+                this.userDatabase=database;
             }
             
             @Override
             public void run() {
                 
-                var outgoingsQueue=Server.getQueue(ip, Server.Queue.OUT);
-                
-                ExecutorService loadUnsendMessagesTask=
-                        this.loadUnsendMessages(outgoingsQueue);//runs in thread
-                
-                while( !Thread.currentThread().isInterrupted() ){
+                int lastMessageId=0;
 
-                    try {//wait until some class write data to file
+                while( !Thread.currentThread().isInterrupted() ){
                         
-                        String message=outgoingsQueue.take();
+                        QueryResultSet result=userDatabase.query(
+                            new StringBuilder(
+                                TalkDBProperties.getUnsentMessages())
+                                .append(" AND id>"+lastMessageId).toString());
                         
                         try{//try to send message through socket
-                            this.out.writeUTF( message );
                             
-                        } catch ( IOException ex) {
+                            for (int i = 0; i < result.getRecordCount(); i++) {
+
+                                LinkedList<String> datalist=result.getNextRecord();
+
+                                lastMessageId= Integer.parseUnsignedInt(datalist.removeFirst());
+                                String message = datalist.removeFirst();
+
+                                this.out.writeUTF( message );
+
+                                userDatabase.query(TalkDBProperties.updateMessageQueue(
+                                    "completed=1", "id="+lastMessageId));
+                            }
+                            Thread.sleep(300);
+                            
+                        } catch ( IOException | InterruptedException ex) {
                         //in case of an error, return message back to queue
                             App.logger.log(Level.SEVERE, 
                             "Error while sending messages from OUT file to socket",ex); 
-                            outgoingsQueue.add(message);
-                            loadUnsendMessagesTask.shutdownNow();
                             break;
-                        
                         }
                         
-                    } catch (InterruptedException ex) {
-                        App.logger.log(Level.WARNING, 
-                        "interrupted while waiting to get message"
-                                + "from outgoingsQueue",ex);
-                        loadUnsendMessagesTask.shutdownNow();
-                        break;
-                    }
                 }
             }
 

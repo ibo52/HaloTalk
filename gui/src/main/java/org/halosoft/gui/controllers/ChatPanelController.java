@@ -6,21 +6,14 @@ package org.halosoft.gui.controllers;
  */
 
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -43,11 +36,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import org.halosoft.database.QueryResultSet;
+import org.halosoft.database.SQLiteConnector;
+import org.halosoft.database.SQLiteDatabaseManager;
+import org.halosoft.database.TalkDBProperties;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Controllable;
 import org.halosoft.gui.objects.Client;
 import org.halosoft.gui.objects.ObservableUser;
-import org.halosoft.gui.objects.Server;
 
 
 /**
@@ -62,9 +58,7 @@ public class ChatPanelController implements Controllable,
     
     private HostSelectorController parentController;
     
-    private File userBufferPath; //path to HIST, OUT files
-
-    private BufferedWriter chatHistory;//file to keep chat history
+    private SQLiteConnector userDatabase;
     
     private ExecutorService executorService;
     private Client remoteCli;
@@ -96,7 +90,7 @@ public class ChatPanelController implements Controllable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO 
+
         //bind send button event to enter key
         this.messageTextField.addEventHandler(KeyEvent.KEY_PRESSED,
                 (KeyEvent t) -> {
@@ -157,44 +151,6 @@ public class ChatPanelController implements Controllable,
         executorService=Executors.newCachedThreadPool();
     }
     
-    private void initChatHistoryWriter(){
-        try {
-            this.chatHistory=new BufferedWriter(new FileWriter(new File( 
-                  userBufferPath, "HIST" ), true));
-            
-        } catch (IOException ex) {
-            App.logger.log(Level.SEVERE, 
-                        "Error while opening HIST file",ex);
-        }
-    }
-    
-    private void initMessages(){
-        try {
-            BufferedReader reader=new BufferedReader(new FileReader(
-                    Paths.get(userBufferPath.toString(),
-                            "HIST" ).toFile()));
-            
-            String line;
-            while( (line=reader.readLine()) !=null){
-                
-                String[] list=line.split(":");
-                if (list[0].equals("you")) {
-                    this.addMessage(list[1], Pos.TOP_RIGHT);
-
-                }else{
-                    this.addMessage(list[1], Pos.TOP_LEFT);
-
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            App.logger.log(Level.FINEST,
-                    "No conversation history file found. Skipping");
-        
-        } catch (IOException ex) {
-            App.logger.log(Level.SEVERE, 
-                        "Error while reading HIST file",ex);
-        }
-    }
     /**
      * close communication socket
      */
@@ -203,50 +159,26 @@ public class ChatPanelController implements Controllable,
             this.executorService.shutdownNow();
             
             this.remoteCli.stop();
-            this.chatHistory.close();
             
         } catch(NullPointerException ex){
             App.logger.log(Level.FINE,"Socket is possibly null."
                     + " Pass closing",ex);
             
-        } catch (IOException ex) { 
-            App.logger.log(Level.SEVERE, 
-                        "Error while closing communication mediums"
-                                + " of chatPanel View",ex);
         }
     }
     
     public void setContents(ObservableUser userData){
-        try {
+
             this.userData=userData;
+
             this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
             
             this.remoteCli=new Client(this.userData.getID());
             
-            //initialize OUT queue to send messages through it
-            Server.initializeQueue(this.userData.getID(), Server.Queue.OUT);
-            //Server.getQueue(this.userData.getID(), Server.Queue.OUT);
-            
-            try {
-                userBufferPath=new File(Paths.get(App.class.
-                        getResource("userBuffers").toURI()).toString(),
-                        this.userData.getID());
-            
-            Files.createDirectories(userBufferPath.toPath());
-            } catch (URISyntaxException ex) {
-                App.logger.log(Level.WARNING, 
-                        "Error while making directories of user buffer",ex);
-            }
-            
-            this.initMessages();//if there is communication history, load to screen
-            this.initChatHistoryWriter();
             this.listenMessage();
             
             this.userImageView.setImage(this.userData.getImage());
-        } catch (IOException ex) {
-            App.logger.log(Level.SEVERE, 
-                        "Error while setting user contents and variables",ex);
-        }
+
     }
     
     /**
@@ -271,21 +203,6 @@ public class ChatPanelController implements Controllable,
         }   
     }
     
-    //use to save message to chatHistory
-    private void saveToFile(String message, Pos pos){
-        try{
-            if (pos.equals(Pos.TOP_LEFT)) {
-                this.chatHistory.write("remote:"+message);
-            }else{
-                this.chatHistory.write("you:"+message);
-            }
-            this.chatHistory.write(System.lineSeparator());
-            
-        }catch(IOException ex){
-            App.logger.log(Level.SEVERE, 
-                        "Error while saving chat history to file",ex);
-        }
-    }
     /**
      * listens for messages that comes from remote end
      */
@@ -305,46 +222,41 @@ public class ChatPanelController implements Controllable,
                 Platform.runLater( ()->{
                     addMessage(message.trim(), Pos.TOP_LEFT);
                 });
-                //save message history to file
-                this.saveToFile(message.trim(), Pos.TOP_LEFT);
+                //TODO: save message to database
+                //userDatabase.query(TalkDBProperties.insertIntoMessageQueue(1, message));  
                 
             }
         });
         
         executorService.execute(() -> {
             
-            //wait for ServerHandler to initialize message queue,
-            //which means: check if remote end connected to us(or sended any message)
+            try {
             
-            while ( Server.getQueue(this.userData.getID(),Server.Queue.IN)  ==  null){
-                try {
-                    Thread.sleep(1000);
-                    
-                } catch (InterruptedException ex) {
-                    App.logger.log(Level.FINEST, 
-                        "interrupted while setting variable"
-                                + " 'incomingsQueue'",ex);
-                    return;
+                //wait for ServerHandler to initialize message database,
+                Path dbfile=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteCli.getRemoteIp()) );
+                while ( !SQLiteDatabaseManager.databaseExists( dbfile ) ) {
+
+                    System.err.println(String.format("database file:%s not exists. waiting..",dbfile.toString()));
+                    Thread.sleep(300);
                 }
-            }
-            LinkedBlockingQueue<String> incomingsQueue=
-                    Server.getQueue(this.userData.getID(), Server.Queue.IN);
-            
-            
-            while ( !Thread.currentThread().isInterrupted() ){
 
-                try {
-                   String message = incomingsQueue.take(); //this.remoteCli.receive();
-
-                Platform.runLater( ()->{
-                    addMessage(message, Pos.TOP_LEFT);
-                });
-                //save message history to file
-                this.saveToFile(message, Pos.TOP_LEFT);
+            
+                userDatabase=SQLiteDatabaseManager.openDatabase(dbfile);
                 
-                } catch (InterruptedException ex) {
-                    App.logger.log(Level.INFO,"IN queue listener interrupted",ex);
+                while ( !Thread.currentThread().isInterrupted() ){
+
+                    
+                    QueryResultSet messageList=userDatabase.query(TalkDBProperties.getUnreadMessages());
+
+                    for (int i = 0; i < messageList.getRecordCount(); i++) {
+
+                        Platform.runLater( ()->{
+                            addMessage(messageList.getNextRecord().getLast(), Pos.TOP_LEFT);
+                        }); 
+                    }
                 }
+            } catch (InterruptedException | NoSuchFileException ex) {
+                App.logger.log(Level.INFO,"chat panel messaging error",ex);
             }
         });
     }
@@ -357,8 +269,7 @@ public class ChatPanelController implements Controllable,
         if ( !message.isBlank() ) {
             
             this.addMessage(message, Pos.TOP_RIGHT);
-            //save message history to file
-            this.saveToFile(message, Pos.TOP_RIGHT);
+            //TODO: save message to database
             
             //send message to remote end
             this.remoteCli.send(message);
