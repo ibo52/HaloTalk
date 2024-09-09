@@ -5,8 +5,8 @@ public class TalkDBProperties {
     public static final String DEFAULT_STORAGE_PATH="/tmp/halotalk";//System.getProperty("user.home");
     public static final String DEFAULT_DB_FILE_EXTENSION=".sqlite";
 
-    public static final String INSERT_INTO_MSGQUEUE="INSERT INTO MessageQueue(senderId, message)"
-                    +"VALUES('%s', '%s')";
+    public static final String INSERT_INTO_MSGQUEUE="INSERT INTO MessageQueue(senderId, message, completed)"
+                    +"VALUES('%s', '%s', '%s')";
 
     public static final String SELECT_FROM_MSGQUEUE="SElECT %s FROM MessageQueue";
 
@@ -14,7 +14,12 @@ public class TalkDBProperties {
 
     public static final String insertIntoMessageQueue(int senderId, String message){
 
-        return String.format(INSERT_INTO_MSGQUEUE, senderId, message);
+        return String.format(INSERT_INTO_MSGQUEUE, senderId, message, 1);
+    }
+
+    public static final String insertIntoMessageQueue(int senderId, String message, int completed){
+
+        return String.format(INSERT_INTO_MSGQUEUE, senderId, message, completed & 0x01);
     }
 
     public static final String selectFromMessageQueue(String columns){
@@ -27,9 +32,28 @@ public class TalkDBProperties {
         return String.format(SELECT_FROM_SENDER, columns);
     }
 
+    public static final String insertIntoSender(String ip){
+
+        //do not add same again(although col 'ip' is unique, we are also preventing error by typing this)
+        return String.format("INSERT INTO Sender(ip) SELECT '%s' "
+        +"WHERE NOT EXISTS(SELECT * FROM Sender WHERE ip<>'%s')", ip, ip);
+    }
+
     public static final String updateMessageQueue(String columnAndAssignment, String condition){
 
         return String.format("UPDATE MessageQueue SET %s WHERE %s", columnAndAssignment, condition);
+    }
+
+    /**
+     * 
+     * @param limit the count of messages to be returned by database
+     * @param offset the record skip step. Skipping will be made by multiplying offset with limit.
+     * @return wanted query as a string
+     * 
+     */
+    public static final String getMessages(int limit, int offset){
+
+        return String.format(SELECT_FROM_MSGQUEUE, "*").concat(" LIMIT "+limit+" OFFSET "+offset );
     }
 
     public static final String getUnreadMessages(){

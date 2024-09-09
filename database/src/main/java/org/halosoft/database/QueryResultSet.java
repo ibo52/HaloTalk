@@ -12,9 +12,9 @@ public class QueryResultSet{
 
     private final LinkedList<String> columnTypes=new LinkedList<>();
 
-    private final LinkedList<String> metadata=new LinkedList<>();
+    private final LinkedList<String> columnNames=new LinkedList<>();
 
-    private LinkedList<LinkedList<String>> list=new LinkedList<>();
+    private final LinkedList<LinkedList<String>> rows=new LinkedList<>();
 
     public QueryResultSet(ResultSet retval){
         
@@ -28,22 +28,22 @@ public class QueryResultSet{
 
                 for (int i = 1; i <= NUM_COLUMNS; i++) {
 
-                    metadata.add(rsmd.getColumnName(i));
+                    columnNames.add(rsmd.getColumnName(i));
 
                     columnTypes.add(rsmd.getColumnTypeName(i));
                 }
 
                 while (retval.next()) {
 
-                    this.list.add(new LinkedList<String>());
+                    this.rows.add(new LinkedList<String>());
 
                     for (int i = 1; i <= NUM_COLUMNS; i++) {
                         
-                        this.list.getLast().add( retval.getString(i) );
+                        this.rows.getLast().add( retval.getString(i) );
                         
                     }                
                 }
-                NUM_RECORDS=this.list.size();
+                NUM_RECORDS=this.rows.size();
 
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -56,14 +56,14 @@ public class QueryResultSet{
     public QueryResultSet(int retval){
  
                 NUM_COLUMNS = 1;
-                NUM_RECORDS=1;
+                NUM_RECORDS = 1;
 
-                this.list.add(new LinkedList<String>());
+                this.rows.add(new LinkedList<String>());
 
-                metadata.add("database update retval");
+                columnNames.add("database return value");
                 columnTypes.add("int");
 
-                this.list.getLast().add(Integer.toString(retval));
+                this.rows.getLast().add(Integer.toString(retval));
 
 
     }
@@ -77,7 +77,7 @@ public class QueryResultSet{
     }
 
     public boolean hasNext(){
-        return list.size()>0;
+        return rows.size()>0;
     }
 
     /*
@@ -86,7 +86,21 @@ public class QueryResultSet{
      */
     public LinkedList<String> getNextRecord(){
         
-        return list.removeFirst();
+        return rows.removeFirst();
+    }
+
+    public String getNextRecord(String columnName){
+
+        int idx=-1;
+        for (int i = 0; i < columnNames.size(); i++) {
+            
+            if(this.columnNames.get(i).equals(columnName)){
+                idx=i;
+                break;
+            }
+        }
+
+        return idx<0? "":rows.removeFirst().get(idx);
     }
 
     public String getColumnTypeName(int index){
@@ -102,7 +116,7 @@ public class QueryResultSet{
         if(index<0 || index> NUM_COLUMNS){
             throw new IndexOutOfBoundsException("No such index");
         }
-        return metadata.get(index);
+        return columnNames.get(index);
     }
 
 }

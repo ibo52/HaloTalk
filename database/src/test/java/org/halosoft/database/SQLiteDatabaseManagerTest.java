@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import java.net.URISyntaxException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.io.IOException;
 
 import org.junit.Test;
 
@@ -54,6 +55,9 @@ public class SQLiteDatabaseManagerTest {
 
             e.printStackTrace();
         } catch (URISyntaxException e) {
+
+            e.printStackTrace();
+        } catch (IOException e) {
 
             e.printStackTrace();
         }

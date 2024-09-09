@@ -2,7 +2,7 @@
 create table Sender
 (
     id integer not null primary key,
-    ip text not null
+    ip text not null unique
 );
 
 --message queue between current device and remote
@@ -12,7 +12,7 @@ create table MessageQueue
     message text not null,
     gmtdate date not null default current_date,
     gmttime time not null default current_time,
-    completed integer not null default 1,
+    completed integer not null default 1, --citates that either message read by cli or sent by server 
     --direction integer not null default 0,
 
     foreign key(senderId) references Sender(id)

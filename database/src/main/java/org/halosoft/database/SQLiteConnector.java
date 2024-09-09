@@ -99,7 +99,7 @@ public class SQLiteConnector extends Connector {
 
         if ( !Files.exists(filepath) ) {
             
-            throw new NoSuchFileException(filepath.toString());
+            throw new NoSuchFileException(filepath.toString()+String.format("(path %s absolute)", filepath.isAbsolute()? "is": "is NOT"));
         }
 
         QueryResultSet retval=null;
