@@ -5,15 +5,33 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 
-abstract class SQLiteDatabaseManager {
+public class SQLiteDatabaseManager {
 
-    private final Connector connector;
+    public static enum OpenMode{
+
+        CREATE(1),                  //creates file if not exists
+        READ( CREATE.getNum()<<1 ),     //to open database file for query operations
+        OVERWRITE( READ.getNum()<<1 );  //overwrites if a file exists, creates if not exists
+
+        private final int numval;
+        
+        OpenMode(int val){
+            this.numval=val;
+        }
+
+        public int getNum(){
+            return this.numval;
+        }
+    }
+
+    /*private final Connector connector;
 
     public SQLiteDatabaseManager(Connector c){
 
         connector=c;
-    }
+    }*/
 
     /*
      * 1. creates a path by given path,
@@ -21,24 +39,14 @@ abstract class SQLiteDatabaseManager {
      */
     public static SQLiteConnector createDatabase(String path, String dbName){
 
-        SQLiteConnector retval=null;
-
+        SQLiteConnector c=null;
         try {
-
-            Files.createDirectories( Paths.get(path) );
-
-            Files.deleteIfExists( Paths.get(path, dbName) );
-
-            retval=new SQLiteConnector(
-                Paths.get(path, dbName).toString() );
-
-        } catch (IOException e) {
-            
-            System.err.println(String.format("[%s]: %s", SQLiteDatabaseManager.class.getName(), e.getMessage()));
-            e.printStackTrace();
+            c= SQLiteDatabaseManager.openDatabase(path, dbName, OpenMode.OVERWRITE);
+        
+        } catch (NoSuchFileException e) {
         }
 
-        return retval;
+        return c;
     }
 
     /*
@@ -46,37 +54,130 @@ abstract class SQLiteDatabaseManager {
      * 2. creates sqlite database by given name(IMPORTANT: DELETES if such file exists),
      * 3. executes the query given from file which is generally the table definitions or inserts
      */
-    public static SQLiteConnector createDatabaseFromFile(String path, String dbName, Path sqlFile) throws NoSuchFileException{
-        
-        SQLiteConnector retval=SQLiteDatabaseManager.createDatabase(path, dbName);
+    public static SQLiteConnector createDatabaseFromFile(String path, String dbName, Path sqlFile) throws NoSuchFileException, IOException{
+
+        //execute database table queries on temporary, then move temporary to origin
+        //to prevent other processes to access db before tables generated
+        Path tempDB=Files.createTempFile("temporary", TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
+        Path permanentDB=Paths.get(path, dbName);
+
+        Files.deleteIfExists(permanentDB);
+        Files.createDirectories(permanentDB.getParent());
+
+        //System.out.println("permanent db created under: "+tempDB.toString());
+
+        SQLiteConnector retval=SQLiteDatabaseManager.openDatabase(tempDB);//.createDatabase(path, dbName);
 
         retval.queryFromFile(sqlFile);
 
+        try {
+            retval.getConnection().close();
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        retval=null;
+
+        Files.move(tempDB, permanentDB);
+
+        Files.deleteIfExists(tempDB);
+
+        retval=SQLiteDatabaseManager.openDatabase(permanentDB);
 
         return retval;   
     }
 
-    /*
-     * Tries to open the given file.
+    /**
+     * Tries to open the given file if exists.
      * Throws exception if no such file or its path exists
      */
     public static SQLiteConnector openDatabase(String path, String dbName) throws NoSuchFileException{
 
+        return SQLiteDatabaseManager.openDatabase(path, dbName, OpenMode.READ);
+    }
+
+    /**
+     * Tries to open the given file if exists.
+     * Throws exception if no such file or its path exists
+     */
+    public static SQLiteConnector openDatabase(Path dbfilepath) throws NoSuchFileException{
+
+        return SQLiteDatabaseManager.openDatabase(dbfilepath.getParent().toString(), dbfilepath.getFileName().toString(), OpenMode.READ);
+    }
+
+    /**
+     * Tries to open the given file either create or read modes;
+     * Throws exception on READ mode if no such file or its path exists
+     */
+    public static SQLiteConnector openDatabase(String path, String dbName, OpenMode openMode) throws NoSuchFileException{
+
         SQLiteConnector retval=null;
 
-        Path dbRoot=Paths.get(path);
+        Path dbfile=Paths.get(path, dbName);
 
-        if( !Files.exists( Paths.get(dbRoot.toString(), dbName) )){
 
-            System.err.println(String.format("[%s]: %s -> %s", SQLiteDatabaseManager.class.getName(), "No such file exists: ",Paths.get(dbRoot.toString(), dbName).toString() ));
+        switch (openMode) {
 
-            throw new NoSuchFileException(Paths.get(dbRoot.toString(), dbName).toString());
+            case CREATE:
+                try {
+
+                    Files.createDirectories( Paths.get(path) );
+                
+                    retval=new SQLiteConnector(
+                        dbfile.toString() );
         
+                } catch (IOException e) {
+                    
+                    System.err.println(String.format("[%s]: %s", SQLiteDatabaseManager.class.getName(), e.getMessage()));
+                    e.printStackTrace();
+                
+                }
+                break;
+
+            case OVERWRITE:
+                try {
+
+                    Files.createDirectories( Paths.get(path) );
+        
+                    Files.deleteIfExists( dbfile );
+        
+                    retval=new SQLiteConnector(
+                        dbfile.toString() );
+        
+                } catch (IOException e) {
+                    
+                    System.err.println(String.format("[%s]: %s", SQLiteDatabaseManager.class.getName(), e.getMessage()));
+                    e.printStackTrace();
+                
+                }
+                break;
+
+            case READ:
+                if( !Files.exists(dbfile) ){
+                    System.err.println(String.format("[%s]: %s -> %s", SQLiteDatabaseManager.class.getName(), "No such file exists: ", dbfile.toString() ));
+
+                    throw new NoSuchFileException( dbfile.toString() );
+                
+                }else{
+                    retval=new SQLiteConnector(
+                        dbfile.toString() );
+                }
+                break;
+
+            default:
+                break;
         }
 
-        retval=new SQLiteConnector(
-            Paths.get(dbRoot.toString(), dbName).toString() );
-
         return retval;
+    }
+
+    /**
+     * Tries to open the given file.
+     * Throws exception if no such file or its path exists
+     */
+    public static boolean databaseExists(Path path){
+
+        return Files.exists(path);
     }
 }
