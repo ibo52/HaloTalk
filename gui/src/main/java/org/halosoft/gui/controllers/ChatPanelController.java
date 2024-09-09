@@ -218,7 +218,6 @@ public class ChatPanelController implements Controllable,
                     break;
                 }
 
-                System.out.println("received from server to cli:"+message);
                 Platform.runLater( ()->{
                     addMessage(message.trim(), Pos.TOP_LEFT);
                 });
@@ -231,12 +230,13 @@ public class ChatPanelController implements Controllable,
         executorService.execute(() -> {
             
             try {
+                //open DB to listen incoming messages
             
                 //wait for ServerHandler to initialize message database,
                 Path dbfile=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteCli.getRemoteIp()) );
                 while ( !SQLiteDatabaseManager.databaseExists( dbfile ) ) {
 
-                    System.err.println(String.format("database file:%s not exists. waiting..",dbfile.toString()));
+                    //System.err.println(String.format("database file:%s not exists. waiting..",dbfile.toString()));
                     Thread.sleep(300);
                 }
 
@@ -251,9 +251,11 @@ public class ChatPanelController implements Controllable,
                     for (int i = 0; i < messageList.getRecordCount(); i++) {
 
                         Platform.runLater( ()->{
-                            addMessage(messageList.getNextRecord().getLast(), Pos.TOP_LEFT);
+                            addMessage(messageList.getNextRecord("message"), Pos.TOP_LEFT);
                         }); 
                     }
+                    
+                    Thread.sleep(300);
                 }
             } catch (InterruptedException | NoSuchFileException ex) {
                 App.logger.log(Level.INFO,"chat panel messaging error",ex);

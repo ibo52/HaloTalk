@@ -102,7 +102,7 @@ public class HostSelectorController implements Initializable {
         this.appendUser(new ObservableUser("testing@127.0.0.1","loopback","user",2,
                 "This is a loopback address for Testing purposes",
         "127.0.0.1"));
-        
+        /* 
         this.appendUser(new ObservableUser("testing@unreachable","unreachable","user",2,
                 "This is a sample No use address for Testing purposes",
         "192.0.192.0"));
@@ -110,6 +110,7 @@ public class HostSelectorController implements Initializable {
         this.appendUser(new ObservableUser("testing@virtualbox","vbox","user",2,
                 "This is a sample vbox address for Testing purposes",
         "192.168.1.95"));
+        */
         // TODO
     }
     
@@ -182,9 +183,9 @@ public class HostSelectorController implements Initializable {
                 String hostIdentity=NetworkDeviceManager
                         .calculateNetworkIdentity(ni);
                 
-                System.out.println("Selected network interface:"
+                /*System.out.println("Selected network interface:"
                         +ni.getName()+" in network Identity:"+hostIdentity);
-                
+                */
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
                 

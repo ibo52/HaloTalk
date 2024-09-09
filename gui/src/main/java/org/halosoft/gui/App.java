@@ -12,8 +12,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.halosoft.gui.objects.Server;
-
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.image.Image;
@@ -116,10 +114,6 @@ public class App extends Application {
         
         Platform.exit();
         
-        //save all IN and OUT message of remote connection queues
-        //to File before close application
-        Server.saveQueuesToFile();
-                
         System.exit(0);
         
     }

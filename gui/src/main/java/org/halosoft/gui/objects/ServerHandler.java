@@ -30,9 +30,7 @@ import org.halosoft.database.TalkDBProperties;
  * writes incoming and outgoing messages to file
  */
 public class ServerHandler extends SocketHandlerAdapter implements Runnable{
-        
-    private long[] REMOTE_KEY;
-    
+            
         private SQLiteConnector database;
         
         
@@ -50,10 +48,12 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                     SQLiteDatabaseManager.createDatabaseFromFile(
                         TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp), Paths.get(SQLiteDatabaseManager.class.getResource("/tables.sql").toURI()) );
 
+
+                //store sender ip on table
+                database.query(TalkDBProperties.insertIntoSender(remoteIp));
+
                 this.client = socket;
-            
-                this.REMOTE_KEY=remoteKey;
-                
+                            
                 setSocketInputStream(new DataInputStream(new BufferedInputStream(
                         this.client.getInputStream())));
                 
@@ -62,7 +62,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             
             } catch (IOException | URISyntaxException ex) {
                 App.logger.log(Level.SEVERE, 
-                        "Error while initializing files and client "
+                        "Error while initializing DB and client "
                                 + "of ServerHandler",ex);
             }
         }
@@ -127,8 +127,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                             break;
                         }
 
+                        //opt: senderId is 0 if ip is loopback
                         userDatabase.query(
-                            TalkDBProperties.insertIntoMessageQueue(1, incomingData));
+                            TalkDBProperties.insertIntoMessageQueue(ip.equals("127.0.0.1")? 0:1, incomingData, 0));
                         
 
                     } catch(NullPointerException ex){
@@ -158,20 +159,18 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
         }
         
         /**
-         * Waits for data to be written to file, then forwards the data to
-         * queue to send through socket Output Stream.
-         * The queue is static on Server class, and accessible by other classes 
-         * to write data to send.
+         * Waits for data to be written to database file, then forwards the data to
+         * socket Output Stream.
          */
         private static class SocketWriteManager implements Runnable{
-            private String ip;
+
             private DataOutputStream out;
             private final SQLiteConnector userDatabase;
             
             public SocketWriteManager(SQLiteConnector database, DataOutputStream sockOut
             ,String socketIp){
+
                 this.out=sockOut;
-                this.ip=socketIp;
                 this.userDatabase=database;
             }
             
@@ -193,8 +192,9 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
 
                                 LinkedList<String> datalist=result.getNextRecord();
 
-                                lastMessageId= Integer.parseUnsignedInt(datalist.removeFirst());
-                                String message = datalist.removeFirst();
+                                lastMessageId= Integer.parseUnsignedInt(datalist.get(0));
+
+                                String message = datalist.get(2);
 
                                 this.out.writeUTF( message );
 
