@@ -22,6 +22,7 @@
         <javafx.version>22</javafx.version>
         <sqlite-jdbc.version>3.46.0.1</sqlite-jdbc.version>
         <json.version>20231013</json.version>
+        <slf4j.version>2.0.16</slf4j.version>
         
         <project.version>1.0-SNAPSHOT</project.version>
 
@@ -57,6 +58,14 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
 
     </dependencies>
     </dependencyManagement>
