@@ -24,6 +24,8 @@ import java.util.logging.Level;
 
 import org.halosoft.gui.App;
 
+import java.nio.file.Path;
+
 /**
  *
  * @author ibrahim
@@ -39,8 +41,6 @@ public class Client extends CommunicationObject{
         this.rsa=new RSA();
         
         this.client=new Socket();
-        //forward output to userBuffers file of OUT before any connection establishment
-        this.forwardSocketOutputStreamToFile(false);
         
         try {
             this.client.connect(new InetSocketAddress(
@@ -113,35 +113,6 @@ public class Client extends CommunicationObject{
         return this.client.isConnected();
     }
     
-    private final void forwardSocketOutputStreamToFile(boolean logSuccess){
-        try{
-            File userBufferPath=new File(Paths.get(App.class.
-                        getResource("userBuffers").toURI()).toString(),
-                        this.getRemoteIp());
-            //create directories
-            Files.createDirectories(userBufferPath.toPath());
-            //create file and set socket output to that file
-            this.setSocketOutputStream(new DataOutputStream(
-                    new FileOutputStream(Paths.get(
-                            userBufferPath.toString(),"OUT").toFile(),true )));
-            
-            if (logSuccess) {
-                App.logger.log(Level.INFO,"Socket"
-                        + "output redirected to a file");
-            }
-            
-            } catch (IOException ex1) {
-                App.logger.log(Level.SEVERE,"Error while redirecting Socket"
-                        + "output to a file",ex1);
-                System.exit(ex1.hashCode());
-                
-            } catch (URISyntaxException ex1) {
-                App.logger.log(Level.SEVERE,"Error while redirecting Socket"
-                        + "output to a file: Wrong URI given to path",ex1);
-                System.exit(ex1.hashCode());
-            }
-    }
-    
     public Client(){
         super();
         
@@ -207,7 +178,6 @@ public class Client extends CommunicationObject{
                     + "forwarded to file",ex);
             
             this.connected=false;
-            this.forwardSocketOutputStreamToFile(true);
             this.send(message);
             
         } catch(SocketException ex){
@@ -217,7 +187,6 @@ public class Client extends CommunicationObject{
                     + "forwarded to file");
             
             this.connected=false;
-            this.forwardSocketOutputStreamToFile(true);
             this.send(message);
             
         } catch ( IOException ex) {
