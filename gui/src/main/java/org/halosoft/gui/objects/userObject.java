@@ -47,14 +47,15 @@ public class userObject {
         this.ipAddress=ipAddress;
         
         this.image=img;
-        try {
+        /*try {
             this.imageInputStream=Files.newBufferedReader(
                     Paths.get(URI.create(img.getUrl()) ));
 
         } catch (IOException ex) {
             App.logger.log(Level.SEVERE, 
                         "Error while initializing BufferedReader of image",ex);
-        }
+        }*/
+        imageInputStream=null;
     }
     public userObject(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress){
