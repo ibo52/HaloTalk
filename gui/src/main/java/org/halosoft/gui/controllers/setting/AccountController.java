@@ -35,6 +35,7 @@ import org.halosoft.gui.controllers.HostSelectorController;
 import org.halosoft.gui.interfaces.Animateable;
 import org.halosoft.gui.interfaces.Controllable;
 import org.halosoft.gui.objects.ObservableUser;
+import org.halosoft.gui.objects.PropertiesManager;
 
 /**
  * FXML Controller class
@@ -110,9 +111,9 @@ public class AccountController implements Initializable, Controllable,
                     
                     this.parentController.updateBroadcasterData(userData);
                     //save to file when status changed
-                    ObservableUser.savePropertiesToFile(
+                    PropertiesManager.savePropertiesToFile(
                         this.userData.getProperties(), 
-                        null, null);
+                        "settings/broadcaster.properties");
                 });
         
         //start animation when width>0
@@ -174,9 +175,9 @@ public class AccountController implements Initializable, Controllable,
                 
                 this.parentController.updateBroadcasterData(userData);
                 
-                ObservableUser.savePropertiesToFile(
+                PropertiesManager.savePropertiesToFile(
                         this.userData.getProperties(), 
-                        null, null);
+                        "settings/broadcaster.properties");
             }
             
         });
@@ -194,9 +195,9 @@ public class AccountController implements Initializable, Controllable,
                 
                 this.parentController.updateBroadcasterData(userData);
                 
-                ObservableUser.savePropertiesToFile(
+                PropertiesManager.savePropertiesToFile(
                         this.userData.getProperties(), 
-                        null, null);
+                        "settings/broadcaster.properties");
             }
             
         });

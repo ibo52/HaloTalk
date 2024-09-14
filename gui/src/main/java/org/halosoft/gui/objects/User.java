@@ -5,14 +5,8 @@
 package org.halosoft.gui.objects;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.logging.Level;
-
 import org.halosoft.gui.App;
 
 import javafx.scene.image.Image;
@@ -23,7 +17,7 @@ import javafx.scene.image.Image;
  * 
  * Provides general information about an user
  */
-public class userObject {
+public class User {
     protected String name;
     protected String surname;
     protected String hostName;
@@ -37,7 +31,7 @@ public class userObject {
     protected BufferedReader imageInputStream;
     
     
-    public userObject(String hostName, String name, String surname, int status,
+    public User(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress, Image img){
         this.hostName=hostName;
         this.name=name;
@@ -57,15 +51,15 @@ public class userObject {
         }*/
         imageInputStream=null;
     }
-    public userObject(String hostName, String name, String surname, int status,
+    public User(String hostName, String name, String surname, int status,
             String StatusMessage, String ipAddress){
         
         this(hostName, name, surname, status, StatusMessage, ipAddress,
-                new Image(App.class.getResource(
-                        "/images/icons/person.png").toString())
+                new Image(App.class.getResourceAsStream(
+                        "/images/icons/person.png"))
         );   
     }
-    public userObject(){
+    public User(){
         this("unknown" ,System.getenv("USERNAME"),"*",2,
                 "Heyyo! I am using HaloTalk",
                 "127.0.0.1");
@@ -128,7 +122,7 @@ public class userObject {
         this.image=img;
     }
     
-    public void setContents(userObject userData){
+    public void setContents(User userData){
         this.setHostName(userData.getHostName());
         this.setID(userData.getID());
         this.setImage(userData.getImage());

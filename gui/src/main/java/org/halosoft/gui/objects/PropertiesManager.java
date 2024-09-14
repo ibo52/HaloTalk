@@ -40,22 +40,22 @@ public class PropertiesManager {
     }
     
     public static void savePropertiesToFile(Properties props
-            ,String PackageRelativePathToFile,String... comments ) {
+            ,String pkgRelativeSavePath,String... comments ) {
         
         if (props==null | props.isEmpty()) {
             return;
         }
         
-        if (PackageRelativePathToFile==null) {
-            PackageRelativePathToFile="settings/unknown.properties";
+        if (pkgRelativeSavePath==null) {
+            pkgRelativeSavePath="settings/unknown.properties";
             
-        }else if( !PackageRelativePathToFile.contains(".properties") ){
-            PackageRelativePathToFile+=".properties";
+        }else if( !pkgRelativeSavePath.contains(".properties") ){
+            pkgRelativeSavePath+=".properties";
         }
         
         try {
                 File fosPath=new File( Paths.get(App.class.
-                        getResource(PackageRelativePathToFile
+                        getResource(pkgRelativeSavePath
                         ).toURI()).toString());
                 
                 BufferedWriter fos=Files.newBufferedWriter(fosPath.toPath(), 

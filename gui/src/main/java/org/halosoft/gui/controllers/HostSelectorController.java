@@ -40,7 +40,7 @@ import org.halosoft.gui.objects.Broadcaster;
 import org.halosoft.gui.objects.NetworkDeviceManager;
 import org.halosoft.gui.objects.ObservableUser;
 import org.halosoft.gui.objects.Server;
-import org.halosoft.gui.objects.userObject;
+import org.halosoft.gui.objects.User;
 import org.json.JSONObject;
 
 /**
@@ -228,7 +228,7 @@ public class HostSelectorController implements Initializable {
                                         data.optInt("STAT"),
                                         data.optString("CSTAT"),
                                         host);
-                                Iterator iter=usersBox.getChildren().iterator();
+                                Iterator<Node> iter=usersBox.getChildren().iterator();
                                 boolean appendFlag=true;
                                 
                                 while( iter.hasNext() ){
@@ -319,7 +319,7 @@ public class HostSelectorController implements Initializable {
      * information of current user
      * @param userData personal information to update with old
      */
-    public void updateBroadcasterData(userObject userData){
+    public void updateBroadcasterData(User userData){
         this.statusBroadcaster.setContents(userData);
     }
     

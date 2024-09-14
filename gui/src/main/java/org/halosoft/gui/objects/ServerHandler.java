@@ -11,11 +11,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.logging.Level;
-
 import org.halosoft.gui.App;
 import org.halosoft.gui.adapters.SocketHandlerAdapter;
 import org.halosoft.database.QueryResultSet;
@@ -39,14 +37,15 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
             super(socket.getInetAddress().getHostAddress(),socket.getPort());
             
             try {
-                
+
+                //TODO: rearrange or review getresource method to be able to work with jar file
                 //(create new)/(open existing) databse
                 this.database=SQLiteDatabaseManager.databaseExists(
                     Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH,TalkDBProperties.nameTheDB(remoteIp)))?
                     SQLiteDatabaseManager.openDatabase(Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp)))
                     :
                     SQLiteDatabaseManager.createDatabaseFromFile(
-                        TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp), Paths.get(SQLiteDatabaseManager.class.getResource("/tables.sql").toURI()) );
+                        TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp), SQLiteDatabaseManager.class.getResourceAsStream("/tables.sql") );
 
 
                 //store sender ip on table
@@ -60,7 +59,7 @@ public class ServerHandler extends SocketHandlerAdapter implements Runnable{
                 setSocketOutputStream(new DataOutputStream(
                         this.client.getOutputStream()));
             
-            } catch (IOException | URISyntaxException ex) {
+            } catch (IOException ex) {
                 App.logger.log(Level.SEVERE, 
                         "Error while initializing DB and client "
                                 + "of ServerHandler",ex);
