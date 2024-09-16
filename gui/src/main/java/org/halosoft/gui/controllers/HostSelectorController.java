@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -35,12 +36,13 @@ import javafx.util.Duration;
 
 import org.halosoft.gui.App;
 import org.halosoft.gui.controllers.setting.UserSettingsController;
-import org.halosoft.gui.objects.BroadcastClient;
-import org.halosoft.gui.objects.Broadcaster;
-import org.halosoft.gui.objects.NetworkDeviceManager;
-import org.halosoft.gui.objects.ObservableUser;
-import org.halosoft.gui.objects.Server;
-import org.halosoft.gui.objects.User;
+import org.halosoft.gui.models.ObservableUser;
+import org.halosoft.gui.models.User;
+import org.halosoft.gui.models.net.BroadcastClient;
+import org.halosoft.gui.models.net.Broadcaster;
+import org.halosoft.gui.models.net.Server;
+import org.halosoft.gui.models.net.ELANBrowser;
+import org.halosoft.gui.models.net.utils.NetworkDeviceManager;
 import org.json.JSONObject;
 
 /**
@@ -96,7 +98,7 @@ public class HostSelectorController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        
+ 
         LANBrowser();
 
         this.appendUser(new ObservableUser("testing@127.0.0.1","loopback","user",2,
@@ -155,37 +157,28 @@ public class HostSelectorController implements Initializable {
 
         @Override
         public void run() {
-            
-                //check if any network interface is connected to internet
-                if ( !NetworkDeviceManager.checkForConnectivity() ) {
-                    
-                    App.logger.log(Level.FINEST, 
-                        "No internet connection. Pass LAN browsing");
-                    return;
-                }
+
                 //get a device from manager and calculate network ID
-                NetworkDeviceManager manager=new NetworkDeviceManager();
-                NetworkInterface ni=manager.getInterfaceDevices(
+                //NetworkDeviceManager manager=new NetworkDeviceManager();
+                /*NetworkInterface ni=manager.getInterfaceDevice("virbr0");manager.getInterfaceDevices(
                         NetworkDeviceManager
-                                .ConnectionType.WIRELESS).get(0);
+                                .ConnectionType.WIRELESS).get(0);*/
+
+                for (NetworkInterface ni : NetworkDeviceManager.getInterfaceDevices() ) {
                 
-                try { //if ni is loopback, pass scan
-                    if (ni.isLoopback()) {
+                    String hostIdentity=NetworkDeviceManager
+                        .calculateNetworkIdentity(ni);
+                //if ni is loopback, pass scan
+                if ( hostIdentity.startsWith("127.0") ) {
+
                         App.logger.log(Level.FINEST,"pass LAN scan since"
                             + " network interface is loopback");
-                        return;
-                    }
-                } catch (SocketException ex) {
-                    App.logger.log(Level.FINER,"Could not check if"
-                            + " network interface is loopback",ex);
+                        continue;
                 }
                 
-                String hostIdentity=NetworkDeviceManager
-                        .calculateNetworkIdentity(ni);
-                
                 /*System.out.println("Selected network interface:"
-                        +ni.getName()+" in network Identity:"+hostIdentity);
-                */
+                        +ni.getName()+" in network Identity:"+hostIdentity);*/
+                
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
                 
@@ -196,62 +189,50 @@ public class HostSelectorController implements Initializable {
                 for (; i < 254; i++) {
                     
                     final int executorArgument=i;
-                    executorService.execute( ()->{
-                        
-                        String host=hostIdentity.substring(
+                    String host=hostIdentity.substring(
                                 0,
                                 hostIdentity.lastIndexOf('.')+1);
                         
                         host+=+executorArgument;
-                        
-                        //check if host address is not of this Broadcaster'(and not loopback)
-                        if ( !NetworkDeviceManager.getIpV4Address(ni)
-                                .equals(host) ) {
+                        ELANBrowser task=new ELANBrowser(host);
 
-                            //check if host has this application
-                            BroadcastClient LANdiscover =new BroadcastClient(host);
-                            
-                            LANdiscover.start();
-                            
-                            //parse incoming user data
-                            String idt=new String(LANdiscover.getBuffer(), 0, LANdiscover.getBufferLength());
-                            
-                            //check if remote did respond
-                            if ( !idt.equals("NO_RESPONSE") ) {
+                        task.setOnSucceeded(e->{
+                            ObservableUser userData=task.getValue();
+
+                            //check if host address is not of this Broadcaster'(and not loopback)
+                            if ( !NetworkDeviceManager.getIpV4Address(ni)
+                            .equals( task.getArgument() ) ) {
                                 
-                                JSONObject data=new JSONObject(idt);
-    
-                                ObservableUser userData=new ObservableUser(
-                                        data.optString("HNAME"),
-                                        data.optString("NAME"),
-                                        data.optString("SURNAME"),
-                                        data.optInt("STAT"),
-                                        data.optString("CSTAT"),
-                                        host);
-                                Iterator<Node> iter=usersBox.getChildren().iterator();
-                                boolean appendFlag=true;
-                                
-                                while( iter.hasNext() ){
+                                //check if remote did respond
+                                if ( userData!=null ) {
                                     
-                                    Parent v=(Parent)iter.next();
+                                    Iterator<Node> iter=usersBox.getChildren().iterator();
+                                    boolean appendFlag=true;
                                     
-                                    UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
-                                    
-                                    if (host.equals(ctrlr.getUserData().getID()) ) {
-                                        appendFlag=false;
-                                        updateUser(userData, v);
-                                        break;
+                                    while( iter.hasNext() ){
+                                        
+                                        Parent v=(Parent)iter.next();
+                                        
+                                        UserInfoBoxController ctrlr=(UserInfoBoxController)v.getUserData();
+                                        
+                                        if (task.getArgument().equals(ctrlr.getUserData().getID()) ) {
+                                            appendFlag=false;
+                                            updateUser(userData, v);
+                                            break;
+                                        }
                                     }
+                                    if (appendFlag) {
+                                        appendUser(userData);
+                                    }
+                                    
                                 }
-                                if (appendFlag) {
-                                    appendUser(userData);
-                                }
-                                
                             }
-                        } 
-                    });
+                        });
+                    executorService.execute(task);
                 }
+                
                 executorService.shutdown();
+            }
         }
         
     }
