@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedList;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,8 +43,8 @@ import org.halosoft.database.SQLiteDatabaseManager;
 import org.halosoft.database.TalkDBProperties;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Controllable;
-import org.halosoft.gui.objects.Client;
-import org.halosoft.gui.objects.ObservableUser;
+import org.halosoft.gui.models.ObservableUser;
+import org.halosoft.gui.models.net.Client;
 
 
 /**
@@ -250,15 +251,22 @@ public class ChatPanelController implements Controllable,
 
                     for (int i = 0; i < messageList.getRecordCount(); i++) {
 
+                        LinkedList<String> record=messageList.getNextRecord();
+
+                        String message=record.get( messageList.indexOf("message") );
+                        int id=Integer.parseInt( record.get( messageList.indexOf("id") ) );
+
                         Platform.runLater( ()->{
-                            addMessage(messageList.getNextRecord("message"), Pos.TOP_LEFT);
+                            addMessage(message, Pos.TOP_LEFT);
+
+                            userDatabase.query(TalkDBProperties.updateMessageQueue("completed=1", "id="+id ));
                         }); 
                     }
                     
                     Thread.sleep(300);
                 }
             } catch (InterruptedException | NoSuchFileException ex) {
-                App.logger.log(Level.INFO,"chat panel messaging error",ex);
+                App.logger.log(Level.FINE, "chat panel messaging error",ex);
             }
         });
     }
