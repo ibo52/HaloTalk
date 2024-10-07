@@ -89,6 +89,11 @@ public class QueryResultSet{
         return rows.removeFirst();
     }
 
+    public LinkedList<String> getLastRecord(){
+        
+        return rows.removeLast();
+    }
+
     public String getNextRecord(String columnName){
 
         int idx=-1;
@@ -117,6 +122,11 @@ public class QueryResultSet{
             throw new IndexOutOfBoundsException("No such index");
         }
         return columnNames.get(index);
+    }
+
+    public int indexOf(String columnName){
+
+        return columnNames.indexOf(columnName);
     }
 
 }

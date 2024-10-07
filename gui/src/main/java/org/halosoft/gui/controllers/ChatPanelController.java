@@ -243,7 +243,24 @@ public class ChatPanelController implements Controllable,
 
             
                 userDatabase=SQLiteDatabaseManager.openDatabase(dbfile);
-                
+
+                //init last 10 messages
+                QueryResultSet initMessages=userDatabase.query(TalkDBProperties.getMessagesDesc(10, 0));
+                for (int i = 0; i < initMessages.getRecordCount(); i++) {
+
+                    LinkedList<String> record=initMessages.getLastRecord();
+
+                    String message=record.get( initMessages.indexOf("message") );
+                    int id=Integer.parseInt( record.get( initMessages.indexOf("id") ) );
+
+                    Platform.runLater( ()->{
+                        addMessage(message, Pos.TOP_LEFT);
+
+                        userDatabase.query(TalkDBProperties.updateMessageQueue("completed=1", "id="+id ));
+                    }); 
+                }
+
+                //listen DB perically for new messges
                 while ( !Thread.currentThread().isInterrupted() ){
 
                     

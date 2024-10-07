@@ -1,6 +1,9 @@
 package org.halosoft.database;
 
+import java.lang.System.Logger;
+
 public class TalkDBProperties {
+    public static final Logger logger=System.getLogger(TalkDBProperties.class.getName());
 
     public static final String DEFAULT_STORAGE_PATH="/tmp/halotalk";//System.getProperty("user.home");
     public static final String DEFAULT_DB_FILE_EXTENSION=".sqlite";
@@ -36,7 +39,7 @@ public class TalkDBProperties {
 
         //do not add same again(although col 'ip' is unique, we are also preventing error by typing this)
         return String.format("INSERT INTO Sender(ip) SELECT '%s' "
-        +"WHERE NOT EXISTS(SELECT * FROM Sender WHERE ip<>'%s')", ip, ip);
+        +"WHERE NOT EXISTS(SELECT id FROM Sender WHERE ip='%s')", ip, ip);
     }
 
     public static final String updateMessageQueue(String columnAndAssignment, String condition){
@@ -54,6 +57,11 @@ public class TalkDBProperties {
     public static final String getMessages(int limit, int offset){
 
         return String.format(SELECT_FROM_MSGQUEUE, "*").concat(" LIMIT "+limit+" OFFSET "+offset );
+    }
+
+    public static final String getMessagesDesc(int limit, int offset){
+
+        return String.format(SELECT_FROM_MSGQUEUE, "*").concat(" ORDER BY id DESC LIMIT "+limit+" OFFSET "+offset );
     }
 
     public static final String getUnreadMessages(){
