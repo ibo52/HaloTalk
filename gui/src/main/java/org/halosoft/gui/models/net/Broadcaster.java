@@ -5,6 +5,7 @@
 package org.halosoft.gui.models.net;
 
 import org.halosoft.gui.App;
+import org.halosoft.gui.interfaces.UDPSocket;
 import org.halosoft.gui.models.ObservableUser;
 import org.json.JSONObject;
 
@@ -22,37 +23,26 @@ import java.util.logging.Level;
  *
  * @author ibrahim
  */
-public class Broadcaster extends ObservableUser {
-    private static final int DEFAULT_SERVER_PORT=50002;
-    private DatagramSocket server;
-    private final int port;
+public class Broadcaster extends UDPSocket {
     
+    private final ObservableUser userProfile=new ObservableUser();
+        
     private ExecutorService executorService;
     
     /**
      * initializes DatagramSocket as a broadcast server.
      * @param ipAddr ip address to bind broadcast server
      */
-    public Broadcaster(String ipAddr){
-        this.port=DEFAULT_SERVER_PORT;
+    public Broadcaster(String ipAddr, int port){
+
+        super(ipAddr, port, true);
         
         executorService=Executors.newSingleThreadExecutor();
-
-        try {
-            this.server=new DatagramSocket(null);
-            this.server.bind(new InetSocketAddress(ipAddr, port) );
-            this.server.setBroadcast(true);
-
-        } catch (SocketException ex) {
-            
-            App.logger.log(Level.SEVERE, 
-                    "Could not initialize socket",ex);
-        }        
     }
     
     public Broadcaster(){
 
-        this( "localhost" );
+        this( "localhost", DEFAULT_SERVER_PORT);
     }
     
     /**
@@ -64,54 +54,50 @@ public class Broadcaster extends ObservableUser {
         executorService.execute( () -> {
             
             while ( !Thread.currentThread().isInterrupted() ){
-                try {
-                    byte[] buffer=new byte[1024];
-                    
+                try {                    
                     //wait until notify from user request
-                    DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-                    server.receive(request);
+                    //DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+                    byte[] request=this.receive();
                     
-                    
-                    InetAddress remoteCli=request.getAddress();
-                    int remotePort=request.getPort();
+                    /*
+                    InetAddress remoteCli=packetIN.getAddress();
+                    int remotePort=packetIN.getPort();
+                    */
 
                     //System.out.println("remote request from:"+remoteCli.getHostName());
                     //System.out.println( String.format("requested: %s", new String(buffer,0, request.getLength())) );
-                    JSONObject data=new JSONObject();
-                    switch( new String(buffer,0, request.getLength()) ){
+                    JSONObject response=new JSONObject();
+
+                    switch( new String(request) ){
                         
                         case "HNAME":
-                            data.append("HNAME",String.valueOf(getHostName()) );
+                            response.append("HNAME",String.valueOf(userProfile.getHostName()) );
                             break;
                             
                         case "STAT":
-                            data.append("STAT",getStatus() );
+                            response.append("STAT",userProfile.getStatus() );
                             break;
                             
                         case "CSTAT":
-                            data.append("CSTAT", String.valueOf(getStatusMessage()) );
+                            response.append("CSTAT", userProfile.getStatusMessage() );
                             break;
                             
                         case "IMG":
-                            int d;
-                            while ((d=this.imageInputStream.read() )!=-1) {
-                                data.append("IMG",d);
-                            }
+                            
                             break;
                             
                         default:
                             
-                            data.putOpt("HNAME",String.valueOf(getHostName()) );
-                            data.putOpt("STAT",getStatus() );
-                            data.putOpt("CSTAT", String.valueOf(getStatusMessage()) );
-                            data.putOpt("NAME", String.valueOf(getName()) );
-                            data.putOpt("SURNAME", String.valueOf(this.getSurName()) );
+                            response.putOpt("HNAME",String.valueOf(userProfile.getHostName()) );
+                            response.putOpt("STAT",userProfile.getStatus() );
+                            response.putOpt("CSTAT", String.valueOf(userProfile.getStatusMessage()) );
+                            response.putOpt("NAME", String.valueOf(userProfile.getName()) );
+                            response.putOpt("SURNAME", String.valueOf(userProfile.getSurName()) );
                             break;
                     }
-                    buffer=data.toString().getBytes();
+
                     //System.out.println("response len:"+data.toString().length()+" "+data.toString());
-                    DatagramPacket response=new DatagramPacket(buffer, buffer.length, remoteCli,remotePort);
-                    server.send(response);
+                    this.send( response.toString().getBytes() );
                     
                 } catch (IOException ex) {
                     System.err.println(this.getClass().getName()
@@ -142,7 +128,7 @@ public class Broadcaster extends ObservableUser {
      */
     public void stop(){
         executorService.shutdownNow();
-        this.server.close();
+        this.sock.close();
         
         System.out.println("broadcaster stopped");
     }
