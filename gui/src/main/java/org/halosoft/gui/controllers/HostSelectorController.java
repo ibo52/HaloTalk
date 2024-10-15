@@ -6,7 +6,6 @@ package org.halosoft.gui.controllers;
 
 import java.io.IOException;
 import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.ResourceBundle;
@@ -17,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
@@ -38,12 +36,10 @@ import org.halosoft.gui.App;
 import org.halosoft.gui.controllers.setting.UserSettingsController;
 import org.halosoft.gui.models.ObservableUser;
 import org.halosoft.gui.models.User;
-import org.halosoft.gui.models.net.BroadcastClient;
 import org.halosoft.gui.models.net.Broadcaster;
 import org.halosoft.gui.models.net.Server;
-import org.halosoft.gui.models.net.ELANBrowser;
+import org.halosoft.gui.models.net.LANBrowser;
 import org.halosoft.gui.models.net.utils.NetworkDeviceManager;
-import org.json.JSONObject;
 
 /**
  * FXML Controller class
@@ -99,7 +95,7 @@ public class HostSelectorController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
  
-        LANBrowser();
+        initializeLANBrowser();
 
         this.appendUser(new ObservableUser("testing@127.0.0.1","loopback","user",2,
                 "This is a loopback address for Testing purposes",
@@ -113,7 +109,6 @@ public class HostSelectorController implements Initializable {
                 "This is a sample vbox address for Testing purposes",
         "192.168.1.95"));
         */
-        // TODO
     }
     
     /**
@@ -153,7 +148,7 @@ public class HostSelectorController implements Initializable {
     /**
      * browse through the subnet of LAN for users of this program
      */ 
-    private class LANBrowser implements Runnable{
+    private class LANBrowserInitializer implements Runnable{
 
         @Override
         public void run() {
@@ -164,6 +159,7 @@ public class HostSelectorController implements Initializable {
                         NetworkDeviceManager
                                 .ConnectionType.WIRELESS).get(0);*/
 
+                //check for every available network interface
                 for (NetworkInterface ni : NetworkDeviceManager.getInterfaceDevices() ) {
                 
                     String hostIdentity=NetworkDeviceManager
@@ -194,7 +190,7 @@ public class HostSelectorController implements Initializable {
                                 hostIdentity.lastIndexOf('.')+1);
                         
                         host+=+executorArgument;
-                        ELANBrowser task=new ELANBrowser(host);
+                        LANBrowser task=new LANBrowser(host);
 
                         task.setOnSucceeded(e->{
                             ObservableUser userData=task.getValue();
@@ -237,9 +233,9 @@ public class HostSelectorController implements Initializable {
         
     }
     
-    private void LANBrowser(){
+    private void initializeLANBrowser(){
 
-        LANBrowserService.scheduleAtFixedRate(new LANBrowser(),
+        LANBrowserService.scheduleAtFixedRate(new LANBrowserInitializer(),
                 0, 5, TimeUnit.SECONDS);
 
         //executorService.shutdown();
@@ -301,7 +297,7 @@ public class HostSelectorController implements Initializable {
      * @param userData personal information to update with old
      */
     public void updateBroadcasterData(User userData){
-        this.statusBroadcaster.setContents(userData);
+        this.statusBroadcaster.getObservableUser().setContents(userData);
     }
     
     @FXML
