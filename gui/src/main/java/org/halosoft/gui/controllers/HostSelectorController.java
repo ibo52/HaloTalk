@@ -5,6 +5,7 @@
 package org.halosoft.gui.controllers;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import org.halosoft.gui.App;
 import org.halosoft.gui.controllers.setting.UserSettingsController;
 import org.halosoft.gui.models.ObservableUser;
 import org.halosoft.gui.models.User;
+import org.halosoft.gui.models.net.BroadcastClient;
 import org.halosoft.gui.models.net.Broadcaster;
 import org.halosoft.gui.models.net.Server;
 import org.halosoft.gui.models.net.LANBrowser;
@@ -53,7 +55,7 @@ public class HostSelectorController implements Initializable {
     private final Server server;              //to let others conect to you
     
     protected final Broadcaster statusBroadcaster; //to emit info about your existence for LAN devices that use this program
-    
+
     @FXML
     private VBox usersBox;
     @FXML
@@ -86,6 +88,22 @@ public class HostSelectorController implements Initializable {
         
         statusBroadcaster=new Broadcaster("0.0.0.0");
         statusBroadcaster.start();
+
+        statusBroadcaster.getCallReachedProperty().addListener((obs, oldV, newV)->{
+
+            try {
+
+                String[] address=statusBroadcaster.getCallerAddressProperty().getValue().split(":");
+                
+                BroadcastClient forwardedCall=new BroadcastClient(address[0], Integer.valueOf(address[1]) );
+                
+                forwardedCall.send( "{'response':'reject ehbele'}".toString().getBytes() );
+                
+            } catch (IOException e) {
+                
+                e.printStackTrace();
+            }
+        });
         
         LANBrowserService=Executors.newScheduledThreadPool(1);
     }
@@ -171,10 +189,11 @@ public class HostSelectorController implements Initializable {
                             + " network interface is loopback");
                         continue;
                 }
-                
+                InetAddress niAddress=ni.getInetAddresses().nextElement();
+
                 /*System.out.println("Selected network interface:"
-                        +ni.getName()+" in network Identity:"+hostIdentity);*/
-                
+                        +ni.getName()+"-> "+niAddress.getHostName()+" in network Identity:"+hostIdentity);
+                */
                 ExecutorService executorService = Executors.newFixedThreadPool(
                 Runtime.getRuntime().availableProcessors()*2);
                 

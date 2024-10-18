@@ -36,6 +36,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Stage;
 
 import org.halosoft.database.QueryResultSet;
 import org.halosoft.database.SQLiteConnector;
@@ -44,7 +45,8 @@ import org.halosoft.database.TalkDBProperties;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Controllable;
 import org.halosoft.gui.models.ObservableUser;
-import org.halosoft.gui.models.net.Client;
+import org.halosoft.gui.models.net.TCPSocket;
+import org.halosoft.gui.utils.StageChanger;
 
 
 /**
@@ -62,7 +64,7 @@ public class ChatPanelController implements Controllable,
     private SQLiteConnector userDatabase;
     
     private ExecutorService executorService;
-    private Client remoteCli;
+    private TCPSocket remoteCli;
     //private DataOutputStream Out;//instead of client, we use Server's  queue
     
     @FXML
@@ -85,6 +87,9 @@ public class ChatPanelController implements Controllable,
     private HBox bottomMessageBorder;
 
     private Text MessageText; //to autosize messageTextfield
+
+    @FXML
+    private Button videoCallButton;
     //ref:https://stackoverflow.com/questions/18588765/how-can-i-make-a-textarea-stretch-to-fill-the-content-expanding-the-parent-in-t
     /**
      * Initializes the controller class.
@@ -150,6 +155,20 @@ public class ChatPanelController implements Controllable,
                 this.bottomMessageBorder.maxHeightProperty());
         
         executorService=Executors.newCachedThreadPool();
+
+        //TODO: TEST change new stage to video chat screen and init call
+        videoCallButton.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
+
+            try {
+                StageChanger.change(
+                    (Stage)this.rootPane.getScene().getWindow(),
+                    App.loadFXML("view/WifiCall"), 
+                    200, 300);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
     
     /**
@@ -159,12 +178,10 @@ public class ChatPanelController implements Controllable,
         try {
             this.executorService.shutdownNow();
             
-            this.remoteCli.stop();
-            
-        } catch(NullPointerException ex){
-            App.logger.log(Level.FINE,"Socket is possibly null."
-                    + " Pass closing",ex);
-            
+            this.remoteCli.getSocket().close();
+              
+        }catch (IOException e) {
+            App.logger.log(Level.CONFIG, "An error Occured when closing ChatPanel", e);
         }
     }
     
@@ -174,7 +191,7 @@ public class ChatPanelController implements Controllable,
 
             this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
             
-            this.remoteCli=new Client(this.userData.getID());
+            this.remoteCli=new TCPSocket(this.userData.getID());
             
             this.listenMessage();
             
@@ -213,17 +230,27 @@ public class ChatPanelController implements Controllable,
             //also listen for client socketIn
             
             while( !Thread.currentThread().isInterrupted() ){
-                String message=this.remoteCli.receive();
-                
-                if (message==null  || message.equals("SHUTDOWN")) {
-                    break;
-                }
 
-                Platform.runLater( ()->{
-                    addMessage(message.trim(), Pos.TOP_LEFT);
-                });
-                //TODO: save message to database
-                //userDatabase.query(TalkDBProperties.insertIntoMessageQueue(1, message));  
+                String message;
+                try {
+                    message = this.remoteCli.readUTF() ;
+                
+
+                    if ( message.isEmpty() ){//end of stream reached
+                        continue;
+                    }
+                    else if ( message.equals("SHUTDOWN") ) {
+                        break;//remote close request
+                    }
+
+                    Platform.runLater( ()->{
+                        addMessage(message.trim(), Pos.TOP_LEFT);
+                    });
+
+                } catch (IOException e) {
+                    App.logger.log(Level.CONFIG, "IO error on IN socket. Closing", e);
+                    close();
+                }
                 
             }
         });
@@ -234,7 +261,7 @@ public class ChatPanelController implements Controllable,
                 //open DB to listen incoming messages
             
                 //wait for ServerHandler to initialize message database,
-                Path dbfile=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteCli.getRemoteIp()) );
+                Path dbfile=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteCli.getSocket().getInetAddress().getHostAddress() ) );
                 while ( !SQLiteDatabaseManager.databaseExists( dbfile ) ) {
 
                     //System.err.println(String.format("database file:%s not exists. waiting..",dbfile.toString()));
@@ -299,9 +326,13 @@ public class ChatPanelController implements Controllable,
             //TODO: save message to database
             
             //send message to remote end
-            this.remoteCli.send(message);
-
-            this.messageTextField.setText("");
+            try {
+                this.remoteCli.writeUTF(message);
+                
+                this.messageTextField.setText("");
+            } catch (IOException e) {
+                App.logger.log(Level.CONFIG, "Could not send. socket IO error", e);
+            }
         }
     }
     
