@@ -2,13 +2,19 @@
 create table Sender
 (
     id integer not null primary key,
-    ip text not null unique
+    name text not null default '',
+    surname text not null default '',
+    status int not null default 0,
+    statusMessage text not null default 'Merhaba, Hola, Konnichiwa, Shalom, Hello, Ni hao.',
+    ip text not null,
+    mac text not null default ''--media access control address unique
 );
 
 --message queue between current device and remote
 create table MessageQueue
 (   id integer not null primary key,
     senderId text not null default 0,
+    msgType text not null default 0,--type of the message content, text str, phone call etc.
     message text not null,
     gmtdate date not null default current_date,
     gmttime time not null default current_time,
