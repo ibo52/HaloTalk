@@ -9,8 +9,10 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Locale;
 import java.util.Scanner;
-
+import java.io.InputStream;
+import java.lang.System.Logger.Level;
 /* 
  * Creates a new or loads existing database file for given path 
  * to communicate with Database
@@ -36,12 +38,11 @@ public class SQLiteConnector extends Connector {
             
             retval = DriverManager.getConnection(url);
 
-            System.err.println(String.format("[%s]: Connection to SQLite has been established.", this.getClass().getName()));
+            TalkDBProperties.logger.log(Level.TRACE, String.format("[%s]: Connection to SQLite has been established.", this.getClass().getName()));
         
         } catch (SQLException e) {
             
-            System.err.println(String.format("[%s]: %s", getClass().getName(), e.getMessage()));
-            e.printStackTrace();
+            TalkDBProperties.logger.log(Level.ERROR, String.format("[%s]: %s", getClass().getName(), e.getMessage()), e);
         }
 
         return retval;
@@ -55,7 +56,7 @@ public class SQLiteConnector extends Connector {
 
             int retvalInt=0;
 
-            for (String token : queryString.toLowerCase().split("\n")) {
+            for (String token : queryString.toLowerCase(Locale.ENGLISH).split("\n")) {
 
                 if(
                 (  !token.stripLeading().startsWith("--")
@@ -86,9 +87,7 @@ public class SQLiteConnector extends Connector {
 
         } catch (Exception e) {
 
-            System.err.println(String.format("[%s]: %s", getClass().getName(), e.getMessage()));
-            System.err.println(String.format("query: %s", queryString));
-            e.printStackTrace();
+            TalkDBProperties.logger.log(Level.ERROR, String.format("[%s]: %s\nquery: %s", getClass().getName(), e.getMessage(), queryString), e);
         }
 
         return retval2;
@@ -132,21 +131,37 @@ public class SQLiteConnector extends Connector {
         return retval;
     }
 
-    public static void main(String[] args) {
+    public QueryResultSet queryFromFile(InputStream fileStream) throws NoSuchFileException{
 
-        SQLiteConnector c=new SQLiteConnector("temp.db");
+        if ( fileStream==null ) {
+            
+            throw new NoSuchFileException("(File stream is null!");
+        }
 
-        //c.queryFromFile(Paths.get(SQLiteConnector.class.getResource("/tables.sql").getPath()));
+        QueryResultSet retval=null;
+
+        try (Scanner reader = new Scanner(fileStream)) {
+
+            StringBuilder queryToBuild=new StringBuilder();
+
+            while( reader.hasNextLine() ){
+                
+                String line=reader.nextLine().stripTrailing();
+
+                queryToBuild.append(line).append('\n');
+
+                if( !line.equals("") && line.charAt(line.length()-1)==';' ){
+
+                    this.query(queryToBuild.toString().stripLeading().stripTrailing());
+                    
+                    queryToBuild=new StringBuilder();
+
+                }
+            }            
         
-        SQLiteConnector.print( c.query("select * from sender") );
+        }
 
-        SQLiteConnector.print(c.query("insert into sender(ip) values('asd')"));
 
-        SQLiteConnector.print( c.query("select * from sender") );
-
-        SQLiteConnector.print(c.query("delete from sender where ip='asd'"));
-
-        SQLiteConnector.print( c.query("select * from sender") );
-
+        return retval;
     }
 }

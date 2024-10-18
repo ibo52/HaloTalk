@@ -1,6 +1,7 @@
 package org.halosoft.database;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -88,6 +89,39 @@ public class SQLiteDatabaseManager {
         return retval;   
     }
 
+    public static SQLiteConnector createDatabaseFromFile(String path, String dbName,
+            InputStream sqlFileAsStream) throws NoSuchFileException, IOException {
+        //execute database table queries on temporary, then move temporary to origin
+        //to prevent other processes to access db before tables generated
+        Path tempDB=Files.createTempFile("temporary", TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
+        Path permanentDB=Paths.get(path, dbName);
+
+        Files.deleteIfExists(permanentDB);
+        Files.createDirectories(permanentDB.getParent());
+
+        //System.out.println("permanent db created under: "+tempDB.toString());
+
+        SQLiteConnector retval=SQLiteDatabaseManager.openDatabase(tempDB);//.createDatabase(path, dbName);
+
+        retval.queryFromFile(sqlFileAsStream);
+
+        try {
+            retval.getConnection().close();
+
+        } catch (SQLException e) {
+            System.err.println(e.getMessage());
+        }
+
+        retval=null;
+
+        Files.move(tempDB, permanentDB);
+
+        Files.deleteIfExists(tempDB);
+
+        retval=SQLiteDatabaseManager.openDatabase(permanentDB);
+
+        return retval;  
+    }
     /**
      * Tries to open the given file if exists.
      * Throws exception if no such file or its path exists
