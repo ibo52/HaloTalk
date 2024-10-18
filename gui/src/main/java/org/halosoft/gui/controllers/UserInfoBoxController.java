@@ -30,8 +30,9 @@ import javafx.util.Duration;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Animateable;
 import org.halosoft.gui.interfaces.Controllable;
-import org.halosoft.gui.objects.BroadcastClient;
-import org.halosoft.gui.objects.ObservableUser;
+import org.halosoft.gui.models.ObservableUser;
+import org.halosoft.gui.models.net.BroadcastClient;
+import org.json.JSONObject;
 /**
  * FXML Controller class
  *
@@ -41,7 +42,7 @@ public class UserInfoBoxController implements Controllable,
         Initializable, Animateable{
 
     private HostSelectorController parentController;
-    private ObservableUser userData;
+    private final ObservableUser userData=new ObservableUser();
     
     @FXML
     private Region userImage;
@@ -63,7 +64,6 @@ public class UserInfoBoxController implements Controllable,
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         
-        this.userData=new ObservableUser();
         this.userID.textProperty().bind(this.userData.getHostNameProperty());
         this.customStatusLabel.textProperty().bind(this.userData.getStatusMessageProperty());
         
@@ -79,7 +79,6 @@ public class UserInfoBoxController implements Controllable,
                         .removeListener(this);
             }
         });
-        // TODO
         
         this.userUpdater();
     }   
@@ -88,24 +87,23 @@ public class UserInfoBoxController implements Controllable,
      * check for remote user status(on/off line)
      */
     private void userUpdater(){
-        ScheduledService checkRemoteStatusService=new ScheduledService<Void>(){
+        ScheduledService<Void> checkRemoteStatusService=new ScheduledService<Void>(){
             @Override
             protected Task<Void> createTask() {
                 
-                Task task=new Task<Void>(){
+                Task<Void> task=new Task<Void>(){
                     @Override
                     protected Void call() throws Exception {
 
                         BroadcastClient cli=new BroadcastClient(userData.getID());
-                        cli.start("STAT");
+                        JSONObject response=cli.start("STAT");
 
-                        String status=new String(cli.getBuffer(), 0, 
-                                cli.getBufferLength());
 
-                        if (status.equals("NO_RESPONSE")) {
+                        if ( response.isEmpty() ) {
                             setStatus(0);
+
                         }else{
-                            setStatus(Integer.valueOf(status));
+                            setStatus(Integer.valueOf( response.getInt("STAT") ));
                         }
                         return null;
                     }

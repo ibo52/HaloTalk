@@ -34,8 +34,8 @@ import javafx.util.Duration;
 import org.halosoft.gui.controllers.HostSelectorController;
 import org.halosoft.gui.interfaces.Animateable;
 import org.halosoft.gui.interfaces.Controllable;
-import org.halosoft.gui.objects.ObservableUser;
-import org.halosoft.gui.objects.PropertiesManager;
+import org.halosoft.gui.models.ObservableUser;
+import org.halosoft.gui.models.PropertiesManager;
 
 /**
  * FXML Controller class
@@ -89,7 +89,6 @@ public class AccountController implements Initializable, Controllable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
         
         this.editFieldBox.prefWidthProperty().bind((
                     this.rootPane.widthProperty()).subtract(40));
@@ -111,7 +110,7 @@ public class AccountController implements Initializable, Controllable,
                     
                     this.parentController.updateBroadcasterData(userData);
                     //save to file when status changed
-                    PropertiesManager.savePropertiesToFile(
+                    PropertiesManager.saveToFile(
                         this.userData.getProperties(), 
                         "settings/broadcaster.properties");
                 });
@@ -175,7 +174,7 @@ public class AccountController implements Initializable, Controllable,
                 
                 this.parentController.updateBroadcasterData(userData);
                 
-                PropertiesManager.savePropertiesToFile(
+                PropertiesManager.saveToFile(
                         this.userData.getProperties(), 
                         "settings/broadcaster.properties");
             }
@@ -195,7 +194,7 @@ public class AccountController implements Initializable, Controllable,
                 
                 this.parentController.updateBroadcasterData(userData);
                 
-                PropertiesManager.savePropertiesToFile(
+                PropertiesManager.saveToFile(
                         this.userData.getProperties(), 
                         "settings/broadcaster.properties");
             }

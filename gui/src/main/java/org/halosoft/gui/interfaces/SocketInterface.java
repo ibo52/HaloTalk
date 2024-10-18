@@ -1,4 +1,4 @@
-package org.ibo52.interfaces;
+package org.halosoft.gui.interfaces;
 
 import java.net.InetAddress;
 

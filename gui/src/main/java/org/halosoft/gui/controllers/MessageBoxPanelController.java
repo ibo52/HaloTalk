@@ -36,7 +36,7 @@ public class MessageBoxPanelController implements Initializable, Animateable{
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+
         this.msgTextArea.maxWidthProperty().bind( this.msgBoxLayout.widthProperty().multiply(0.9) );
         
         this.msgBoxLayout.setTranslateX(Long.MAX_VALUE);

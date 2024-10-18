@@ -41,7 +41,6 @@ public abstract class SettingsPaneAdapter implements Initializable, Controllable
     protected final Node addSetting(String name, String contents, String CssClassOfSVG){
 
             try {
-                // TODO
                 Parent p=App.loadFXML("view/setting/generalSetting");
                 GeneralSettingController ctrlr=(GeneralSettingController) p.getUserData();
 

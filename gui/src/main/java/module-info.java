@@ -6,10 +6,11 @@ module org.halosoft.gui {
     requires transitive javafx.controls;
     requires transitive javafx.fxml;
     requires transitive java.logging;
-    
+    requires org.halosoft.notifications;
     requires org.json;
 
     requires org.halosoft.database;
+    requires javafx.graphics;
 
     opens org.halosoft.gui.controllers to javafx.fxml;
     opens org.halosoft.gui.controllers.setting to javafx.fxml;

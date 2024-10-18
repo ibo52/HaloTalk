@@ -1,8 +1,9 @@
-module org.ibo52 {
+module org.halosoft.gui {
     requires javafx.controls;
     requires javafx.fxml;
-
-    opens org.ibo52 to javafx.fxml;
-    opens org.ibo52.controllers to javafx.fxml;
-    exports org.ibo52;
+    requires org.json;
+    
+    opens org.halosoft.gui to javafx.fxml;
+    opens org.halosoft.gui.controllers to javafx.fxml;
+    exports org.halosoft.gui;
 }

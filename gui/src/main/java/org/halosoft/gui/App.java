@@ -43,14 +43,14 @@ public class App extends Application {
         
         SplashScreen splashScreen=new SplashScreen();
         
-        Task loadTask=new Task<Void>(){
+        Task<Void> loadTask=new Task<Void>(){
             @Override
             protected Void call() throws Exception {
                 
                 try {
                     this.updateProgress(20, 100);
-                    stage.getIcons().add(new Image(App.class.getResource(
-                          appProperties.getProperty("LOGO")).toURI().toString()));
+                    stage.getIcons().add( new Image( App.class.getResourceAsStream(
+                          appProperties.getProperty("LOGO")) ) );
 
                     this.updateProgress(35, 100);
                     stage.setTitle(appProperties.getProperty("NAME"));
@@ -69,8 +69,6 @@ public class App extends Application {
 
                 } catch (IOException ex) {
                     App.logger.log(Level.SEVERE, ex.getMessage(),ex);
-                } catch (URISyntaxException ex) {
-                    App.logger.log(Level.WARNING, ex.getMessage(),ex);
                 }
                 return null;
             }

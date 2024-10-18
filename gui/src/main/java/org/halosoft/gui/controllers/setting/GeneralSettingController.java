@@ -46,7 +46,7 @@ public class GeneralSettingController implements Initializable, Animateable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+
         //start animation when width>0
         this.rootPane.setTranslateX(Long.MAX_VALUE);//keep out of screen for start animation
         this.rootPane.widthProperty().addListener(new ChangeListener<Number>() {

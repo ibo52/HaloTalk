@@ -1,1 +1,16 @@
-/nbproject/
+TODO.txt
+notifications/*
+gui/src/main/java/org/halosoft/gui/models/ciphering/*
+gui/src/main/java/org/halosoft/gui/models/net/PacketMonitor.java
+gui/src/main/java/org/halosoft/gui/models/net/Stream.java
+gui/src/main/java/org/halosoft/gui/models/net/VideoCallClient.java
+gui/src/main/java/org/halosoft/gui/models/VideoBroadcaster.java
+gui/src/main/java/org/halosoft/gui/models/net/WifiCall*
+gui/src/main/java/org/halosoft/gui/models/net/RTP.java
+
+gui/src/main/java/org/halosoft/gui/controllers/WifiCallController.java
+
+gui/src/main/resources/org/halosoft/gui/view/Wifi*
+gui/src/main/resources/org/halosoft/gui/stylesheet/videoCall*
+
+gui/videoProject/*

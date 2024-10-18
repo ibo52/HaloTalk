@@ -4,12 +4,8 @@
  */
 package org.halosoft.gui.controllers;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-import java.util.logging.Level;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -18,14 +14,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelWriter;
-import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
-import javax.imageio.ImageIO;
-import org.halosoft.gui.App;
-import org.halosoft.gui.objects.BroadcastClient;
-import org.halosoft.gui.objects.VideoBroadcaster;
+import org.halosoft.gui.models.VideoBroadcaster;
 
 /**
  * FXML Controller class
@@ -34,7 +25,7 @@ import org.halosoft.gui.objects.VideoBroadcaster;
  */
 public class MainPanelController implements Initializable {
     
-    private final BroadcastClient videoClient;
+    //private final BroadcastClient videoClient;
     private final VideoBroadcaster videoServer;
     
     @FXML
@@ -56,14 +47,14 @@ public class MainPanelController implements Initializable {
         this.videoServer=new VideoBroadcaster();
         videoServer.start();
         
-        this.videoClient=new BroadcastClient("",50003);
+        //this.videoClient=new BroadcastClient("",50003);
     }
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+
         imageBox.fitWidthProperty().bind(imageBoxLayout.widthProperty());
         imageBox.fitHeightProperty().bind(imageBoxLayout.heightProperty());
         imageBox.setImage( new Image( this.getClass().getClassLoader().getResource("images/logo-circle-512x512.png").toString() ) );
@@ -91,27 +82,22 @@ public class MainPanelController implements Initializable {
     /**
      * get image buffer by client, then draw to canvas
      */
+    /* 
     private void getImageData(){
         this.videoClient.start("STREAM");//get video data from remote
         
-        try {
-            BufferedImage buffImg=ImageIO.read(new ByteArrayInputStream(this.videoClient.getBuffer()));
-            
-            WritableImage wImg=new WritableImage(buffImg.getWidth(), buffImg.getHeight());
-            PixelWriter pw=wImg.getPixelWriter();
-            
-            //write bufferedImage to javafx image
-            for (int w = 0; w < buffImg.getWidth(); w++) {
-                for (int h = 0; h < buffImg.getHeight(); h++) {
-                    pw.setArgb(w, h, buffImg.getRGB(w, h));
-                }
+        BufferedImage buffImg=null;//ImageIO.read(new ByteArrayInputStream(this.videoClient.getBuffer()));
+        
+        WritableImage wImg=new WritableImage(buffImg.getWidth(), buffImg.getHeight());
+        PixelWriter pw=wImg.getPixelWriter();
+        
+        //write bufferedImage to javafx image
+        for (int w = 0; w < buffImg.getWidth(); w++) {
+            for (int h = 0; h < buffImg.getHeight(); h++) {
+                pw.setArgb(w, h, buffImg.getRGB(w, h));
             }
-            imageBox.setImage(wImg);
-            
-        } catch (IOException ex) {
-            App.logger.log(Level.SEVERE,"Error while getting and "
-                    + "writing image as WritableImage",ex);
         }
-    }
+        imageBox.setImage(wImg);
+    }*/
     
 }

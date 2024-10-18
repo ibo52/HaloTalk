@@ -32,7 +32,7 @@ import org.halosoft.gui.App;
 import org.halosoft.gui.adapters.SettingsPaneAdapter;
 import org.halosoft.gui.controllers.HostSelectorController;
 import org.halosoft.gui.interfaces.Animateable;
-import org.halosoft.gui.objects.PropertiesManager;
+import org.halosoft.gui.models.PropertiesManager;
 /**
  * FXML Controller class
  *
@@ -66,7 +66,7 @@ public class PreferencesController extends SettingsPaneAdapter
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+
         styleProperties=new Properties();
         
         Node theme=this.addSetting("Theme", "Default style for interface."
@@ -90,7 +90,7 @@ public class PreferencesController extends SettingsPaneAdapter
             styleProperties.setProperty("DEFAULT_STYLESHEET", 
                 this.themeMap.get(e));
             
-            PropertiesManager.savePropertiesToFile(styleProperties
+            PropertiesManager.saveToFile(styleProperties
                     , "settings/application");
             
             this.bringNodeToFrontOfStack(this.settingsBox);

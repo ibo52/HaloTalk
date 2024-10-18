@@ -143,7 +143,7 @@ public class NetworkDeviceManager {
                 return iface;
             }
         } catch (SocketException e) {
-            // TODO Auto-generated catch block
+
             e.printStackTrace();
         }
         

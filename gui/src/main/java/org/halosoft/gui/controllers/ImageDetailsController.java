@@ -28,7 +28,7 @@ import javafx.util.Duration;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Animateable;
 import org.halosoft.gui.interfaces.Controllable;
-import org.halosoft.gui.objects.ObservableUser;
+import org.halosoft.gui.models.ObservableUser;
 /**
  * FXML Controller class
  *

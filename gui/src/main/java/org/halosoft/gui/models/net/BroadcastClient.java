@@ -83,7 +83,7 @@ public class BroadcastClient extends UDPSocket{
             
             retval=new JSONObject( new String( this.receive() ) );
 
-            System.out.println("received:"+ retval );
+            //System.out.println("received:"+ retval );
             
         }catch (SocketTimeoutException ex) {
             //err: add timeout info to JSONObject or interpret empty json as no response

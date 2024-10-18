@@ -30,7 +30,7 @@ import javafx.util.Duration;
 
 import org.halosoft.gui.interfaces.Animateable;
 import org.halosoft.gui.interfaces.Controllable;
-import org.halosoft.gui.objects.ObservableUser;
+import org.halosoft.gui.models.ObservableUser;
 
 /**
  * FXML Controller class
@@ -65,7 +65,6 @@ public class UserContactController implements Controllable,
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
         
         this.rootPane.setTranslateY(Long.MAX_VALUE);//keep out of screen for start animation
         this.rootPane.heightProperty().addListener(new ChangeListener<Number>() {
