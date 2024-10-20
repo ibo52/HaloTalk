@@ -1,11 +1,12 @@
 package org.halosoft.database;
 
 import java.lang.System.Logger;
+import java.nio.file.Paths;
 
 public class TalkDBProperties {
     public static final Logger logger=System.getLogger(TalkDBProperties.class.getName());
 
-    public static final String DEFAULT_STORAGE_PATH="/tmp/halotalk";//System.getProperty("user.home");
+    public static final String DEFAULT_STORAGE_PATH=Paths.get(System.getProperty("java.io.tmpdir"),"halotalk").toString();
     public static final String DEFAULT_DB_FILE_EXTENSION=".sqlite";
 
     public static final String INSERT_INTO_MSGQUEUE="INSERT INTO MessageQueue(senderId, message, completed)"
@@ -48,11 +49,11 @@ public class TalkDBProperties {
     }
 
     /**
-     * 
+     *
      * @param limit the count of messages to be returned by database
      * @param offset the record skip step. Skipping will be made by multiplying offset with limit.
      * @return wanted query as a string
-     * 
+     *
      */
     public static final String getMessages(int limit, int offset){
 

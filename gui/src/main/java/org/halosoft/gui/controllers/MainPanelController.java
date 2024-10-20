@@ -16,7 +16,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Duration;
-import org.halosoft.gui.models.VideoBroadcaster;
 
 /**
  * FXML Controller class
@@ -24,10 +23,10 @@ import org.halosoft.gui.models.VideoBroadcaster;
  * @author ibrahim
  */
 public class MainPanelController implements Initializable {
-    
+
     //private final BroadcastClient videoClient;
-    private final VideoBroadcaster videoServer;
-    
+    //private final VideoBroadcaster videoServer;
+
     @FXML
     private Button endCallButton;
     @FXML
@@ -44,9 +43,7 @@ public class MainPanelController implements Initializable {
     private Button showTabPane;
 
     public MainPanelController() {
-        this.videoServer=new VideoBroadcaster();
-        videoServer.start();
-        
+
         //this.videoClient=new BroadcastClient("",50003);
     }
     /**
@@ -58,39 +55,39 @@ public class MainPanelController implements Initializable {
         imageBox.fitWidthProperty().bind(imageBoxLayout.widthProperty());
         imageBox.fitHeightProperty().bind(imageBoxLayout.heightProperty());
         imageBox.setImage( new Image( this.getClass().getClassLoader().getResource("images/logo-circle-512x512.png").toString() ) );
-        
+
         showTabPane.setOnMouseClicked(event->{
             TranslateTransition slide = new TranslateTransition();
             slide.setDuration( Duration.millis(300) );
             slide.setNode(tabPane);
-            
+
             if (tabPane.getBoundsInParent().getMinX() >= rootPane.getWidth()) {
                 //show by sliding to left
                 slide.setToX(0);
                 tabPane.setPrefWidth(-1);
-                
+
             }
             else{//hide by sliding to right
                 slide.setToX(tabPane.getWidth());
                 tabPane.setPrefWidth(0);
-                
+
             }
             slide.play();
         });
     }
-    
+
     /**
      * get image buffer by client, then draw to canvas
      */
-    /* 
+    /*
     private void getImageData(){
         this.videoClient.start("STREAM");//get video data from remote
-        
+
         BufferedImage buffImg=null;//ImageIO.read(new ByteArrayInputStream(this.videoClient.getBuffer()));
-        
+
         WritableImage wImg=new WritableImage(buffImg.getWidth(), buffImg.getHeight());
         PixelWriter pw=wImg.getPixelWriter();
-        
+
         //write bufferedImage to javafx image
         for (int w = 0; w < buffImg.getWidth(); w++) {
             for (int h = 0; h < buffImg.getHeight(); h++) {
@@ -99,5 +96,5 @@ public class MainPanelController implements Initializable {
         }
         imageBox.setImage(wImg);
     }*/
-    
+
 }

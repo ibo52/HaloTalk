@@ -8,9 +8,6 @@ import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.UDPSocket;
 import org.halosoft.gui.models.ObservableUser;
 import org.halosoft.gui.models.User;
-import org.halosoft.gui.models.net.WifiCallManager.CallType;
-import org.halosoft.gui.models.net.WifiCallManager.WifiCallRespondTask;
-import org.halosoft.gui.utils.StageChanger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,9 +30,9 @@ public class Broadcaster extends UDPSocket {
     protected final SimpleStringProperty callerAddress=new SimpleStringProperty("");
 
     private final ObservableUser userProfile=new ObservableUser();
-        
+
     private ExecutorService executorService;
-    
+
     /**
      * initializes DatagramSocket as a broadcast server.
      * @param ipAddr ip address to bind broadcast server
@@ -43,34 +40,34 @@ public class Broadcaster extends UDPSocket {
     public Broadcaster(String ipAddr, int port){
 
         super(ipAddr, port, true);
-        
+
         executorService=Executors.newSingleThreadExecutor();
     }
 
     public Broadcaster(String ip){
 
         this( ip, DEFAULT_SERVER_PORT);
-    }    
+    }
 
     public Broadcaster(){
 
         this( "localhost", DEFAULT_SERVER_PORT);
     }
-    
+
     /**
      * starts a thread in server to listen incoming requests.
      * Returns user data according to request type
      */
     public void start(){
-        
+
         executorService.execute( () -> {
-            int a=0;
+
             while ( !Thread.currentThread().isInterrupted() ){
-                try {                    
+                try {
                     //wait until notify from user request
                     //DatagramPacket request = new DatagramPacket(buffer, buffer.length);
                     byte[] incoming=this.receive();
-                    
+
                     //type parameter of incoming request
                     String typeParam="";
                     try{
@@ -83,7 +80,7 @@ public class Broadcaster extends UDPSocket {
                         typeParam=new String(incoming);
                     }
                     //System.out.println("incom"+request.toString());
-                    
+
                     InetAddress remoteCli=packetIN.getAddress();
                     int remotePort=packetIN.getPort();
 
@@ -92,26 +89,26 @@ public class Broadcaster extends UDPSocket {
                     this.packetOUT.setPort(remotePort);
 
                     //System.out.println("remote request from:"+remoteCli+":"+remotePort);
-                    
+
                     //System.out.println( String.format("requested: %s", new String(buffer,0, request.getLength())) );
                     JSONObject response=new JSONObject();
 
                     switch( typeParam.toUpperCase() ){
-                        
+
                         case "HNAME":
                             response.append("HNAME",String.valueOf(userProfile.getHostName()) );
                             break;
-                            
+
                         case "STAT":
                             response.append("STAT",userProfile.getStatus() );
                             break;
-                            
+
                         case "CSTAT":
                             response.append("CSTAT", userProfile.getStatusMessage() );
                             break;
-                            
+
                         case "IMG":
-                            
+
                             break;
 
                         case "CALL":
@@ -126,14 +123,14 @@ public class Broadcaster extends UDPSocket {
                                 this.send("{'response':'reject ulan'}".getBytes());
                                 break;
                             }
-                            
+
                             this.callerAddress.set(String.format("%s:%s", remoteCli.getHostAddress(), remotePort));
                             this.isCallReached.set(true);
                             this.userProfile.setStatus(User.Status.BUSY.ordinal());
                             break;
-                                                        
+
                         default:
-                            
+
                             response.putOpt("HNAME",String.valueOf(userProfile.getHostName()) );
                             response.putOpt("STAT",userProfile.getStatus() );
                             response.putOpt("CSTAT", String.valueOf(userProfile.getStatusMessage()) );
@@ -147,19 +144,19 @@ public class Broadcaster extends UDPSocket {
                     }
                     //System.out.println("response len:"+response.toString().length()+" "+response.toString());
                     this.send( response.toString().getBytes() );
-                                        
+
                 } catch (IOException ex) {
                     System.err.println(this.getClass().getName()
                             +"listener Server :"+ex.getMessage());
 
                 }
-                
+
             }
         });
-        
+
         executorService.shutdown();
     }
-    
+
     /**
      * if invoked, main thread will be blocked until listener interrupted
      */
@@ -172,14 +169,14 @@ public class Broadcaster extends UDPSocket {
             App.logger.log(Level.FINEST,"join Interrupted",ex);
         }
     }
-    
+
     /**
      * closes the broadcast server
      */
     public void stop(){
         executorService.shutdownNow();
         this.sock.close();
-        
+
         System.out.println("broadcaster stopped");
     }
 
@@ -200,10 +197,10 @@ public class Broadcaster extends UDPSocket {
     public static void main(String[] args) {
         System.out.println("Broadcaster Test");
         var s=new Broadcaster();
-        
+
         s.start();
-        
+
         s.join();
     }
-    
+
 }

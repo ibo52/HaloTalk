@@ -12,7 +12,7 @@
     <modules>
         <module>gui</module>
         <module>database</module>
-        <module>notifications</module>
+        <!--<module>notifications</module>-->
     </modules>
 
     <properties>
