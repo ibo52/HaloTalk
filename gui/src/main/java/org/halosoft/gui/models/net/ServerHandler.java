@@ -9,7 +9,9 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Path;
 import java.net.SocketException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.logging.Level;
@@ -31,46 +33,72 @@ public class ServerHandler extends TCPSocket implements Runnable{
         
     private final ExecutorService service=Executors.newCachedThreadPool();
     private SQLiteConnector database;
+    private boolean runWriter=true;
+
+    private final void __constructor__DBinit(){
+
+        String remoteIp=this.ip;
+        try {
+
+            Path dbPath=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH,
+                                    TalkDBProperties.nameTheDB(remoteIp));
+            //TODO: rearrange or review getresource method to be able to work with jar file
+            //(create new)/(open existing) databse
+            this.database=SQLiteDatabaseManager.databaseExists(
+                dbPath)?
+                SQLiteDatabaseManager.openDatabase(dbPath)
+                :
+                SQLiteDatabaseManager.createDatabaseFromFile(
+                    dbPath, SQLiteDatabaseManager.class.getResourceAsStream("/tables.sql") );
+
+
+            //store sender ip on table
+            database.query(TalkDBProperties.insertIntoSender(remoteIp));
         
-        public ServerHandler(Socket socket){
+        } catch (FileAlreadyExistsException ex) {
+            App.logger.log(Level.SEVERE, "A database already exists on traget path",ex);
+
+        }catch (IOException ex) {
+            App.logger.log(Level.SEVERE, 
+                    "Error while initializing DB and client "
+                            + "of ServerHandler",ex);
+        }
+    }
+
+    public ServerHandler(TCPSocket sepecificSock, boolean runSocketWriter){
+        this(sepecificSock);
+
+        //caht panel does not require a writer, since writing made by Server's writer
+        this.runWriter=runSocketWriter;
+    }
+
+    public ServerHandler(TCPSocket specificSock){
+
+        super(specificSock);
+
+        __constructor__DBinit();
+    }
+        
+    public ServerHandler(Socket socket){
 
             super(socket);
 
-            String remoteIp=socket.getInetAddress().getHostAddress();
+            __constructor__DBinit();
             
-            try {
-
-                //TODO: rearrange or review getresource method to be able to work with jar file
-                //(create new)/(open existing) databse
-                this.database=SQLiteDatabaseManager.databaseExists(
-                    Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH,TalkDBProperties.nameTheDB(remoteIp)))?
-                    SQLiteDatabaseManager.openDatabase(Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp)))
-                    :
-                    SQLiteDatabaseManager.createDatabaseFromFile(
-                        TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteIp), SQLiteDatabaseManager.class.getResourceAsStream("/tables.sql") );
-
-
-                //store sender ip on table
-                database.query(TalkDBProperties.insertIntoSender(remoteIp));
-            
-            } catch (IOException ex) {
-                App.logger.log(Level.SEVERE, 
-                        "Error while initializing DB and client "
-                                + "of ServerHandler",ex);
-            }
         }
 
     private void start() throws IOException {
 
-        String remoteIp=getSocket().getInetAddress().getHostAddress();
+        String remoteIp=this.ip;
 
         this.service.execute(
         new SocketReadManager(this.database, getDataInputStream(),
                 remoteIp));
-        
-        this.service.execute(
-        new SocketWriteManager(this.database, getDataOutputStream(),
-                remoteIp));
+
+        if(runWriter){
+            this.service.execute(
+            new SocketWriteManager(this.database, getDataOutputStream(),
+                remoteIp));}
         
         this.service.shutdown();
     }
@@ -98,10 +126,13 @@ public class ServerHandler extends TCPSocket implements Runnable{
         }
     }
         
-        /**
-         * Listens for socket Input Stream and writes that data to sqlite database.
-         */
-        private static class SocketReadManager implements Runnable{
+    public SQLiteConnector getConnector(){
+        return database;
+    }
+    /**
+     * Listens for socket Input Stream and writes that data to sqlite database.
+     */
+    private static class SocketReadManager implements Runnable{
 
             private final String ip;
             private final DataInputStream in;
@@ -162,11 +193,11 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
         }
         
-        /**
-         * Waits for data to be written to database file, then forwards the data to
-         * socket Output Stream.
-         */
-        private static class SocketWriteManager implements Runnable{
+    /**
+     * Waits for data to be written to database file, then forwards the data to
+     * socket Output Stream.
+     */
+    private static class SocketWriteManager implements Runnable{
 
             private DataOutputStream out;
             private final SQLiteConnector userDatabase;
@@ -194,8 +225,9 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
                                 LinkedList<String> datalist=result.getNextRecord();
 
-                                String message = datalist.get(2);
-                                int id=Integer.parseUnsignedInt(datalist.get(0));
+                                String message = datalist.get(result.indexOf("message"));
+                                int id=Integer.parseUnsignedInt(
+                                    datalist.get(result.indexOf("id")));
 
                                 this.out.writeUTF(message);
 
@@ -206,8 +238,8 @@ public class ServerHandler extends TCPSocket implements Runnable{
                             
                         } catch ( IOException | InterruptedException ex) {
                         //in case of an error, return message back to queue
-                            App.logger.log(Level.SEVERE, 
-                            "Error while sending messages from OUT file to socket",ex); 
+                            App.logger.log(Level.FINE, 
+                            "Socket OUT stream: "+ex.getMessage()); 
                             break;
                         }
                         

@@ -8,9 +8,6 @@ package org.halosoft.gui.controllers;
 
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
@@ -39,12 +36,11 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import org.halosoft.database.QueryResultSet;
-import org.halosoft.database.SQLiteConnector;
-import org.halosoft.database.SQLiteDatabaseManager;
 import org.halosoft.database.TalkDBProperties;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.Controllable;
 import org.halosoft.gui.models.ObservableUser;
+import org.halosoft.gui.models.net.ServerHandler;
 import org.halosoft.gui.models.net.TCPSocket;
 import org.halosoft.gui.utils.StageChanger;
 
@@ -60,11 +56,10 @@ public class ChatPanelController implements Controllable,
     private ObservableUser userData;
     
     private HostSelectorController parentController;
-    
-    private SQLiteConnector userDatabase;
-    
+        
     private ExecutorService executorService;
-    private TCPSocket remoteCli;
+
+    private ServerHandler remoteClientHandler;
     //private DataOutputStream Out;//instead of client, we use Server's  queue
     
     @FXML
@@ -175,14 +170,11 @@ public class ChatPanelController implements Controllable,
      * close communication socket
      */
     public void close(){
-        try {
+        
             this.executorService.shutdownNow();
             
-            this.remoteCli.getSocket().close();
+            this.remoteClientHandler.stop();
               
-        }catch (IOException e) {
-            App.logger.log(Level.CONFIG, "An error Occured when closing ChatPanel", e);
-        }
     }
     
     public void setContents(ObservableUser userData){
@@ -191,7 +183,13 @@ public class ChatPanelController implements Controllable,
 
             this.userNameLabel.textProperty().bind(this.userData.getNameProperty());
             
-            this.remoteCli=new TCPSocket(this.userData.getID());
+            this.remoteClientHandler=new ServerHandler(
+                new TCPSocket( this.userData.getID()), false );
+            //start receiver and sender threads
+            this.executorService.execute(remoteClientHandler);
+
+            //TODO: attempt to resconnect socket if remote server shut down
+
             
             this.listenMessage();
             
@@ -225,51 +223,13 @@ public class ChatPanelController implements Controllable,
      * listens for messages that comes from remote end
      */
     private void listenMessage(){
-        
-        executorService.execute(()->{
-            //also listen for client socketIn
-            
-            while( !Thread.currentThread().isInterrupted() ){
 
-                String message;
-                try {
-                    message = this.remoteCli.readUTF() ;
-                
-
-                    if ( message.isEmpty() ){//end of stream reached
-                        continue;
-                    }
-                    else if ( message.equals("SHUTDOWN") ) {
-                        break;//remote close request
-                    }
-
-                    Platform.runLater( ()->{
-                        addMessage(message.trim(), Pos.TOP_LEFT);
-                    });
-
-                } catch (IOException e) {
-                    App.logger.log(Level.CONFIG, "IO error on IN socket. Closing", e);
-                    close();
-                }
-                
-            }
-        });
-        
+        //Check if any message db created by server handler
         executorService.execute(() -> {
             
             try {
-                //open DB to listen incoming messages
-            
-                //wait for ServerHandler to initialize message database,
-                Path dbfile=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, TalkDBProperties.nameTheDB(remoteCli.getSocket().getInetAddress().getHostAddress() ) );
-                while ( !SQLiteDatabaseManager.databaseExists( dbfile ) ) {
-
-                    //System.err.println(String.format("database file:%s not exists. waiting..",dbfile.toString()));
-                    Thread.sleep(300);
-                }
-
-            
-                userDatabase=SQLiteDatabaseManager.openDatabase(dbfile);
+                //open DB to listen incoming messages            
+                var userDatabase=remoteClientHandler.getConnector();
 
                 //init last 10 messages
                 QueryResultSet initMessages=userDatabase.query(TalkDBProperties.getMessagesDesc(10, 0));
@@ -279,9 +239,10 @@ public class ChatPanelController implements Controllable,
 
                     String message=record.get( initMessages.indexOf("message") );
                     int id=Integer.parseInt( record.get( initMessages.indexOf("id") ) );
+                    int senderId=Integer.parseInt( record.get( initMessages.indexOf("senderId") ) );
 
                     Platform.runLater( ()->{
-                        addMessage(message, Pos.TOP_LEFT);
+                        addMessage(message, senderId==1? Pos.TOP_LEFT:Pos.TOP_RIGHT);
 
                         userDatabase.query(TalkDBProperties.updateMessageQueue("completed=1", "id="+id ));
                     }); 
@@ -309,10 +270,11 @@ public class ChatPanelController implements Controllable,
                     
                     Thread.sleep(300);
                 }
-            } catch (InterruptedException | NoSuchFileException ex) {
+            } catch (InterruptedException ex) {
                 App.logger.log(Level.FINE, "chat panel messaging error",ex);
             }
         });
+    
     }
 
     @FXML
@@ -326,13 +288,22 @@ public class ChatPanelController implements Controllable,
             //TODO: save message to database
             
             //send message to remote end
+            
+            //TODO: add message to db, then serverhandler auto sends it
+            /*
             try {
-                this.remoteCli.writeUTF(message);
+                this.remoteClientHandler.writeUTF(message);
+
+            }catch(IOException e){
                 
-                this.messageTextField.setText("");
-            } catch (IOException e) {
-                App.logger.log(Level.CONFIG, "Could not send. socket IO error", e);
             }
+             */
+            //message sending managed by Server, we just need to add message to databse
+            remoteClientHandler.getConnector().query(
+                TalkDBProperties.insertIntoMessageQueue(0, message, 0));
+                
+            this.messageTextField.setText("");
+            
         }
     }
     

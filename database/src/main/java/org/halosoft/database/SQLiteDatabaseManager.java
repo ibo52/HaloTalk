@@ -7,6 +7,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.nio.file.FileAlreadyExistsException;
 
 public class SQLiteDatabaseManager {
 
@@ -89,12 +90,14 @@ public class SQLiteDatabaseManager {
         return retval;   
     }
 
-    public static SQLiteConnector createDatabaseFromFile(String path, String dbName,
-            InputStream sqlFileAsStream) throws NoSuchFileException, IOException {
+    public static SQLiteConnector createDatabaseFromFile(Path dbPath,
+            InputStream sqlFileAsStream)
+            throws NoSuchFileException, IOException, FileAlreadyExistsException{
+
         //execute database table queries on temporary, then move temporary to origin
         //to prevent other processes to access db before tables generated
         Path tempDB=Files.createTempFile("temporary", TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
-        Path permanentDB=Paths.get(path, dbName);
+        Path permanentDB=dbPath;
 
         Files.deleteIfExists(permanentDB);
         Files.createDirectories(permanentDB.getParent());
@@ -120,7 +123,14 @@ public class SQLiteDatabaseManager {
 
         retval=SQLiteDatabaseManager.openDatabase(permanentDB);
 
-        return retval;  
+        return retval; 
+    }
+
+    public static SQLiteConnector createDatabaseFromFile(String path, String dbName,
+            InputStream sqlFileAsStream)
+            throws NoSuchFileException, IOException, FileAlreadyExistsException {
+                
+        return SQLiteDatabaseManager.createDatabaseFromFile(Paths.get(path, dbName), sqlFileAsStream);
     }
     /**
      * Tries to open the given file if exists.

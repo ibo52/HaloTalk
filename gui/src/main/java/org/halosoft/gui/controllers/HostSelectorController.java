@@ -122,11 +122,11 @@ public class HostSelectorController implements Initializable {
         this.appendUser(new ObservableUser("testing@unreachable","unreachable","user",2,
                 "This is a sample No use address for Testing purposes",
         "192.0.192.0"));
-        
+        */
         this.appendUser(new ObservableUser("testing@virtualbox","vbox","user",2,
                 "This is a sample vbox address for Testing purposes",
-        "192.168.1.95"));
-        */
+        "192.168.122.48"));
+        
     }
     
     /**

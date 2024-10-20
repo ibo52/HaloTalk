@@ -22,6 +22,8 @@ public class TCPSocket{
 
     protected static final int DEFAULT_BUFFER_SIZE=65536;
 
+    protected final String ip;
+
     protected final byte[] INBuffer=new byte[DEFAULT_BUFFER_SIZE];
 
     private final DataInputStream IN;
@@ -30,9 +32,20 @@ public class TCPSocket{
     protected final Socket sock;
 
     /*manage an already opened socket */
+
+    public TCPSocket(TCPSocket s){
+
+        this.sock=s.getSocket();
+        this.ip=s.ip;
+        this.IN=s.IN;
+        this.OUT=s.OUT;
+    }
+
     public TCPSocket(Socket s){
 
         this.sock=s;
+
+        ip=s.getInetAddress().getHostAddress();
 
         DataInputStream tempIN=null;
         DataOutputStream tempOUT=null;
@@ -56,6 +69,8 @@ public class TCPSocket{
 
         DataInputStream tempIN=null;
         DataOutputStream tempOUT=null;
+
+        this.ip=ip;
 
         try {
             sock.connect(new InetSocketAddress(ip, port), 1000);
