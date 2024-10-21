@@ -13,7 +13,8 @@ import org.junit.Test;
 
 public class SQLiteDatabaseManagerTest {
 
-    private final String path="/tmp/halotalk";
+    //use temporary dir of OS for tests
+    private final String path=System.getProperty("java.io.tmpdir");
     private final String dbname="test.db";
     private final String sqlFile="/tables.sql";
     @Test
@@ -34,7 +35,7 @@ public class SQLiteDatabaseManagerTest {
             assertTrue(Paths.get(
                 SQLiteDatabaseManager.class.getResource(sqlFile).toURI()
             ).toFile().exists());
-            
+
             Connector c=SQLiteDatabaseManager.createDatabaseFromFile(path, dbname, Paths.get(
                 SQLiteDatabaseManager.class.getResource(sqlFile).toURI()
             ));

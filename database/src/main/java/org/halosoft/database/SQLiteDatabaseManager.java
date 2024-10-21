@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.StandardOpenOption;
 
 public class SQLiteDatabaseManager {
 
@@ -18,7 +19,7 @@ public class SQLiteDatabaseManager {
         OVERWRITE( READ.getNum()<<1 );  //overwrites if a file exists, creates if not exists
 
         private final int numval;
-        
+
         OpenMode(int val){
             this.numval=val;
         }
@@ -44,7 +45,7 @@ public class SQLiteDatabaseManager {
         SQLiteConnector c=null;
         try {
             c= SQLiteDatabaseManager.openDatabase(path, dbName, OpenMode.OVERWRITE);
-        
+
         } catch (NoSuchFileException e) {
         }
 
@@ -87,7 +88,7 @@ public class SQLiteDatabaseManager {
 
         retval=SQLiteDatabaseManager.openDatabase(permanentDB);
 
-        return retval;   
+        return retval;
     }
 
     public static SQLiteConnector createDatabaseFromFile(Path dbPath,
@@ -123,13 +124,13 @@ public class SQLiteDatabaseManager {
 
         retval=SQLiteDatabaseManager.openDatabase(permanentDB);
 
-        return retval; 
+        return retval;
     }
 
     public static SQLiteConnector createDatabaseFromFile(String path, String dbName,
             InputStream sqlFileAsStream)
             throws NoSuchFileException, IOException, FileAlreadyExistsException {
-                
+
         return SQLiteDatabaseManager.createDatabaseFromFile(Paths.get(path, dbName), sqlFileAsStream);
     }
     /**
@@ -167,15 +168,15 @@ public class SQLiteDatabaseManager {
                 try {
 
                     Files.createDirectories( Paths.get(path) );
-                
+
                     retval=new SQLiteConnector(
                         dbfile.toString() );
-        
+
                 } catch (IOException e) {
-                    
+
                     System.err.println(String.format("[%s]: %s", SQLiteDatabaseManager.class.getName(), e.getMessage()));
                     e.printStackTrace();
-                
+
                 }
                 break;
 
@@ -183,17 +184,18 @@ public class SQLiteDatabaseManager {
                 try {
 
                     Files.createDirectories( Paths.get(path) );
-        
-                    Files.deleteIfExists( dbfile );
-        
+                    //truncate file to 0 byte:
+                    //former invoke was Files.deleteIfExists(), which throws java.nio.file.FileSystemException on Windows
+                    Files.write(dbfile, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
+
                     retval=new SQLiteConnector(
                         dbfile.toString() );
-        
+
                 } catch (IOException e) {
-                    
+
                     System.err.println(String.format("[%s]: %s", SQLiteDatabaseManager.class.getName(), e.getMessage()));
                     e.printStackTrace();
-                
+
                 }
                 break;
 
@@ -202,7 +204,7 @@ public class SQLiteDatabaseManager {
                     System.err.println(String.format("[%s]: %s -> %s", SQLiteDatabaseManager.class.getName(), "No such file exists: ", dbfile.toString() ));
 
                     throw new NoSuchFileException( dbfile.toString() );
-                
+
                 }else{
                     retval=new SQLiteConnector(
                         dbfile.toString() );
