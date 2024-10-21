@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
@@ -93,6 +94,10 @@ public class TCPSocket{
 
     public Socket getSocket(){
         return sock;
+    }
+
+    public void reconnect() throws SocketTimeoutException, IOException{
+        this.sock.connect(this.sock.getRemoteSocketAddress(), 1000);
     }
     /*General tcp standart: stream type receive */
     public byte[] receive() throws IOException{

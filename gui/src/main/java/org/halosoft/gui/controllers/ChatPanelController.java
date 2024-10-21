@@ -57,7 +57,7 @@ public class ChatPanelController implements Controllable,
     
     private HostSelectorController parentController;
         
-    private ExecutorService executorService;
+    private final ExecutorService executorService=Executors.newCachedThreadPool();
 
     private ServerHandler remoteClientHandler;
     //private DataOutputStream Out;//instead of client, we use Server's  queue
@@ -148,8 +148,6 @@ public class ChatPanelController implements Controllable,
                 .bind(this.rootPane.heightProperty().divide(3));
         this.messageTextField.maxHeightProperty().bind(
                 this.bottomMessageBorder.maxHeightProperty());
-        
-        executorService=Executors.newCachedThreadPool();
 
         //TODO: TEST change new stage to video chat screen and init call
         videoCallButton.addEventHandler(MouseEvent.MOUSE_CLICKED, (MouseEvent t)->{
@@ -188,6 +186,26 @@ public class ChatPanelController implements Controllable,
             //start receiver and sender threads
             this.executorService.execute(remoteClientHandler);
 
+            //TODO: EN SON check connection drop(e.g remote server is down), then attempt to reconnect
+            this.executorService.execute(()->{
+
+                while ( !Thread.currentThread().isInterrupted()) {
+                    try {
+                        Thread.sleep(1000);
+
+                        if( !remoteClientHandler.isConnectionUp() ){
+                            System.out.println("connection down retry ");
+
+                            remoteClientHandler.reconnect();
+                            remoteClientHandler.getConnectionDropped().set(false);
+                        }
+                    } catch (InterruptedException e) {
+                        System.out.println("checker done catch");
+                    } catch ( IOException e) {
+                        System.out.println("socket could not reconnect");
+                    }
+                }System.out.println("checker done while loop");
+            });
             //TODO: attempt to resconnect socket if remote server shut down
 
             

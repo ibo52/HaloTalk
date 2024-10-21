@@ -22,6 +22,7 @@ import org.halosoft.database.SQLiteDatabaseManager;
 import org.halosoft.database.TalkDBProperties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
@@ -33,7 +34,9 @@ public class ServerHandler extends TCPSocket implements Runnable{
         
     private final ExecutorService service=Executors.newCachedThreadPool();
     private SQLiteConnector database;
-    private boolean runWriter=true;
+    private boolean runSocketRunnables=true;
+
+    private final AtomicBoolean connectionDropped=new AtomicBoolean(false);
 
     private final void __constructor__DBinit(){
 
@@ -69,7 +72,7 @@ public class ServerHandler extends TCPSocket implements Runnable{
         this(sepecificSock);
 
         //caht panel does not require a writer, since writing made by Server's writer
-        this.runWriter=runSocketWriter;
+        this.runSocketRunnables=runSocketWriter;
     }
 
     public ServerHandler(TCPSocket specificSock){
@@ -91,14 +94,15 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
         String remoteIp=this.ip;
 
-        this.service.execute(
-        new SocketReadManager(this.database, getDataInputStream(),
-                remoteIp));
+        
+            this.service.execute(
+            new SocketReadManager(this.database, getDataInputStream(),
+                remoteIp, connectionDropped));
 
-        if(runWriter){
+        if(runSocketRunnables){
             this.service.execute(
             new SocketWriteManager(this.database, getDataOutputStream(),
-                remoteIp));}
+                remoteIp, connectionDropped));}
         
         this.service.shutdown();
     }
@@ -106,13 +110,20 @@ public class ServerHandler extends TCPSocket implements Runnable{
     public void stop() {
 
         this.service.shutdownNow();
-        
+        this.connectionDropped.set(true);
         try {
             this.getSocket().close();
             
         } catch (IOException ex) {
             
         }
+    }
+
+    public boolean isConnectionUp(){
+        return !this.connectionDropped.get();
+    }
+    public AtomicBoolean getConnectionDropped(){
+        return this.connectionDropped;
     }
     
     @Override
@@ -137,13 +148,15 @@ public class ServerHandler extends TCPSocket implements Runnable{
             private final String ip;
             private final DataInputStream in;
             private final SQLiteConnector userDatabase;
+            private AtomicBoolean dropNotifier;
             
             public SocketReadManager(SQLiteConnector database, DataInputStream sockIn
-            ,String socketIp){
+            ,String socketIp, AtomicBoolean dropnotifier){
 
                 this.in= sockIn;
                 this.ip=socketIp;
                 this.userDatabase=database; 
+                this.dropNotifier=dropnotifier;
             }
             
             @Override
@@ -189,6 +202,7 @@ public class ServerHandler extends TCPSocket implements Runnable{
                         break;
                     }
                 }
+                dropNotifier.set(true);
             }
 
         }
@@ -201,14 +215,14 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
             private DataOutputStream out;
             private final SQLiteConnector userDatabase;
-            //private final String ip;
+            private AtomicBoolean dropNotifier;
             
             public SocketWriteManager(SQLiteConnector database, DataOutputStream sockOut
-            ,String socketIp){
+            ,String socketIp, AtomicBoolean dropnotifier){
 
                 this.out= sockOut;
                 this.userDatabase=database;
-                //this.ip=socketIp;
+                this.dropNotifier=dropnotifier;
             }
             
             @Override
@@ -242,8 +256,8 @@ public class ServerHandler extends TCPSocket implements Runnable{
                             "Socket OUT stream: "+ex.getMessage()); 
                             break;
                         }
-                        
                 }
+                dropNotifier.set(true);
             }
 
         }
