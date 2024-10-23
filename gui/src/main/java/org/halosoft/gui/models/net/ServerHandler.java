@@ -36,8 +36,6 @@ public class ServerHandler extends TCPSocket implements Runnable{
     private SQLiteConnector database;
     private boolean runSocketRunnables=true;
 
-    private final AtomicBoolean connectionDropped=new AtomicBoolean(false);
-
     private final void __constructor__DBinit(){
 
         String remoteIp=this.ip;
@@ -97,12 +95,12 @@ public class ServerHandler extends TCPSocket implements Runnable{
         
             this.service.execute(
             new SocketReadManager(this.database, getDataInputStream(),
-                remoteIp, connectionDropped));
+                remoteIp, getAlive() ));
 
         if(runSocketRunnables){
             this.service.execute(
             new SocketWriteManager(this.database, getDataOutputStream(),
-                remoteIp, connectionDropped));}
+                remoteIp, getAlive() ));}
         
         this.service.shutdown();
     }
@@ -110,20 +108,12 @@ public class ServerHandler extends TCPSocket implements Runnable{
     public void stop() {
 
         this.service.shutdownNow();
-        this.connectionDropped.set(true);
         try {
-            this.getSocket().close();
+            this.close();
             
         } catch (IOException ex) {
             
         }
-    }
-
-    public boolean isConnectionUp(){
-        return !this.connectionDropped.get();
-    }
-    public AtomicBoolean getConnectionDropped(){
-        return this.connectionDropped;
     }
     
     @Override
@@ -148,15 +138,15 @@ public class ServerHandler extends TCPSocket implements Runnable{
             private final String ip;
             private final DataInputStream in;
             private final SQLiteConnector userDatabase;
-            private AtomicBoolean dropNotifier;
+            private AtomicBoolean aliveNotifier;
             
             public SocketReadManager(SQLiteConnector database, DataInputStream sockIn
-            ,String socketIp, AtomicBoolean dropnotifier){
+            ,String socketIp, AtomicBoolean alivenotifier){
 
                 this.in= sockIn;
                 this.ip=socketIp;
                 this.userDatabase=database; 
-                this.dropNotifier=dropnotifier;
+                this.aliveNotifier=alivenotifier;
             }
             
             @Override
@@ -202,7 +192,7 @@ public class ServerHandler extends TCPSocket implements Runnable{
                         break;
                     }
                 }
-                dropNotifier.set(true);
+                aliveNotifier.set(false);
             }
 
         }
@@ -215,14 +205,14 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
             private DataOutputStream out;
             private final SQLiteConnector userDatabase;
-            private AtomicBoolean dropNotifier;
+            private AtomicBoolean aliveNotifier;
             
             public SocketWriteManager(SQLiteConnector database, DataOutputStream sockOut
-            ,String socketIp, AtomicBoolean dropnotifier){
+            ,String socketIp, AtomicBoolean alivenotifier){
 
                 this.out= sockOut;
                 this.userDatabase=database;
-                this.dropNotifier=dropnotifier;
+                this.aliveNotifier=alivenotifier;
             }
             
             @Override
@@ -257,7 +247,7 @@ public class ServerHandler extends TCPSocket implements Runnable{
                             break;
                         }
                 }
-                dropNotifier.set(true);
+                aliveNotifier.set(false);
             }
 
         }

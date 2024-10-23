@@ -7,6 +7,7 @@ package org.halosoft.gui.controllers;
 
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
@@ -193,18 +194,13 @@ public class ChatPanelController implements Controllable,
                     try {
                         Thread.sleep(1000);
 
-                        if( !remoteClientHandler.isConnectionUp() ){
+                        if( !remoteClientHandler.isAlive() ){
                             System.out.println("connection down retry ");
 
-                            remoteClientHandler.reconnect();
-                            remoteClientHandler.getConnectionDropped().set(false);
+                            remoteClientHandler.reconnect(1000);
                         }
-                    } catch (InterruptedException e) {
-                        System.out.println("checker done catch");
-                    } catch ( IOException e) {
-                        System.out.println("socket could not reconnect");
-                    }
-                }System.out.println("checker done while loop");
+                    } catch (Exception e) {}
+                }
             });
             //TODO: attempt to resconnect socket if remote server shut down
 
