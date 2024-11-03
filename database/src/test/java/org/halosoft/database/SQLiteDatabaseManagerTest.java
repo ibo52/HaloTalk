@@ -1,6 +1,7 @@
 package org.halosoft.database;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -46,9 +47,11 @@ public class SQLiteDatabaseManagerTest {
             QueryResultSet r=c.query(TalkDBProperties.selectFromSender("*"));
 
             assertNotNull(r);
+            assertEquals(r.getNextRecord("ip"), "localhost");
+            
 
             r=c.query(TalkDBProperties.selectFromMessageQueue("*"));
-
+            
             assertNotNull(r);
 
 

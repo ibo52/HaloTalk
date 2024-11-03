@@ -87,7 +87,7 @@ public class SQLiteConnector extends Connector {
 
         } catch (Exception e) {
 
-            TalkDBProperties.logger.log(Level.ERROR, String.format("[%s]: %s\nquery: %s", getClass().getName(), e.getMessage(), queryString), e);
+            TalkDBProperties.logger.log(Level.ERROR, String.format("[%s]: %s\n QUERY:\n %s", getClass().getName(), e.getMessage(), queryString), e);
         }
 
         return retval2;

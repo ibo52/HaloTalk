@@ -1,6 +1,7 @@
 TODO.txt
 **/target/**
 notifications/*
+networking/*
 gui/src/main/java/org/halosoft/gui/models/ciphering/*
 gui/src/main/java/org/halosoft/gui/models/net/PacketMonitor.java
 gui/src/main/java/org/halosoft/gui/models/net/Stream.java

@@ -43,7 +43,6 @@ public class ServerHandler extends TCPSocket implements Runnable{
 
             Path dbPath=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH,
                                     TalkDBProperties.nameTheDB(remoteIp));
-            //TODO: rearrange or review getresource method to be able to work with jar file
             //(create new)/(open existing) databse
             this.database=SQLiteDatabaseManager.databaseExists(
                 dbPath)?
@@ -57,7 +56,7 @@ public class ServerHandler extends TCPSocket implements Runnable{
             database.query(TalkDBProperties.insertIntoSender(remoteIp));
         
         } catch (FileAlreadyExistsException ex) {
-            App.logger.log(Level.SEVERE, "A database already exists on traget path",ex);
+            App.logger.log(Level.SEVERE, "A database already exists on target path",ex);
 
         }catch (IOException ex) {
             App.logger.log(Level.SEVERE, 

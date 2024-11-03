@@ -4,6 +4,9 @@
  */
 package org.halosoft.gui.models.net;
 
+import org.halosoft.database.SQLiteConnector;
+import org.halosoft.database.SQLiteDatabaseManager;
+import org.halosoft.database.TalkDBProperties;
 import org.halosoft.gui.App;
 import org.halosoft.gui.interfaces.UDPSocket;
 import org.halosoft.gui.models.ObservableUser;
@@ -15,6 +18,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.net.InetAddress;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,6 +48,15 @@ public class Broadcaster extends UDPSocket {
         super(ipAddr, port, true);
 
         executorService=Executors.newSingleThreadExecutor();
+
+        Path userDB=Paths.get(TalkDBProperties.DEFAULT_STORAGE_PATH, "user"+TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
+
+        try {//attempt to open database, if not exists: continue;
+            SQLiteConnector db=SQLiteDatabaseManager.openDatabase(userDB);
+            userProfile.setContents(db);
+
+        } catch (NoSuchFileException e) {
+        }
     }
 
     public Broadcaster(String ip){

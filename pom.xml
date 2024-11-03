@@ -12,6 +12,7 @@
     <modules>
         <module>gui</module>
         <module>database</module>
+        <module>networking</module>
         <!--<module>notifications</module>-->
     </modules>
 

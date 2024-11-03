@@ -10,8 +10,6 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -152,44 +150,99 @@ public class NetworkDeviceManager {
         
     }
     
+    public static String IpV4ToString(byte[] addr){
+        StringBuilder s=new StringBuilder();
+
+        for (byte b : addr) {
+            s.append(Byte.toUnsignedInt(b)+".");
+        }
+
+        return s.substring(0, s.length()-1);// remeove extra '.' at last
+    }
+
     /**
-     * Calculates network identity by address of given network interface.
+     * Calculate network identity by first ipv4 address found in networkInterface
+     * which ip address resides
+     * @param address
+     * @return
+     * @throws SocketException
+     */
+    public static byte[] calculateNetworkIdentity(Inet4Address address) throws SocketException{
+        
+        var ni = NetworkInterface.getByInetAddress(address);
+
+        for (InterfaceAddress addr : ni.getInterfaceAddresses()){
+                
+            if ( addr.getAddress().equals( address ) ) {
+
+                return NetworkDeviceManager.
+                calculateNetworkIdentity(address, addr.getNetworkPrefixLength());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Calculate default network identity for given subnet prefix
+     * @param address ip address to calculate
+     * @param subnetPrefixLength subnet mask obtained from networkDeviceManager
+     * @return network identity as subnet mask applied to ip address
+     */
+    public static byte[] calculateNetworkIdentity(Inet4Address address, short subnetPrefixLength){
+
+        if( address.isLoopbackAddress() )
+            return new byte[]{-1,0,0,0};//assumed default id for localhost
+
+        byte[] identity = {-1,-1,-1,-1};
+        
+        //network byte order: the highest order byte of the address is in addr[0].
+        byte ip[]=address.getAddress();
+
+        int mask = -1 << (32 - subnetPrefixLength);//all bits set to 1
+        
+        for (int i = 0; i < identity.length; i++) {
+            
+            identity[i] = (byte)(ip[i] & ( (mask >>(24 - 8*i)) & 0xFF));
+        }
+
+        return identity;
+    }
+    
+    /**
+     * Calculates network identity(for IPv4) by address of given network interface.
+     * which this computer resides in
+     * 
      * @param ni Desired type of interface device
      * @return network identity if machine is connected to internet, 
      * or returns loopback identity(127.0.0.0 generally)
      */
     public static String calculateNetworkIdentity(NetworkInterface ni){
        /*Returns network identity of sub network*/
-        InetAddress local=null;
         try {
-            local = InetAddress.getLocalHost();
-        } catch (UnknownHostException ex) {
-            App.logger.log(Level.SEVERE, 
-                        "Unknown ip for InetAddress",ex);
-        }
-        int subnetMask=-1;
 
-        for (InterfaceAddress addr:ni.getInterfaceAddresses()){
-            if (addr.getNetworkPrefixLength()<=24) {
-                
-                local=addr.getAddress();
-                subnetMask=addr.getNetworkPrefixLength();
-                break;
+            // Skip loopback and down interfaces
+            if (ni.isLoopback() || !ni.isUp()) {
+                return "255.0.0.0";
             }
+
+            for (InterfaceAddress addr : ni.getInterfaceAddresses()){
+                
+                if ( addr.getAddress() instanceof Inet4Address ) {
+ 
+                    byte[] id = NetworkDeviceManager.
+                    calculateNetworkIdentity( (Inet4Address)addr.getAddress(), addr.getNetworkPrefixLength());
+                    
+                    return NetworkDeviceManager.IpV4ToString(id);
+
+                }
+            }
+
+        }catch (SocketException e) {
+            System.err.println(String.format("[%s]: Localhost could not resolved: %s",
+            NetworkDeviceManager.class.getName(), e) );
         }
 
-       //logical AND ip with subnet mask to calculate network identity address
-       int addressToBitwise=ByteBuffer.wrap(
-               local.getAddress() ).getInt() &(-1<< (32-subnetMask) );
-       
-       byte[] calc=ByteBuffer.allocate(4).putInt(addressToBitwise).array();
-
-       String host= Byte.toUnsignedInt(calc[0])+"."
-                   +Byte.toUnsignedInt(calc[1])+"."
-                   +Byte.toUnsignedInt(calc[2])+"."
-                   +Byte.toUnsignedInt(calc[3]);
-       //return calculated identity address
-       return host;
+        return null;
     }
     
     /**

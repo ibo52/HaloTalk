@@ -5,7 +5,6 @@
 package org.halosoft.gui.controllers;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.Iterator;
@@ -123,10 +122,10 @@ public class HostSelectorController implements Initializable {
                 "This is a sample No use address for Testing purposes",
         "192.0.192.0"));
         */
-        /*
+        
         this.appendUser(new ObservableUser("testing@virtualbox","vbox","user",2,
                 "This is a sample vbox address for Testing purposes",
-        "192.168.122.48"));*/
+        "192.168.122.48"));
 
     }
 
@@ -188,12 +187,12 @@ public class HostSelectorController implements Initializable {
                 }catch(IOException e){
                     App.logger.log(Level.CONFIG,"Network interface socket IO error", e);
                 }
-                /*
+   /*             
                 InetAddress niAddress=ni.getInetAddresses().nextElement();
 
                 System.out.println("ni ---"+niAddress);
                 System.out.println("Selected network interface:"
-                        +ni.getName()+"-> "+niAddress.getHostName()+" in network Identity:"+hostIdentity);
+                        +ni.getName()+"-> "+niAddress.getHostName()+" in network Identity:");
                 */
 
                 String hostIdentity=NetworkDeviceManager

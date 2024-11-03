@@ -7,7 +7,6 @@ package org.halosoft.gui.controllers;
 
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.ResourceBundle;
@@ -187,7 +186,6 @@ public class ChatPanelController implements Controllable,
             //start receiver and sender threads
             this.executorService.execute(remoteClientHandler);
 
-            //TODO: EN SON check connection drop(e.g remote server is down), then attempt to reconnect
             this.executorService.execute(()->{
 
                 while ( !Thread.currentThread().isInterrupted()) {
@@ -202,8 +200,6 @@ public class ChatPanelController implements Controllable,
                     } catch (Exception e) {}
                 }
             });
-            //TODO: attempt to resconnect socket if remote server shut down
-
             
             this.listenMessage();
             
@@ -299,19 +295,7 @@ public class ChatPanelController implements Controllable,
         if ( !message.isBlank() ) {
             
             this.addMessage(message, Pos.TOP_RIGHT);
-            //TODO: save message to database
-            
-            //send message to remote end
-            
-            //TODO: add message to db, then serverhandler auto sends it
-            /*
-            try {
-                this.remoteClientHandler.writeUTF(message);
-
-            }catch(IOException e){
-                
-            }
-             */
+                        
             //message sending managed by Server, we just need to add message to databse
             remoteClientHandler.getConnector().query(
                 TalkDBProperties.insertIntoMessageQueue(0, message, 0));

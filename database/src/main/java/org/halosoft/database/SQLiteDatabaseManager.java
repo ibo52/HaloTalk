@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.StandardOpenOption;
@@ -57,15 +58,16 @@ public class SQLiteDatabaseManager {
      * 2. creates sqlite database by given name(IMPORTANT: DELETES if such file exists),
      * 3. executes the query given from file which is generally the table definitions or inserts
      */
-    public static SQLiteConnector createDatabaseFromFile(String path, String dbName, Path sqlFile) throws NoSuchFileException, IOException{
+    public static SQLiteConnector createDatabaseFromFile(String path, String dbName, Path sqlFile) throws IOException {
 
         //execute database table queries on temporary, then move temporary to origin
         //to prevent other processes to access db before tables generated
         Path tempDB=Files.createTempFile("temporary", TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
+        
         Path permanentDB=Paths.get(path, dbName);
 
-        Files.deleteIfExists(permanentDB);
         Files.createDirectories(permanentDB.getParent());
+        //Files.write(permanentDB, new byte[0], StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         //System.out.println("permanent db created under: "+tempDB.toString());
 
@@ -77,12 +79,13 @@ public class SQLiteDatabaseManager {
             retval.getConnection().close();
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            System.err.println(String.format("[%s]: %s -> %s", SQLiteDatabaseManager.class.getName(), e.getSQLState(), e ));
+
         }
 
         retval=null;
 
-        Files.move(tempDB, permanentDB);
+        Files.move(tempDB, permanentDB, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 
         Files.deleteIfExists(tempDB);
 
@@ -100,9 +103,7 @@ public class SQLiteDatabaseManager {
         Path tempDB=Files.createTempFile("temporary", TalkDBProperties.DEFAULT_DB_FILE_EXTENSION);
         Path permanentDB=dbPath;
 
-        Files.deleteIfExists(permanentDB);
         Files.createDirectories(permanentDB.getParent());
-
         //System.out.println("permanent db created under: "+tempDB.toString());
 
         SQLiteConnector retval=SQLiteDatabaseManager.openDatabase(tempDB);//.createDatabase(path, dbName);
@@ -113,7 +114,8 @@ public class SQLiteDatabaseManager {
             retval.getConnection().close();
 
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            System.err.println(String.format("[%s]: %s -> %s", SQLiteDatabaseManager.class.getName(), e.getSQLState(), e ));
+
         }
 
         retval=null;

@@ -76,8 +76,8 @@ public class Server {
                     try {
                         
                         Socket client1 = server.accept();
-                         
-                        /*System.out.printf("%s:%d connected\n",
+                        /*
+                        System.out.printf("%s:%d connected\n",
                                 client1.getInetAddress().getHostAddress(),
                                 client1.getPort());
                         */
@@ -88,15 +88,13 @@ public class Server {
                         this.service.execute(handler);
                         
                     }catch (SocketException ex) {
-                        App.logger.log(Level.FINER, 
+                        App.logger.log(Level.INFO, 
                         "Possibly remote socket closed",ex);
 
                     }catch (IOException ex) {
                         App.logger.log(Level.SEVERE, 
                         "Error while managing Server",ex);
                             
-                    }finally{
-                        //this.stop();//server stop
                     }
                 }
             });

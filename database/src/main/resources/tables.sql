@@ -6,8 +6,7 @@ create table Sender
     surname text not null default '',
     status int not null default 0,
     statusMessage text not null default 'Merhaba, Hola, Konnichiwa, Shalom, Hello, Ni hao.',
-    ip text not null,
-    mac text not null default ''--media access control address unique
+    ip text not null
 );
 
 --message queue between current device and remote
@@ -19,7 +18,6 @@ create table MessageQueue
     gmtdate date not null default current_date,
     gmttime time not null default current_time,
     completed integer not null default 1, --citates that either message read by cli or sent by server 
-    --direction integer not null default 0,
 
     foreign key(senderId) references Sender(id)
 );

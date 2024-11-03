@@ -9,6 +9,7 @@ import java.net.InetAddress;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import org.halosoft.database.SQLiteConnector;
 import org.halosoft.gui.App;
 
 import javafx.beans.Observable;
@@ -33,22 +34,18 @@ public class ObservableUser extends User {
     public ObservableUser() {
         
         try {
-
-            props.load(App.class.getResourceAsStream("settings/"
-                    + "broadcaster.properties"));
+            props.load(App.class.getResourceAsStream("settings/broadcaster.properties"));
+            
+            this.nameProperty.set(props.getProperty("NAME"));
+            this.surnameProperty.set(props.getProperty("SURNAME"));
+            this.hostnameProperty.set(this.hostName);
+            this.statusProperty.set(props.getProperty("STATUS"));
+            this.statusMessageProperty.set(props.getProperty("STATUS_MESSAGE"));
+            this.ipAddressProperty.set(this.ipAddress);
         
-        this.nameProperty.set(props.getProperty("NAME"));
-        this.surnameProperty.set(props.getProperty("SURNAME"));
-        this.hostnameProperty.set(this.hostName);
-        this.statusProperty.set(props.getProperty("STATUS"));
-        this.statusMessageProperty.set(props.getProperty("STATUS_MESSAGE"));
-        this.ipAddressProperty.set(this.ipAddress);
-
-        } catch (IOException ex) {
-            App.logger.log(Level.WARNING,"User Data could not load "
-                                    + "from disk. Pass",ex);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        
         initListeners();
         
  
@@ -178,6 +175,17 @@ public class ObservableUser extends User {
         this.ipAddressProperty.set(ipAddress);
         this.statusMessageProperty.set(StatusMessage);
         this.statusProperty.set(String.valueOf(status));
+    }
+
+    public void setContents(SQLiteConnector database){
+
+            var result=database.query("Select * from User");
+            var row=result.getNextRecord();
+                
+            this.nameProperty.set( row.get( result.indexOf("name") ) );
+            this.surnameProperty.set( row.get( result.indexOf("surname") ) );
+            this.statusProperty.set( row.get( result.indexOf("status") ) );
+            this.statusMessageProperty.set( row.get( result.indexOf("statusMessage") ) );
     }
     
     public Properties getProperties(){
